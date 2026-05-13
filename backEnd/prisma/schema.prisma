@@ -1,0 +1,57 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Users {
+    ADMIN
+    USER
+}
+
+enum DataFields {
+    TEXT
+    Number
+    DECIMALS
+
+}
+
+
+
+// the user table 
+
+model User {
+    id  String @id @default(cuid())
+    username    String
+    email   String @unique
+    role    Users @default(USER)
+    profile Profile?
+    department  Department?
+    updatedAt   DateTime @updatedAt
+    createdAt   DateTime @default(now())
+}
+
+// user profile table
+model Profile {
+    id  String @id @default(cuid())
+    bio String?
+    avatar  String?
+
+    userId  String @unique
+    user    User @relation(fields: [userId], references: [id])
+
+    createdAt DateTime @default(now())
+}
+
+// departments tabel 
+// one user per department will be register here 
+model Department {
+    id  String @id @default(cuid())
+    department_Name String @unique
+    userId  String @unique
+    user    User @relation(fields: [userId], references: [id])
+}
+
+
