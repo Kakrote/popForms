@@ -28,6 +28,7 @@ model User {
     email   String @unique
     role    Users @default(USER)
     profile Profile?
+    password    String
     department  Department?
     updatedAt   DateTime @updatedAt
     createdAt   DateTime @default(now())

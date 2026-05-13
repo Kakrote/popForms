@@ -1,4 +1,5 @@
 import { Router,Request,Response } from "express";
+import authRotues from "../modules/auth/auth.routes.js";
 
 const router=Router();
 
@@ -7,5 +8,8 @@ const router=Router();
 router.get("/",(req:Request,res:Response)=>{
     res.send("Hello the api route is working fine");
 })
+
+router.use("/auth",authRotues);
+
 
 export default router;
