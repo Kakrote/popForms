@@ -9,7 +9,7 @@ app.use(express.json());
 app.use("/api",router);
 
 app.get("/",(req:express.Request,res:express.Response)=>{
-    res.send("hello world form express 5");
+    res.send("hello world form express ");
 })
 
 // Global error handler (must be after routes)
