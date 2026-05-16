@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import logger from "../utils/logger.js";
+import { log } from "node:console";
 
 type JwtUser = {
   id: string;
@@ -19,6 +21,7 @@ export const authenticate = (
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
+    logger.warn("Unauthorized access attempt to a protected route without token");
     return res.status(401).json({
       message: "Unauthorized",
     });
@@ -56,8 +59,9 @@ export const authorizeRoles = (...allowedRoles: Array<JwtUser["role"]>) => {
         message: "Unauthorized",
       });
     }
-
+    
     if (!allowedRoles.includes(req.user.role)) {
+      logger.warn("Unauthorized role access attempt to a protected route");
       return res.status(403).json({
         message: "Forbidden",
       });
