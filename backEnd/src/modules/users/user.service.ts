@@ -1,6 +1,8 @@
+import { Prisma } from "@prisma/client";
 import { AppError } from "../../utils/appError.js";
-import { getUsersFromDB, getUser } from "./user.repository.js";
+import { getUsersFromDB, getUser, updateUser } from "./user.repository.js";
 import {User} from "./user.types.js"
+
 
 type UsersArray = Awaited<ReturnType<typeof getUsersFromDB>>;
 type UserRecord = UsersArray extends Array<infer U> ? U : never;
@@ -29,4 +31,11 @@ export const getAllUsers = async () => {
 export const getUserById=async (id:User["id"])=>{
     const user =await getUser(id);
     return sanitizeUser(user);
+}
+
+// update user profile  
+
+export const updateUserProfile= async (id:User["id"], updateData: Partial<Prisma.UserCreateInput>)=>{
+    const updatedUser = await updateUser(id,updateData);
+    return sanitizeUser(updatedUser);
 }

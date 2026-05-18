@@ -1,7 +1,3 @@
-export type User={
-    id: string;
-    username: string;
-    email: string;
-    role: string;
-    password: string;
-}
+import {   Prisma } from "@prisma/client";
+
+export type User=Partial<Prisma.UserCreateInput>
