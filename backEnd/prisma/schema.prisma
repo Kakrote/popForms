@@ -74,6 +74,7 @@ model Department {
 }
 
 //this will have the forms 
+
 model Form {
   id          String       @id @default(cuid())
   title       String
