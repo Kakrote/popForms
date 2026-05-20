@@ -77,7 +77,7 @@ model Department {
 
 model Form {
   id          String       @id @default(cuid())
-  title       String
+  title       String       
   slug        String       @unique
   description String?
   isOpen      Boolean      @default(true)

@@ -1,29 +1,15 @@
-enum  Filds{
-    TEXT,
-    TEXTAREA,
-    NUMBER,
-    EMAIL,
-    DATE,
-    SELECT,
-    RADIO,
-    CHECKBOX,
-    FILE,
-}
-
 export type FormField = {
     label: string;
-    type: Filds;
+    type: "text" | "textarea" | "number" | "email" | "date" | "select" | "radio" | "checkbox";
     required?: boolean;
     options?: string[];
-}
+};
 
-export type FormCreateInput = {
+export type CreateFormInput = {
     title: string;
-    slug: string;
     description?: string;
-    departmentId: string;
     fields?: FormField[];
-    isActive?: boolean;
-    createdBy?: string;
-}
+    isOpen?: boolean;
+    deadline?: string | Date;
+};
 

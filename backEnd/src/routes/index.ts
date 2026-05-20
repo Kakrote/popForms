@@ -2,6 +2,7 @@ import { Router,Request,Response } from "express";
 import authRotues from "../modules/auth/auth.routes.js";
 import userRoutes from "../modules/users/user.routes.js";
 import departmentRoutes from "../modules/department/department.routes.js";
+import formRoutes from "../modules/forms/form.routes.js";
 
 const router=Router();
 
@@ -14,6 +15,7 @@ router.get("/",(req:Request,res:Response)=>{
 router.use("/auth",authRotues);
 router.use("/user",userRoutes);
 router.use("/department",departmentRoutes);
+router.use("/forms",formRoutes);
 
 
 export default router;
