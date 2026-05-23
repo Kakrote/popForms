@@ -1,6 +1,6 @@
 import { catchAsync } from "../../utils/catchAsync.js";
 import { createFormSchema } from "./form.validation.js";
-import { createForm as createFormService } from "./form.service.js";
+import { createForm as createFormService, deleteForm as deleteFormService } from "./form.service.js";
 import { Request, Response } from "express";
 
 type AuthenticatedRequest = Request & {
@@ -27,6 +27,28 @@ export const createForm = catchAsync(
             success: true,
             message: "Form created successfully",
             data: form,
+        });
+    }
+);
+
+// deleting the form 
+
+export const deleteForm = catchAsync(
+    async (req: AuthenticatedRequest, res: Response) => {
+        const { slug } = req.params;
+
+        if (!req.user?.id) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized",
+            });
+        }
+
+        await deleteFormService(slug as string);
+
+        res.status(200).json({
+            success: true,
+            message: "Form deleted successfully",
         });
     }
 );

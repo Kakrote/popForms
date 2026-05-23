@@ -59,3 +59,13 @@ export const  findFormByTitle = async(title:string)=>{
         }
     })
 }
+
+// deleting the form by its id 
+
+export const deleteForm = async(slug:string)=>{
+    return prisma.form.delete({
+        where:{
+            slug:slug
+        }
+    })
+}
