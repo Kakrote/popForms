@@ -1,96 +1,129 @@
 # PopForms
 
-> Backend API for PopForms — a form management and submission system built with Express and TypeScript.
+PopForms is a backend API for managing forms, departments, submissions, and users. The repository is currently backend-first: the Express API lives in `backEnd`, and `frontEnd` is empty at the moment.
 
-## Overview
-- Backend stack: Node.js, TypeScript, Express, Prisma (PostgreSQL)
-- Primary features implemented so far: user authentication (JWT), role-based access control, user management endpoints, Prisma schema and migrations, admin seeding utility.
+## Stack
 
-This repository contains the server implementation under the `backEnd` folder and a frontend scaffold in `frontEnd` (if present).
+- Node.js + TypeScript
+- Express 5
+- Prisma 7 with PostgreSQL
+- JWT authentication
+- Zod validation
+- bcrypt for password hashing
 
-## Repo structure (high level)
-- [backEnd/server.ts](backEnd/server.ts) — Server entry point
-- [backEnd/src/app.ts](backEnd/src/app.ts) — Express app configuration and middleware
-- [backEnd/src/routes/index.ts](backEnd/src/routes/index.ts) — Route aggregator
-- [backEnd/src/modules/auth](backEnd/src/modules/auth) — Authentication controllers, service, repository, validation
-- [backEnd/src/modules/users](backEnd/src/modules/users) — User controllers and services
-- [backEnd/src/middlewares](backEnd/src/middlewares) — Authentication, authorization, error handler
-- [backEnd/src/utils](backEnd/src/utils) — `seedAdmin`, `appError`, `catchAsync`, `logger`
-- [backEnd/prisma/schema.prisma](backEnd/prisma/schema.prisma) — Prisma schema
-- [backEnd/prisma/migrations](backEnd/prisma/migrations) — Existing DB migrations
-- [backEnd/package.json](backEnd/package.json) — Scripts and dependencies
+## What is implemented
 
-## Work completed so far
-- Implemented JWT-based authentication with registration and login flows.
-- Implemented role-based access control (ADMIN / USER) and `authorizeRoles` middleware.
-- Created user management endpoints (list users, get user by id) protected for ADMIN.
-- Added Prisma schema models for Users, Forms, Fields, Submissions, Departments, and enums for field types and statuses.
-- Added three Prisma migrations (under `backEnd/prisma/migrations`) representing DB schema evolution.
-- Implemented `seedAdmin` utility to create an initial admin user on startup if missing.
-- Added TypeScript and project configuration (`tsconfig.json`, ES module setup).
+- Authentication with login and admin-only registration
+- Role-based access control with `ADMIN` and `USER`
+- Admin user management endpoints
+- Department CRUD, restricted to admins
+- Form create, delete, and status toggle routes, restricted to admins
+- Submission creation route for authenticated `USER` and `ADMIN` accounts
+- Startup admin seeding from environment variables
+- Prisma schema, migrations, and a root-level Prisma config
 
-## Missing / Not yet implemented
-- No endpoints yet for form CRUD, submissions, or file uploads (schema contains types but routes are not implemented).
-- No mailer/email sending implementation despite MailStatus enum in schema.
-- No automated test suite included (test script is placeholder).
+## API Surface
 
-## Environment variables
-Create a `.env` file in `backEnd` with at minimum the following variables:
+The API is mounted under `/api`.
+
+- `GET /api` - health check for the API router
+- `POST /api/auth/login` - log in and receive a JWT
+- `POST /api/auth/register` - create a user, admin only
+- `GET /api/user/users` - list users, admin only
+- `GET /api/user/:id` - get a user by ID, admin only
+- `PATCH /api/user/:id` - update a user profile, admin only
+- `POST /api/department` - create a department, admin only
+- `GET /api/department` - list departments, admin only
+- `GET /api/department/:id` - get a department by ID, admin only
+- `GET /api/department/user/:userId` - get a department by user ID, admin only
+- `PATCH /api/department/:id` - update a department, admin only
+- `DELETE /api/department/:id` - delete a department, admin only
+- `POST /api/forms` - create a form, admin only
+- `PATCH /api/forms/:slug` - toggle form status, admin only
+- `DELETE /api/forms/:slug` - delete a form, admin only
+- `POST /api/submissions` - submit a form, authenticated `USER` or `ADMIN`
+
+## Repository Layout
+
+- [backEnd/server.ts](backEnd/server.ts) - server bootstrap and admin seeding
+- [backEnd/src/app.ts](backEnd/src/app.ts) - Express app setup and global middleware
+- [backEnd/src/routes/index.ts](backEnd/src/routes/index.ts) - route aggregator mounted at `/api`
+- [backEnd/src/modules/auth](backEnd/src/modules/auth) - login and registration flow
+- [backEnd/src/modules/users](backEnd/src/modules/users) - admin user management
+- [backEnd/src/modules/department](backEnd/src/modules/department) - department CRUD
+- [backEnd/src/modules/forms](backEnd/src/modules/forms) - form endpoints
+- [backEnd/src/modules/submissions](backEnd/src/modules/submissions) - submission endpoint
+- [backEnd/src/middlewares](backEnd/src/middlewares) - authentication, authorization, and error handling
+- [backEnd/src/utils](backEnd/src/utils) - logger, error helpers, slug helper, password hashing, admin seeding
+- [backEnd/src/lib/prisma.ts](backEnd/src/lib/prisma.ts) - Prisma client wrapper
+- [backEnd/prisma/schema.prisma](backEnd/prisma/schema.prisma) - database schema
+- [backEnd/prisma/migrations](backEnd/prisma/migrations) - applied migrations
+- [backEnd/prisma.config.ts](backEnd/prisma.config.ts) - Prisma CLI configuration
+- [backEnd/package.json](backEnd/package.json) - scripts and dependencies
+
+## Prisma Notes
+
+- The Prisma CLI is configured from [backEnd/prisma.config.ts](backEnd/prisma.config.ts)
+- `DATABASE_URL` is loaded through `dotenv/config`
+- The schema includes users, profiles, departments, forms, fields, field options, form access, submissions, and submission values
+
+## Environment Variables
+
+Create a `.env` file in `backEnd` with at least:
 
 ```env
 PORT=5000
 DATABASE_URL=postgresql://user:password@localhost:5432/popforms
-JWT_SECRET=your_jwt_secret_here
+JWT_SECRET=replace_with_a_long_secret
 ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=supersecurepassword
 ADMIN_USERNAME=admin
 NODE_ENV=development
 ```
 
-## Quick start (backend)
-1. Open a terminal and change to the backend folder:
+`ADMIN_EMAIL` and `ADMIN_PASSWORD` are optional for startup, but if they are present the app will seed an initial admin account automatically.
+
+## Local Setup
+
+1. Change into the backend folder.
 
 ```bash
 cd backEnd
 ```
 
-2. Install dependencies:
+2. Install dependencies.
 
 ```bash
 npm install
 ```
 
-3. Generate Prisma client and apply migrations (choose one):
+3. Generate Prisma client and apply migrations.
 
 ```bash
 npx prisma generate
-npx prisma migrate deploy   # apply saved migrations to production-like DB
-# or for local development:
-npx prisma migrate dev --name init
+npx prisma migrate dev
 ```
 
-4. Start the server:
+4. Start the API.
 
 ```bash
-npm run dev   # development with tsx watch
-# or
-npm start     # production (tsx server.ts)
+npm run dev
 ```
 
-5. On first run the server will attempt to create the admin user using the `seedAdmin` utility (ensure ADMIN_* env vars are set).
+Use `npm start` for the non-watch runtime.
 
-## Notable files to review
-- [backEnd/prisma/schema.prisma](backEnd/prisma/schema.prisma)
+## Current Gaps
+
+- The `frontEnd` directory is empty
+- There is no automated test suite yet
+- The API currently exposes routes for the implemented flows above, but not a full frontend or public API docs
+
+## Useful Entry Points
+
+- [backEnd/server.ts](backEnd/server.ts)
+- [backEnd/src/routes/index.ts](backEnd/src/routes/index.ts)
 - [backEnd/src/modules/auth/auth.routes.ts](backEnd/src/modules/auth/auth.routes.ts)
-- [backEnd/src/modules/users/user.routes.ts](backEnd/src/modules/users/user.routes.ts)
-- [backEnd/src/utils/seedAdmin.ts](backEnd/src/utils/seedAdmin.ts)
-
-## Next recommended steps
-- Implement Form and Submission CRUD routes and controllers.
-- Add file upload handling (multipart) for `FILE` field types.
-- Implement email sending for notifications / MailStatus processing.
-- Add a `.env.example` with required environment variables for easier onboarding.
-- Add unit/integration tests for auth and user flows.
-
-## Contact / Maintainers
-If you need more details or want me to expand the README with API examples, OpenAPI spec, or frontend integration notes, tell me which section to expand.
+- [backEnd/src/modules/department/department.routes.ts](backEnd/src/modules/department/department.routes.ts)
+- [backEnd/src/modules/forms/form.routes.ts](backEnd/src/modules/forms/form.routes.ts)
+- [backEnd/src/modules/submissions/submission.routes.ts](backEnd/src/modules/submissions/submission.routes.ts)
+- [backEnd/prisma/schema.prisma](backEnd/prisma/schema.prisma)
