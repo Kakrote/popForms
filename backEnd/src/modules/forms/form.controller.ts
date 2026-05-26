@@ -1,6 +1,6 @@
 import { catchAsync } from "../../utils/catchAsync.js";
 import { createFormSchema } from "./form.validation.js";
-import { createForm as createFormService, deleteForm as deleteFormService } from "./form.service.js";
+import { createForm as createFormService, deleteForm as deleteFormService,toggleFormStatusService } from "./form.service.js";
 import { Request, Response } from "express";
 
 type AuthenticatedRequest = Request & {
@@ -52,3 +52,28 @@ export const deleteForm = catchAsync(
         });
     }
 );
+
+
+// activating and deactivating the form
+
+export const toggleFormStatus = catchAsync(
+    async(req: AuthenticatedRequest, res: Response) => {
+        const { slug } = req.params;
+        const { isOpen } = req.body;
+
+        if (!req.user?.id) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized",
+            });
+        }
+
+        const form = await toggleFormStatusService(slug as string, isOpen);
+
+        res.status(200).json({
+            success: true,
+            message: `Form ${isOpen ? "activated" : "deactivated"} successfully`,
+            data: form,
+        });
+    }
+)

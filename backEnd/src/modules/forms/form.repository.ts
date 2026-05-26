@@ -69,3 +69,18 @@ export const deleteForm = async(slug:string)=>{
         }
     })
 }
+
+// activating and deactivating the form 
+
+export const toggleFormStatus = async (slug:string,isOpen:boolean)=>{
+    return prisma.form.update(
+        {
+            where:{
+                slug:slug
+            },
+            data:{
+                isOpen:isOpen
+            }
+        }
+    )
+}
