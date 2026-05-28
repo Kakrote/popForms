@@ -50,6 +50,115 @@ export const createForm = async (data: CreateFormInput, createdById: string) => 
     });
 };
 
+export const getAllForms = async () => {
+    return await prisma.form.findMany({
+        orderBy: {
+            createdAt: "desc",
+        },
+        include: {
+            fields: {
+                orderBy: {
+                    sortOrder: "asc",
+                },
+                include: {
+                    options: true,
+                },
+            },
+            submissions: {
+                select: {
+                    id: true,
+                },
+            },
+            createdBy: {
+                select: {
+                    id: true,
+                    username: true,
+                    email: true,
+                    role: true,
+                },
+            },
+        },
+    });
+};
+
+export const getFormBySlug = async (slug: string) => {
+    return await prisma.form.findUnique({
+        where: {
+            slug,
+        },
+        include: {
+            fields: {
+                orderBy: {
+                    sortOrder: "asc",
+                },
+                include: {
+                    options: true,
+                },
+            },
+            accesses: {
+                include: {
+                    department: {
+                        include: {
+                            user: {
+                                select: {
+                                    id: true,
+                                    username: true,
+                                    email: true,
+                                    role: true,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+            submissions: {
+                include: {
+                    submittedBy: {
+                        select: {
+                            id: true,
+                            username: true,
+                            email: true,
+                            role: true,
+                        },
+                    },
+                    department: {
+                        include: {
+                            user: {
+                                select: {
+                                    id: true,
+                                    username: true,
+                                    email: true,
+                                    role: true,
+                                },
+                            },
+                        },
+                    },
+                    submissionValue: {
+                        include: {
+                            field: {
+                                include: {
+                                    options: true,
+                                },
+                            },
+                        },
+                    },
+                },
+                orderBy: {
+                    createdAt: "desc",
+                },
+            },
+            createdBy: {
+                select: {
+                    id: true,
+                    username: true,
+                    email: true,
+                    role: true,
+                },
+            },
+        },
+    });
+};
+
 
 export const  findFormByTitle = async(title:string)=>{
     const slug=generateSlug(title)

@@ -1,6 +1,6 @@
 import { catchAsync } from "../../utils/catchAsync.js";
 import { createFormSchema } from "./form.validation.js";
-import { createForm as createFormService, deleteForm as deleteFormService,toggleFormStatusService } from "./form.service.js";
+import { createForm as createFormService, deleteForm as deleteFormService,toggleFormStatusService, listFormsService, getFormBySlugService } from "./form.service.js";
 import { Request, Response } from "express";
 
 type AuthenticatedRequest = Request & {
@@ -77,3 +77,22 @@ export const toggleFormStatus = catchAsync(
         });
     }
 )
+
+export const listForms = catchAsync(async (_req: Request, res: Response) => {
+    const forms = await listFormsService();
+
+    res.status(200).json({
+        success: true,
+        data: forms,
+    });
+});
+
+export const getFormBySlug = catchAsync(async (req: Request, res: Response) => {
+    const slug = req.params.slug as string;
+    const form = await getFormBySlugService(slug);
+
+    res.status(200).json({
+        success: true,
+        data: form,
+    });
+});

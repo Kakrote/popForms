@@ -120,3 +120,13 @@ export const getDepartmentByUserService = async (userId: string) => {
 
   return department;
 };
+
+export const getCurrentUserDepartmentService = async (userId: string) => {
+  const department = await getDepartmentByUserId(userId);
+
+  if (!department) {
+    throw new AppError("Department not found for this user", 404);
+  }
+
+  return department;
+};

@@ -1,6 +1,6 @@
 import { AppError } from "../../utils/appError.js";
 import { prisma } from "../../lib/prisma.js";
-import { createSubmission, findSubmission } from "./submission.repository.js";
+import { createSubmission, findSubmission, getAllSubmissions, getSubmissionById } from "./submission.repository.js";
 import { CreateSubmissionInput } from "./submission.types.js";
 
 type CreateSubmissionPayload = Omit<CreateSubmissionInput, "submittedById">;
@@ -33,4 +33,18 @@ export const submitForm = async (
     }
 
     return await createSubmission(payload);
+};
+
+export const listSubmissions = async () => {
+    return await getAllSubmissions();
+};
+
+export const getSubmission = async (id: string) => {
+    const submission = await getSubmissionById(id);
+
+    if (!submission) {
+        throw new AppError("Submission not found", 404);
+    }
+
+    return submission;
 };

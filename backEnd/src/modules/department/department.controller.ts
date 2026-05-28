@@ -7,6 +7,7 @@ import {
   updateDepartmentService,
   deleteDepartmentService,
   getDepartmentByUserService,
+  getCurrentUserDepartmentService,
 } from "./department.service.js";
 import {
   createDepartmentSchema,
@@ -92,6 +93,27 @@ export const getDepartmentByUserController = catchAsync(
     res.status(200).json({
       success: true,
       message: "Department retrieved successfully for user",
+      data: department,
+    });
+  }
+);
+
+export const getCurrentUserDepartmentController = catchAsync(
+  async (req: Request & { user?: { id: string } }, res: Response) => {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    const department = await getCurrentUserDepartmentService(userId);
+
+    res.status(200).json({
+      success: true,
+      message: "Department retrieved successfully for current user",
       data: department,
     });
   }

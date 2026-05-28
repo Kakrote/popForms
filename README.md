@@ -18,9 +18,13 @@ PopForms is a backend API for managing forms, departments, submissions, and user
 - Admin user management endpoints
 - Department CRUD, restricted to admins
 - Form create, delete, and status toggle routes, restricted to admins
+- Form list and detail routes for the admin dashboard
 - Submission creation route for authenticated `USER` and `ADMIN` accounts
+- Submission list and detail routes for the admin dashboard
+- Department self-lookup for authenticated users
 - Startup admin seeding from environment variables
 - Prisma schema, migrations, and a root-level Prisma config
+- A React + Vite frontend in `frontEnd`
 
 ## API Surface
 
@@ -39,9 +43,14 @@ The API is mounted under `/api`.
 - `PATCH /api/department/:id` - update a department, admin only
 - `DELETE /api/department/:id` - delete a department, admin only
 - `POST /api/forms` - create a form, admin only
+- `GET /api/forms` - list forms, admin only
+- `GET /api/forms/:slug` - get a form with fields and submissions, admin or user
 - `PATCH /api/forms/:slug` - toggle form status, admin only
 - `DELETE /api/forms/:slug` - delete a form, admin only
 - `POST /api/submissions` - submit a form, authenticated `USER` or `ADMIN`
+- `GET /api/submissions` - list submissions, admin only
+- `GET /api/submissions/:id` - get a submission, admin only
+- `GET /api/department/me` - get the authenticated user's department, user or admin
 
 ## Repository Layout
 
@@ -114,9 +123,27 @@ Use `npm start` for the non-watch runtime.
 
 ## Current Gaps
 
-- The `frontEnd` directory is empty
 - There is no automated test suite yet
-- The API currently exposes routes for the implemented flows above, but not a full frontend or public API docs
+- The frontend is intentionally simple for the demo and does not yet support full form editing or submission moderation workflows
+- There are no public API docs yet
+
+## Frontend
+
+The `frontEnd` app is a React + TypeScript + Vite SPA using:
+
+- Zod for validation
+- React Hook Form for form handling
+- Zustand for auth state
+- React Query for server state
+- Axios for API access
+
+It includes:
+
+- Admin dashboard with form stats and form management
+- Form creation screen
+- Form detail screen with submission inspection
+- Public shared form submission page
+- Thank-you screen after submission
 
 ## Useful Entry Points
 

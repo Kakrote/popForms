@@ -6,6 +6,7 @@ import {
   updateDepartmentController,
   deleteDepartmentController,
   getDepartmentByUserController,
+  getCurrentUserDepartmentController,
 } from "./department.controller.js";
 import { authenticate, authorizeRoles } from "../../middlewares/auth.middlewares.js";
 
@@ -25,6 +26,14 @@ router.get(
   authenticate,
   authorizeRoles("ADMIN"),
   getAllDepartmentsController
+);
+
+// Get current user's department - USER and ADMIN
+router.get(
+  "/me",
+  authenticate,
+  authorizeRoles("USER", "ADMIN"),
+  getCurrentUserDepartmentController
 );
 
 // Get department by ID - ADMIN only

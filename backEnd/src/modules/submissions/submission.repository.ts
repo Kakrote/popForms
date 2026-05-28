@@ -37,3 +37,90 @@ export const findSubmission = async (
         },
     });
 };
+
+export const getAllSubmissions = async () => {
+    return await prisma.submission.findMany({
+        orderBy: {
+            createdAt: "desc",
+        },
+        include: {
+            form: true,
+            department: {
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            username: true,
+                            email: true,
+                            role: true,
+                        },
+                    },
+                },
+            },
+            submittedBy: {
+                select: {
+                    id: true,
+                    username: true,
+                    email: true,
+                    role: true,
+                },
+            },
+            submissionValue: {
+                include: {
+                    field: true,
+                },
+            },
+        },
+    });
+};
+
+export const getSubmissionById = async (id: string) => {
+    return await prisma.submission.findUnique({
+        where: {
+            id,
+        },
+        include: {
+            form: {
+                include: {
+                    fields: {
+                        orderBy: {
+                            sortOrder: "asc",
+                        },
+                        include: {
+                            options: true,
+                        },
+                    },
+                },
+            },
+            department: {
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            username: true,
+                            email: true,
+                            role: true,
+                        },
+                    },
+                },
+            },
+            submittedBy: {
+                select: {
+                    id: true,
+                    username: true,
+                    email: true,
+                    role: true,
+                },
+            },
+            submissionValue: {
+                include: {
+                    field: {
+                        include: {
+                            options: true,
+                        },
+                    },
+                },
+            },
+        },
+    });
+};

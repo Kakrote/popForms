@@ -1,6 +1,13 @@
 import { AppError } from "../../utils/appError.js";
 import logger from "../../utils/logger.js";
-import { createForm as createFormRepository, findFormByTitle, deleteForm as formDeleteRepo, toggleFormStatus } from "./form.repository.js";
+import {
+    createForm as createFormRepository,
+    findFormByTitle,
+    deleteForm as formDeleteRepo,
+    toggleFormStatus,
+    getAllForms,
+    getFormBySlug,
+} from "./form.repository.js";
 import { CreateFormInput } from "./form.types.js";
 
 export const createForm = async (data: CreateFormInput, createdById: string) => {
@@ -34,3 +41,17 @@ export const toggleFormStatusService = async (title:string,isOpen:boolean)=>{
     logger.info(`Toggling form status for ${form.slug} to ${isOpen ? "open" : "closed"}`);
     return await toggleFormStatus(form.slug, isOpen);
 }
+
+export const listFormsService = async () => {
+    return await getAllForms();
+};
+
+export const getFormBySlugService = async (slug: string) => {
+    const form = await getFormBySlug(slug);
+
+    if (!form) {
+        throw new AppError("Form does not exist", 404);
+    }
+
+    return form;
+};
