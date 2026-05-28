@@ -6,6 +6,8 @@ import { LoginPage } from "./pages/LoginPage";
 import { AdminDashboardPage } from "./pages/admin/DashboardPage";
 import { FormBuilderPage } from "./pages/admin/FormBuilderPage";
 import { FormDetailPage } from "./pages/admin/FormDetailPage";
+import { UserCreatePage } from "./pages/admin/UserCreatePage";
+import { UserManagementPage } from "./pages/admin/UserManagementPage";
 import { PublicFormPage } from "./pages/PublicFormPage";
 import { ThankYouPage } from "./pages/ThankYouPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
@@ -30,17 +32,19 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/forms/:slug" element={<PublicFormPage />} />
       <Route path="/thank-you" element={<ThankYouPage />} />
       <Route path="/" element={<HomeRedirect />} />
       <Route element={<ProtectedRoute />}> 
         <Route path="/app" element={<UserLandingPage />} />
+        <Route path="/forms/:slug" element={<PublicFormPage />} />
       </Route>
       <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
         <Route path="/admin" element={<AppShell />}>
           <Route index element={<AdminDashboardPage />} />
           <Route path="forms/new" element={<FormBuilderPage />} />
           <Route path="forms/:slug" element={<FormDetailPage />} />
+          <Route path="users/new" element={<UserCreatePage />} />
+          <Route path="users" element={<UserManagementPage />} />
         </Route>
       </Route>
       <Route path="*" element={<NotFoundPage />} />

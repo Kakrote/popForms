@@ -37,6 +37,10 @@ export const authApi = {
     const response = await apiClient.post<ApiResponse<AuthPayload>>("/auth/login", payload);
     return unwrap(response);
   },
+  register: async (payload: { username: string; email: string; password: string; role?: "USER" | "ADMIN" }) => {
+    const response = await apiClient.post<ApiResponse<User>>("/auth/register", payload);
+    return unwrap(response);
+  },
 };
 
 export const formsApi = {
@@ -81,12 +85,38 @@ export const submissionsApi = {
     const response = await apiClient.get<ApiResponse<Submission[]>>("/submissions");
     return unwrap(response);
   },
+  mine: async () => {
+    const response = await apiClient.get<ApiResponse<Submission[]>>("/submissions/me");
+    return unwrap(response);
+  },
+  mineDrafts: async () => {
+    const response = await apiClient.get<ApiResponse<Submission[]>>("/submissions/me/drafts");
+    return unwrap(response);
+  },
   getById: async (id: string) => {
     const response = await apiClient.get<ApiResponse<Submission>>(`/submissions/${id}`);
     return unwrap(response);
   },
+  getMineByForm: async (formId: string) => {
+    const response = await apiClient.get<ApiResponse<Submission | null>>(`/submissions/form/${formId}/me`);
+    return unwrap(response);
+  },
   create: async (payload: { formId: string; departmentId: string; values: Array<{ fieldId: string; value: string }> }) => {
-    const response = await apiClient.post<ApiResponse<Submission> | { status: string; data: Submission }>("/submissions", payload);
+    const response = await apiClient.post<ApiResponse<Submission> | { status: string; data: Submission }>("/submissions", {
+      ...payload,
+      status: "SUBMITTED",
+    });
+    return unwrap(response);
+  },
+  saveDraft: async (payload: { formId: string; departmentId: string; values: Array<{ fieldId: string; value: string }> }) => {
+    const response = await apiClient.post<ApiResponse<Submission> | { status: string; data: Submission }>("/submissions", {
+      ...payload,
+      status: "DRAFT",
+    });
+    return unwrap(response);
+  },
+  delete: async (id: string) => {
+    const response = await apiClient.delete<ApiResponse<Submission>>(`/submissions/${id}`);
     return unwrap(response);
   },
 };
@@ -101,6 +131,10 @@ export const departmentApi = {
 export const usersApi = {
   list: async () => {
     const response = await apiClient.get<ApiResponse<User[]>>("/user/users");
+    return unwrap(response);
+  },
+  update: async (id: string, payload: Partial<Pick<User, "username" | "email" | "role">>) => {
+    const response = await apiClient.patch<ApiResponse<User>>(`/user/${id}`, payload);
     return unwrap(response);
   },
 };

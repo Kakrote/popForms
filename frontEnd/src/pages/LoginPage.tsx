@@ -31,11 +31,9 @@ export function LoginPage() {
     mutationFn: authApi.login,
     onSuccess: (data) => {
       setSession(data);
-      if (data.user.role === "ADMIN") {
-        navigate(from && from !== "/login" ? from : "/admin", { replace: true });
-      } else {
-        navigate("/app", { replace: true });
-      }
+      const target = from && from !== "/login" ? from : data.user.role === "ADMIN" ? "/admin" : "/app";
+
+      navigate(target, { replace: true });
     },
   });
 

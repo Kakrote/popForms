@@ -65,6 +65,9 @@ export const getAllForms = async () => {
                 },
             },
             submissions: {
+                where: {
+                    status: "SUBMITTED",
+                },
                 select: {
                     id: true,
                 },
@@ -112,6 +115,9 @@ export const getFormBySlug = async (slug: string) => {
                 },
             },
             submissions: {
+                where: {
+                    status: "SUBMITTED",
+                },
                 include: {
                     submittedBy: {
                         select: {

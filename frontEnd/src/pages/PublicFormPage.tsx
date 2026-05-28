@@ -35,6 +35,12 @@ export function PublicFormPage() {
     enabled: Boolean(slug && token),
   });
 
+  const existingSubmissionQuery = useQuery({
+    queryKey: ["my-submission-by-form", formQuery.data?.id],
+    queryFn: () => submissionsApi.getMineByForm(formQuery.data!.id),
+    enabled: Boolean(formQuery.data?.id && token),
+  });
+
   const departmentQuery = useQuery({
     queryKey: ["current-department"],
     queryFn: departmentApi.current,
@@ -43,12 +49,20 @@ export function PublicFormPage() {
 
   const fields = formQuery.data?.fields ?? [];
   const submissionSchema = useMemo(() => buildSchema(fields), [fields]);
-  const defaultValues = useMemo(() => {
-    return fields.reduce<SubmissionValues>((accumulator, field) => {
-      accumulator[field.id] = "";
+  const existingValuesMap = useMemo(() => {
+    const values = existingSubmissionQuery.data?.submissionValue ?? [];
+    return values.reduce<Record<string, string>>((accumulator, value) => {
+      accumulator[value.fieldId] = value.value;
       return accumulator;
     }, {});
-  }, [fields]);
+  }, [existingSubmissionQuery.data]);
+
+  const defaultValues = useMemo(() => {
+    return fields.reduce<SubmissionValues>((accumulator, field) => {
+      accumulator[field.id] = existingValuesMap[field.id] ?? "";
+      return accumulator;
+    }, {});
+  }, [existingValuesMap, fields]);
 
   const form = useForm<SubmissionValues>({
     resolver: zodResolver(submissionSchema as any) as any,
@@ -63,7 +77,15 @@ export function PublicFormPage() {
     mutationFn: submissionsApi.create,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["public-form", slug] });
+      await queryClient.invalidateQueries({ queryKey: ["my-submission-by-form", formQuery.data?.id] });
       navigate("/thank-you", { replace: true });
+    },
+  });
+
+  const draftMutation = useMutation({
+    mutationFn: submissionsApi.saveDraft,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["my-submission-by-form", formQuery.data?.id] });
     },
   });
 
@@ -89,6 +111,9 @@ export function PublicFormPage() {
   if (formQuery.isError || !formQuery.data) {
     return <div className="page"><p className="error">Unable to load the form.</p></div>;
   }
+
+  const existingStatus = existingSubmissionQuery.data?.status;
+  const isAlreadySubmitted = existingStatus === "SUBMITTED";
 
   return (
     <div className="page">
@@ -121,6 +146,9 @@ export function PublicFormPage() {
             });
           })}
         >
+          {existingStatus === "DRAFT" ? <div className="notice">Draft found. You can edit and submit when ready.</div> : null}
+          {isAlreadySubmitted ? <div className="notice">This form is already submitted. It is now read-only.</div> : null}
+
           <div className="form-section">
             {formQuery.data.fields.map((field) => (
               <FieldInput key={field.id} field={field} control={form.control} register={form.register} />
@@ -128,10 +156,37 @@ export function PublicFormPage() {
           </div>
 
           {submitMutation.isError ? <div className="notice" style={{ borderColor: "rgba(180,35,24,0.2)", background: "rgba(180,35,24,0.06)", color: "#8e1d14" }}>{(submitMutation.error as Error).message}</div> : null}
+          {draftMutation.isError ? <div className="notice" style={{ borderColor: "rgba(180,35,24,0.2)", background: "rgba(180,35,24,0.06)", color: "#8e1d14" }}>{(draftMutation.error as Error).message}</div> : null}
 
-          <button type="submit" disabled={submitMutation.isPending || departmentQuery.isLoading || departmentQuery.isError || !formQuery.data.isOpen}>
-            {submitMutation.isPending ? "Submitting..." : "Submit response"}
-          </button>
+          <div className="actions-row">
+            <button
+              type="button"
+              className="ghost-button"
+              disabled={draftMutation.isPending || submitMutation.isPending || departmentQuery.isLoading || departmentQuery.isError || !formQuery.data.isOpen || isAlreadySubmitted}
+              onClick={() => {
+                if (!departmentQuery.data) {
+                  return;
+                }
+
+                const values = form.getValues();
+
+                draftMutation.mutate({
+                  formId: formQuery.data.id,
+                  departmentId: departmentQuery.data.id,
+                  values: formQuery.data.fields.map((field) => ({
+                    fieldId: field.id,
+                    value: values[field.id] ?? "",
+                  })),
+                });
+              }}
+            >
+              {draftMutation.isPending ? "Saving draft..." : "Save draft"}
+            </button>
+
+            <button type="submit" disabled={submitMutation.isPending || draftMutation.isPending || departmentQuery.isLoading || departmentQuery.isError || !formQuery.data.isOpen || isAlreadySubmitted}>
+              {submitMutation.isPending ? "Submitting..." : "Final submit"}
+            </button>
+          </div>
         </form>
       </div>
     </div>
