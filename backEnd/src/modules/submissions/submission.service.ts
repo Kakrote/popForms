@@ -16,6 +16,10 @@ export const submitForm = async (
     if (!form) {
         throw new AppError("Form not found", 404);
     }
+    // ensure the form is active 
+    if(form.isOpen===false){
+        throw new AppError("Form is closed for the submissions",400);
+    }
 
     // ensure department exists
     const department = await prisma.department.findUnique({ where: { id: payload.departmentId } });
