@@ -126,6 +126,14 @@ export const departmentApi = {
     const response = await apiClient.get<ApiResponse<Department>>("/department/me");
     return unwrap(response);
   },
+  getByUser: async (userId: string) => {
+    const response = await apiClient.get<ApiResponse<Department>>(`/department/user/${userId}`);
+    return unwrap(response);
+  },
+  create: async (payload: { department_Name: string; userId: string }) => {
+    const response = await apiClient.post<ApiResponse<Department>>(`/department`, payload);
+    return unwrap(response);
+  },
 };
 
 export const usersApi = {

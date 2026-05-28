@@ -1,11 +1,14 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { departmentApi, submissionsApi } from "../lib/api";
 import { useAuthStore } from "../store/authStore";
 import Modal from "../components/Modal";
 
 export function UserLandingPage() {
   const user = useAuthStore((state) => state.user);
+  const clearSession = useAuthStore((state) => state.clearSession);
+  const navigate = useNavigate();
   const departmentQuery = useQuery({
     queryKey: ["current-department"],
     queryFn: departmentApi.current,
@@ -45,6 +48,18 @@ export function UserLandingPage() {
             <p className="eyebrow">User home</p>
             <h1>Welcome, {user?.username}</h1>
             <p className="muted">Open the shared form link from your admin to submit a response.</p>
+          </div>
+          <div>
+            <button
+              type="button"
+              className="ghost-button"
+              onClick={() => {
+                clearSession();
+                navigate("/login");
+              }}
+            >
+              Logout
+            </button>
           </div>
         </div>
 

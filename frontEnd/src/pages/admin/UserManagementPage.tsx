@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { usersApi } from "../../lib/api";
+import { departmentApi } from "../../lib/api";
 
 const editUserSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -31,6 +32,9 @@ export function UserManagementPage() {
   });
 
   const users = usersQuery.data ?? [];
+
+  const [userDepartment, setUserDepartment] = useState<{ id: string; department_Name: string } | null>(null);
+  const [newDeptName, setNewDeptName] = useState("");
 
   const updateMutation = useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: EditUserValues }) => usersApi.update(id, payload),
@@ -61,6 +65,20 @@ export function UserManagementPage() {
       });
     }
   }, [form, selectedUserId, users]);
+
+  useEffect(() => {
+    const loadDepartment = async () => {
+      if (!selectedUserId) return setUserDepartment(null);
+      try {
+        const dept = await departmentApi.getByUser(selectedUserId);
+        setUserDepartment(dept ?? null);
+      } catch (err) {
+        setUserDepartment(null);
+      }
+    };
+
+    loadDepartment();
+  }, [selectedUserId]);
 
   return (
     <div className="stack">
@@ -153,6 +171,40 @@ export function UserManagementPage() {
             <option value="ADMIN">Admin</option>
           </select>
         </label>
+
+        <div style={{ marginTop: 8 }}>
+          <strong>Department</strong>
+          <div className="muted small" style={{ marginTop: 6 }}>
+            {userDepartment ? userDepartment.department_Name : "Not assigned"}
+          </div>
+        </div>
+
+        {!userDepartment ? (
+          <div className="stack" style={{ marginTop: 12, maxWidth: 420 }}>
+            <label className="stack small">
+              New department name
+              <input value={newDeptName} onChange={(e) => setNewDeptName(e.target.value)} />
+            </label>
+            <button
+              type="button"
+              onClick={async () => {
+                if (!selectedUserId) return;
+                if (!newDeptName.trim()) return alert("Department name is required");
+                try {
+                  await departmentApi.create({ department_Name: newDeptName.trim(), userId: selectedUserId });
+                  setNewDeptName("");
+                  queryClient.invalidateQueries({ queryKey: ["users"] });
+                  const dept = await departmentApi.getByUser(selectedUserId);
+                  setUserDepartment(dept ?? null);
+                } catch (err) {
+                  alert((err as Error).message || "Unable to create department");
+                }
+              }}
+            >
+              Create and assign department
+            </button>
+          </div>
+        ) : null}
 
         {updateMutation.isSuccess ? <div className="notice">User updated successfully.</div> : null}
         {updateMutation.isError ? <div className="notice" style={{ borderColor: "rgba(180,35,24,0.2)", background: "rgba(180,35,24,0.06)", color: "#8e1d14" }}>{(updateMutation.error as Error).message}</div> : null}

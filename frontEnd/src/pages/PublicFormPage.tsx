@@ -124,7 +124,13 @@ export function PublicFormPage() {
             <h1>{formQuery.data.title}</h1>
             <p className="muted">{formQuery.data.description || "Please complete this form and submit it once."}</p>
           </div>
-          <span className={`badge ${formQuery.data.isOpen ? "open" : "closed"}`}>{formQuery.data.isOpen ? "Open" : "Closed"}</span>
+
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <Link to="/app" className="ghost-button" style={{ padding: "0.6rem 0.85rem" }}>
+              Go to dashboard
+            </Link>
+            <span className={`badge ${formQuery.data.isOpen ? "open" : "closed"}`}>{formQuery.data.isOpen ? "Open" : "Closed"}</span>
+          </div>
         </div>
 
         {departmentQuery.isError ? <p className="error">You need a department assigned before submitting this form.</p> : null}
@@ -158,10 +164,13 @@ export function PublicFormPage() {
           {submitMutation.isError ? <div className="notice" style={{ borderColor: "rgba(180,35,24,0.2)", background: "rgba(180,35,24,0.06)", color: "#8e1d14" }}>{(submitMutation.error as Error).message}</div> : null}
           {draftMutation.isError ? <div className="notice" style={{ borderColor: "rgba(180,35,24,0.2)", background: "rgba(180,35,24,0.06)", color: "#8e1d14" }}>{(draftMutation.error as Error).message}</div> : null}
 
+          <div style={{ marginBottom: 8 }}>
+            <p className="muted small">Choose one: save a draft to continue later, or submit final to complete your response.</p>
+          </div>
+
           <div className="actions-row">
             <button
               type="button"
-              className="ghost-button"
               disabled={draftMutation.isPending || submitMutation.isPending || departmentQuery.isLoading || departmentQuery.isError || !formQuery.data.isOpen || isAlreadySubmitted}
               onClick={() => {
                 if (!departmentQuery.data) {

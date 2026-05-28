@@ -7,9 +7,14 @@ export function ThankYouPage() {
         <p className="eyebrow">Submission complete</p>
         <h1>Thank you</h1>
         <p className="muted">Your response was received successfully.</p>
-        <Link to="/" className="ghost-button" style={{ display: "inline-block", padding: "0.85rem 1rem", borderRadius: 12 }}>
-          Back to home
-        </Link>
+        <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+          <Link to="/app" className="ghost-button" style={{ display: "inline-block", padding: "0.85rem 1rem", borderRadius: 12 }}>
+            Go to dashboard
+          </Link>
+          <Link to="/" className="ghost-button" style={{ display: "inline-block", padding: "0.85rem 1rem", borderRadius: 12 }}>
+            Back to home
+          </Link>
+        </div>
       </div>
     </div>
   );
