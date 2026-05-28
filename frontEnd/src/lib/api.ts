@@ -122,6 +122,10 @@ export const submissionsApi = {
 };
 
 export const departmentApi = {
+  list: async () => {
+    const response = await apiClient.get<ApiResponse<Department[]>>("/department");
+    return unwrap(response);
+  },
   current: async () => {
     const response = await apiClient.get<ApiResponse<Department>>("/department/me");
     return unwrap(response);
@@ -132,6 +136,14 @@ export const departmentApi = {
   },
   create: async (payload: { department_Name: string; userId: string }) => {
     const response = await apiClient.post<ApiResponse<Department>>(`/department`, payload);
+    return unwrap(response);
+  },
+  update: async (id: string, payload: { department_Name?: string; userId?: string }) => {
+    const response = await apiClient.patch<ApiResponse<Department>>(`/department/${id}`, payload);
+    return unwrap(response);
+  },
+  remove: async (id: string) => {
+    const response = await apiClient.delete<ApiResponse<null>>(`/department/${id}`);
     return unwrap(response);
   },
 };

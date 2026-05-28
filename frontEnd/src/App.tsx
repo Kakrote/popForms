@@ -8,6 +8,7 @@ import { FormBuilderPage } from "./pages/admin/FormBuilderPage";
 import { FormDetailPage } from "./pages/admin/FormDetailPage";
 import { UserCreatePage } from "./pages/admin/UserCreatePage";
 import { UserManagementPage } from "./pages/admin/UserManagementPage";
+import { DepartmentManagementPage } from "./pages/admin/DepartmentManagementPage";
 import { PublicFormPage } from "./pages/PublicFormPage";
 import { ThankYouPage } from "./pages/ThankYouPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
@@ -44,6 +45,7 @@ export default function App() {
           <Route path="forms/new" element={<FormBuilderPage />} />
           <Route path="forms/:slug" element={<FormDetailPage />} />
           <Route path="users/new" element={<UserCreatePage />} />
+          <Route path="departments" element={<DepartmentManagementPage />} />
           <Route path="users" element={<UserManagementPage />} />
         </Route>
       </Route>

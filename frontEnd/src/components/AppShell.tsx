@@ -20,6 +20,7 @@ export function AppShell() {
           </NavLink>
           <NavLink to="/admin/forms/new">New form</NavLink>
           <NavLink to="/admin/users/new">New user</NavLink>
+          <NavLink to="/admin/departments">Departments</NavLink>
           <NavLink to="/admin/users">Manage users</NavLink>
         </nav>
 

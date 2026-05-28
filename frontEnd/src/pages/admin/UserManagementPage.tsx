@@ -3,8 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { usersApi } from "../../lib/api";
-import { departmentApi } from "../../lib/api";
+import { Link } from "react-router-dom";
+import { departmentApi, usersApi } from "../../lib/api";
 
 const editUserSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -22,6 +22,11 @@ export function UserManagementPage() {
     queryFn: usersApi.list,
   });
 
+  const departmentsQuery = useQuery({
+    queryKey: ["departments"],
+    queryFn: departmentApi.list,
+  });
+
   const form = useForm<EditUserValues>({
     resolver: zodResolver(editUserSchema),
     defaultValues: {
@@ -34,7 +39,7 @@ export function UserManagementPage() {
   const users = usersQuery.data ?? [];
 
   const [userDepartment, setUserDepartment] = useState<{ id: string; department_Name: string } | null>(null);
-  const [newDeptName, setNewDeptName] = useState("");
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>("");
 
   const updateMutation = useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: EditUserValues }) => usersApi.update(id, payload),
@@ -72,13 +77,21 @@ export function UserManagementPage() {
       try {
         const dept = await departmentApi.getByUser(selectedUserId);
         setUserDepartment(dept ?? null);
+        setSelectedDepartmentId(dept?.id ?? "");
       } catch (err) {
         setUserDepartment(null);
+        setSelectedDepartmentId("");
       }
     };
 
     loadDepartment();
   }, [selectedUserId]);
+
+  useEffect(() => {
+    if (!selectedDepartmentId && departmentsQuery.data?.length) {
+      setSelectedDepartmentId(departmentsQuery.data[0].id);
+    }
+  }, [departmentsQuery.data, selectedDepartmentId]);
 
   return (
     <div className="stack">
@@ -86,8 +99,11 @@ export function UserManagementPage() {
         <div>
           <p className="eyebrow">Admin tools</p>
           <h1>Manage users</h1>
-          <p className="muted">Review users and update their basic account details or role.</p>
+          <p className="muted">Review users, update their basic account details, and assign departments from the existing list.</p>
         </div>
+        <Link to="/admin/departments" className="ghost-button" style={{ display: "inline-block", padding: "0.85rem 1rem" }}>
+          Create/manage departments
+        </Link>
       </div>
 
       <section className="panel stack">
@@ -179,32 +195,37 @@ export function UserManagementPage() {
           </div>
         </div>
 
-        {!userDepartment ? (
-          <div className="stack" style={{ marginTop: 12, maxWidth: 420 }}>
-            <label className="stack small">
-              New department name
-              <input value={newDeptName} onChange={(e) => setNewDeptName(e.target.value)} />
-            </label>
-            <button
-              type="button"
-              onClick={async () => {
-                if (!selectedUserId) return;
-                if (!newDeptName.trim()) return alert("Department name is required");
-                try {
-                  await departmentApi.create({ department_Name: newDeptName.trim(), userId: selectedUserId });
-                  setNewDeptName("");
-                  queryClient.invalidateQueries({ queryKey: ["users"] });
-                  const dept = await departmentApi.getByUser(selectedUserId);
-                  setUserDepartment(dept ?? null);
-                } catch (err) {
-                  alert((err as Error).message || "Unable to create department");
-                }
-              }}
-            >
-              Create and assign department
-            </button>
-          </div>
-        ) : null}
+        <div className="stack" style={{ marginTop: 12, maxWidth: 420 }}>
+          <label className="stack small">
+            Assign existing department
+            <select value={selectedDepartmentId} onChange={(event) => setSelectedDepartmentId(event.target.value)}>
+              <option value="">Select department</option>
+              {(departmentsQuery.data ?? []).map((department) => (
+                <option key={department.id} value={department.id}>
+                  {department.department_Name} {department.user?.username ? `(currently: ${department.user.username})` : ""}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="button"
+            onClick={async () => {
+              if (!selectedUserId || !selectedDepartmentId) return;
+              try {
+                await departmentApi.update(selectedDepartmentId, { userId: selectedUserId });
+                queryClient.invalidateQueries({ queryKey: ["users"] });
+                queryClient.invalidateQueries({ queryKey: ["departments"] });
+                const dept = await departmentApi.getByUser(selectedUserId);
+                setUserDepartment(dept ?? null);
+              } catch (err) {
+                alert((err as Error).message || "Unable to assign department");
+              }
+            }}
+          >
+            Assign selected department
+          </button>
+          <p className="muted small">Use the department manager to create or rename departments first.</p>
+        </div>
 
         {updateMutation.isSuccess ? <div className="notice">User updated successfully.</div> : null}
         {updateMutation.isError ? <div className="notice" style={{ borderColor: "rgba(180,35,24,0.2)", background: "rgba(180,35,24,0.06)", color: "#8e1d14" }}>{(updateMutation.error as Error).message}</div> : null}
