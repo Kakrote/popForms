@@ -5,12 +5,20 @@ import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { formsApi } from "../../lib/api";
 import type { FormBuilderValues } from "../../types";
+import type { UseFormReturn } from "react-hook-form";
 
 const fieldSchema = z.object({
   label: z.string().min(1, "Field label is required"),
   type: z.enum(["text", "textarea", "number", "email", "date", "select", "radio", "checkbox"]),
   required: z.boolean(),
   optionsText: z.string(),
+  hasSubFields: z.boolean().optional(),
+  subFields: z.array(
+    z.object({
+      label: z.string().min(1, "Sub-field label is required"),
+      required: z.boolean(),
+    })
+  ).optional(),
 });
 
 const createFormSchema = z.object({
@@ -38,6 +46,8 @@ export function FormBuilderPage() {
           type: "text",
           required: true,
           optionsText: "",
+          hasSubFields: false,
+          subFields: [],
         },
       ],
     },
@@ -111,6 +121,8 @@ export function FormBuilderPage() {
                 type: "text",
                 required: true,
                 optionsText: "",
+                hasSubFields: false,
+                subFields: [],
               })
             }
           >
@@ -120,44 +132,7 @@ export function FormBuilderPage() {
 
         <div className="form-section">
           {fields.fields.map((field, index) => (
-            <div className="field-card stack" key={field.id}>
-              <div className="field-toolbar">
-                <strong>Field {index + 1}</strong>
-                <button type="button" className="ghost-button" onClick={() => fields.remove(index)} disabled={fields.fields.length === 1}>
-                  Remove
-                </button>
-              </div>
-
-              <div className="grid cols-2">
-                <label className="stack small">
-                  Label
-                  <input {...form.register(`fields.${index}.label`)} placeholder="Full name" />
-                </label>
-                <label className="stack small">
-                  Type
-                  <select {...form.register(`fields.${index}.type`)}>
-                    <option value="text">Text</option>
-                    <option value="textarea">Textarea</option>
-                    <option value="number">Number</option>
-                    <option value="email">Email</option>
-                    <option value="date">Date</option>
-                    <option value="select">Select</option>
-                    <option value="radio">Radio</option>
-                    <option value="checkbox">Checkbox</option>
-                  </select>
-                </label>
-              </div>
-
-              <label className="stack small">
-                Options
-                <input {...form.register(`fields.${index}.optionsText`)} placeholder="Option A, Option B, Option C" />
-              </label>
-
-              <label className="small" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <input type="checkbox" {...form.register(`fields.${index}.required`)} style={{ width: 18, height: 18 }} />
-                Required
-              </label>
-            </div>
+            <FieldEditor key={field.id} index={index} form={form} removeField={() => fields.remove(index)} canRemove={fields.fields.length > 1} />
           ))}
         </div>
 
@@ -168,6 +143,144 @@ export function FormBuilderPage() {
           {createMutation.isPending ? "Creating..." : "Create form"}
         </button>
       </form>
+    </div>
+  );
+}
+
+function FieldEditor({
+  index,
+  form,
+  removeField,
+  canRemove,
+}: {
+  index: number;
+  form: UseFormReturn<FormBuilderValues>;
+  removeField: () => void;
+  canRemove: boolean;
+}) {
+  const hasSubFields = form.watch(`fields.${index}.hasSubFields`) ?? false;
+  const subFields = form.watch(`fields.${index}.subFields`) ?? [];
+
+  const addSubField = () => {
+    form.setValue(`fields.${index}.hasSubFields`, true, { shouldDirty: true });
+    form.setValue(`fields.${index}.subFields`, [...subFields, { label: "", required: false }], { shouldDirty: true });
+  };
+
+  const updateSubField = (subIndex: number, nextValue: Partial<{ label: string; required: boolean }>) => {
+    const nextSubFields = subFields.map((subField, currentIndex) =>
+      currentIndex === subIndex ? { ...subField, ...nextValue } : subField
+    );
+    form.setValue(`fields.${index}.subFields`, nextSubFields, { shouldDirty: true });
+  };
+
+  const removeSubField = (subIndex: number) => {
+    const nextSubFields = subFields.filter((_subField, currentIndex) => currentIndex !== subIndex);
+    form.setValue(`fields.${index}.subFields`, nextSubFields, { shouldDirty: true });
+    if (nextSubFields.length === 0) {
+      form.setValue(`fields.${index}.hasSubFields`, false, { shouldDirty: true });
+    }
+  };
+
+  return (
+    <div className="field-card stack">
+      <div className="field-toolbar">
+        <strong>Field {index + 1}</strong>
+        <button type="button" className="ghost-button" onClick={removeField} disabled={!canRemove}>
+          Remove
+        </button>
+      </div>
+
+      <div className="grid cols-2">
+        <label className="stack small">
+          Label
+          <input {...form.register(`fields.${index}.label`)} placeholder="No of admission" />
+        </label>
+        <label className="stack small">
+          Type
+          <select {...form.register(`fields.${index}.type`)}>
+            <option value="text">Text</option>
+            <option value="textarea">Textarea</option>
+            <option value="number">Number</option>
+            <option value="email">Email</option>
+            <option value="date">Date</option>
+            <option value="select">Select</option>
+            <option value="radio">Radio</option>
+            <option value="checkbox">Checkbox</option>
+          </select>
+        </label>
+      </div>
+
+      <label className="stack small">
+        Options
+        <input {...form.register(`fields.${index}.optionsText`)} placeholder="Option A, Option B, Option C" />
+      </label>
+
+      <label className="small" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <input type="checkbox" {...form.register(`fields.${index}.required`)} style={{ width: 18, height: 18 }} />
+        Required
+      </label>
+
+      <label className="small" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <input
+          type="checkbox"
+          checked={hasSubFields}
+          onChange={(event) => {
+            const checked = event.target.checked;
+            form.setValue(`fields.${index}.hasSubFields`, checked, { shouldDirty: true });
+            if (checked && subFields.length === 0) {
+              form.setValue(`fields.${index}.subFields`, [{ label: "", required: false }], { shouldDirty: true });
+            }
+            if (!checked) {
+              form.setValue(`fields.${index}.subFields`, [], { shouldDirty: true });
+            }
+          }}
+          style={{ width: 18, height: 18 }}
+        />
+        Add sub-fields under this field
+      </label>
+
+      {hasSubFields ? (
+        <div className="stack field-group-box">
+          <div className="field-toolbar">
+            <div>
+              <strong>Sub-fields</strong>
+              <p className="muted small">Example: year 2019, year 2020, year 2021</p>
+            </div>
+            <button type="button" className="ghost-button" onClick={addSubField}>
+              Add sub-field
+            </button>
+          </div>
+
+          <div className="stack">
+            {subFields.map((subField, subIndex) => (
+              <div className="grid cols-2" key={`${index}-${subIndex}`}>
+                <label className="stack small">
+                  Sub-field label
+                  <input
+                    value={subField.label}
+                    onChange={(event) => updateSubField(subIndex, { label: event.target.value })}
+                    placeholder="year 2019"
+                  />
+                </label>
+                <div className="stack small" style={{ alignSelf: "end" }}>
+                  <label className="small" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <input
+                      type="checkbox"
+                      checked={subField.required}
+                      onChange={(event) => updateSubField(subIndex, { required: event.target.checked })}
+                      style={{ width: 18, height: 18 }}
+                    />
+                    Required
+                  </label>
+                  <button type="button" className="ghost-button" onClick={() => removeSubField(subIndex)}>
+                    Remove sub-field
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

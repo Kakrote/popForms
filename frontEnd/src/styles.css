@@ -331,6 +331,13 @@ p {
   background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(245,249,253,0.96));
 }
 
+.field-group-box {
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px dashed rgba(28, 109, 208, 0.28);
+  background: rgba(28, 109, 208, 0.04);
+}
+
 .field-toolbar {
   display: flex;
   flex-wrap: wrap;

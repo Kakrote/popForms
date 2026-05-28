@@ -53,20 +53,42 @@ export const formsApi = {
     return unwrap(response);
   },
   create: async (payload: FormBuilderValues) => {
+    const flattenedFields = payload.fields.flatMap((field) => {
+      if (field.hasSubFields && field.subFields?.length) {
+        return field.subFields.map((subField) => ({
+          label: `${field.label} - ${subField.label}`,
+          type: field.type,
+          required: subField.required,
+          options: field.type === "select" || field.type === "radio" || field.type === "checkbox"
+            ? field.optionsText
+                .split(",")
+                .map((option) => option.trim())
+                .filter(Boolean)
+            : undefined,
+        }));
+      }
+
+      return [
+        {
+          label: field.label,
+          type: field.type,
+          required: field.required,
+          options: field.type === "select" || field.type === "radio" || field.type === "checkbox"
+            ? field.optionsText
+                .split(",")
+                .map((option) => option.trim())
+                .filter(Boolean)
+            : undefined,
+        },
+      ];
+    });
+
     const response = await apiClient.post<ApiResponse<Form>>("/forms", {
       title: payload.title,
       description: payload.description || undefined,
       deadline: payload.deadline || undefined,
       isOpen: payload.isOpen,
-      fields: payload.fields.map((field) => ({
-        label: field.label,
-        type: field.type,
-        required: field.required,
-        options: field.optionsText
-          .split(",")
-          .map((option) => option.trim())
-          .filter(Boolean),
-      })),
+      fields: flattenedFields,
     });
     return unwrap(response);
   },

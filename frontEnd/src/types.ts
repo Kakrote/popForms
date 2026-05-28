@@ -95,6 +95,11 @@ export type FormBuilderField = {
   type: "text" | "textarea" | "number" | "email" | "date" | "select" | "radio" | "checkbox";
   required: boolean;
   optionsText: string;
+  hasSubFields?: boolean;
+  subFields?: Array<{
+    label: string;
+    required: boolean;
+  }>;
 };
 
 export type FormBuilderValues = {
