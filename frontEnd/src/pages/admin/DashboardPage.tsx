@@ -47,9 +47,11 @@ export function AdminDashboardPage() {
     if (sections.length === 0) {
       return [
         {
+          id: "__no-sections",
           title: "Submission values",
           description: null,
           fields: submissionDetail.submissionValue.map((value) => ({
+            id: value.id,
             label: value.field?.label ?? value.fieldId,
             value: value.value,
           })),
@@ -58,9 +60,11 @@ export function AdminDashboardPage() {
     }
 
     return sections.map((section) => ({
+      id: section.id,
       title: section.title,
       description: section.description ?? null,
       fields: section.fields.map((field) => ({
+        id: field.id,
         label: field.label,
         value: valuesByFieldId.get(field.id)?.value ?? "No response",
       })),

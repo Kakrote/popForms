@@ -145,6 +145,16 @@ It includes:
 - Public shared form submission page
 - Thank-you screen after submission
 
+## Docker
+
+Run the backend, frontend, and Postgres together from the repository root:
+
+```bash
+docker compose up --build
+```
+
+The backend listens on `http://localhost:5000`, the frontend serves on `http://localhost:5173`, and Prisma migrations run automatically when the backend container starts.
+
 ## Useful Entry Points
 
 - [backEnd/server.ts](backEnd/server.ts)
