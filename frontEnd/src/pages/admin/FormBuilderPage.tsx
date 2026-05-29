@@ -1,24 +1,22 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useFieldArray, useForm, type UseFormReturn } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { formsApi } from "../../lib/api";
 import type { FormBuilderValues } from "../../types";
-import type { UseFormReturn } from "react-hook-form";
 
 const fieldSchema = z.object({
   label: z.string().min(1, "Field label is required"),
   type: z.enum(["text", "textarea", "number", "email", "date", "select", "radio", "checkbox"]),
   required: z.boolean(),
   optionsText: z.string(),
-  hasSubFields: z.boolean().optional(),
-  subFields: z.array(
-    z.object({
-      label: z.string().min(1, "Sub-field label is required"),
-      required: z.boolean(),
-    })
-  ).optional(),
+});
+
+const sectionSchema = z.object({
+  title: z.string().min(1, "Section title is required"),
+  description: z.string(),
+  fields: z.array(fieldSchema).min(1, "Add at least one field to the section"),
 });
 
 const createFormSchema = z.object({
@@ -26,7 +24,7 @@ const createFormSchema = z.object({
   description: z.string(),
   deadline: z.string(),
   isOpen: z.boolean(),
-  fields: z.array(fieldSchema).min(1, "Add at least one field"),
+  sections: z.array(sectionSchema).min(1, "Add at least one section"),
 }) as z.ZodType<FormBuilderValues>;
 
 export function FormBuilderPage() {
@@ -40,22 +38,26 @@ export function FormBuilderPage() {
       description: "",
       deadline: "",
       isOpen: true,
-      fields: [
+      sections: [
         {
-          label: "",
-          type: "text",
-          required: true,
-          optionsText: "",
-          hasSubFields: false,
-          subFields: [],
+          title: "",
+          description: "",
+          fields: [
+            {
+              label: "",
+              type: "text",
+              required: true,
+              optionsText: "",
+            },
+          ],
         },
       ],
     },
   });
 
-  const fields = useFieldArray({
+  const sections = useFieldArray({
     control: form.control,
-    name: "fields",
+    name: "sections",
   });
 
   const createMutation = useMutation({
@@ -72,7 +74,7 @@ export function FormBuilderPage() {
         <div>
           <p className="eyebrow">Builder</p>
           <h1>Create form</h1>
-          <p className="muted">Keep it simple, but ready for real data from day one.</p>
+          <p className="muted">Create sections first, then place the fields inside each section.</p>
         </div>
       </div>
 
@@ -109,35 +111,49 @@ export function FormBuilderPage() {
 
         <div className="field-toolbar">
           <div>
-            <h2>Fields</h2>
-            <p className="muted">Use one line per field and comma separate any options.</p>
+            <h2>Sections</h2>
+            <p className="muted">Each form can have multiple sections and each section can contain multiple fields.</p>
           </div>
           <button
             type="button"
             className="ghost-button"
             onClick={() =>
-              fields.append({
-                label: "",
-                type: "text",
-                required: true,
-                optionsText: "",
-                hasSubFields: false,
-                subFields: [],
+              sections.append({
+                title: "",
+                description: "",
+                fields: [
+                  {
+                    label: "",
+                    type: "text",
+                    required: true,
+                    optionsText: "",
+                  },
+                ],
               })
             }
           >
-            Add field
+            Add section
           </button>
         </div>
 
         <div className="form-section">
-          {fields.fields.map((field, index) => (
-            <FieldEditor key={field.id} index={index} form={form} removeField={() => fields.remove(index)} canRemove={fields.fields.length > 1} />
+          {sections.fields.map((section, index) => (
+            <SectionEditor
+              key={section.id}
+              index={index}
+              form={form}
+              removeSection={() => sections.remove(index)}
+              canRemove={sections.fields.length > 1}
+            />
           ))}
         </div>
 
-        {form.formState.errors.fields ? <span className="error">{form.formState.errors.fields.message}</span> : null}
-        {createMutation.isError ? <div className="notice" style={{ borderColor: "rgba(180,35,24,0.2)", background: "rgba(180,35,24,0.06)", color: "#8e1d14" }}>{(createMutation.error as Error).message}</div> : null}
+        {form.formState.errors.sections ? <span className="error">{form.formState.errors.sections.message as string}</span> : null}
+        {createMutation.isError ? (
+          <div className="notice" style={{ borderColor: "rgba(180,35,24,0.2)", background: "rgba(180,35,24,0.06)", color: "#8e1d14" }}>
+            {(createMutation.error as Error).message}
+          </div>
+        ) : null}
 
         <button type="submit" disabled={createMutation.isPending}>
           {createMutation.isPending ? "Creating..." : "Create form"}
@@ -147,140 +163,104 @@ export function FormBuilderPage() {
   );
 }
 
-function FieldEditor({
+function SectionEditor({
   index,
   form,
-  removeField,
+  removeSection,
   canRemove,
 }: {
   index: number;
   form: UseFormReturn<FormBuilderValues>;
-  removeField: () => void;
+  removeSection: () => void;
   canRemove: boolean;
 }) {
-  const hasSubFields = form.watch(`fields.${index}.hasSubFields`) ?? false;
-  const subFields = form.watch(`fields.${index}.subFields`) ?? [];
-
-  const addSubField = () => {
-    form.setValue(`fields.${index}.hasSubFields`, true, { shouldDirty: true });
-    form.setValue(`fields.${index}.subFields`, [...subFields, { label: "", required: false }], { shouldDirty: true });
-  };
-
-  const updateSubField = (subIndex: number, nextValue: Partial<{ label: string; required: boolean }>) => {
-    const nextSubFields = subFields.map((subField, currentIndex) =>
-      currentIndex === subIndex ? { ...subField, ...nextValue } : subField
-    );
-    form.setValue(`fields.${index}.subFields`, nextSubFields, { shouldDirty: true });
-  };
-
-  const removeSubField = (subIndex: number) => {
-    const nextSubFields = subFields.filter((_subField, currentIndex) => currentIndex !== subIndex);
-    form.setValue(`fields.${index}.subFields`, nextSubFields, { shouldDirty: true });
-    if (nextSubFields.length === 0) {
-      form.setValue(`fields.${index}.hasSubFields`, false, { shouldDirty: true });
-    }
-  };
+  const fields = useFieldArray({
+    control: form.control,
+    name: `sections.${index}.fields` as const,
+  });
 
   return (
     <div className="field-card stack">
       <div className="field-toolbar">
-        <strong>Field {index + 1}</strong>
-        <button type="button" className="ghost-button" onClick={removeField} disabled={!canRemove}>
-          Remove
+        <strong>Section {index + 1}</strong>
+        <button type="button" className="ghost-button" onClick={removeSection} disabled={!canRemove}>
+          Remove section
         </button>
       </div>
 
-      <div className="grid cols-2">
-        <label className="stack small">
-          Label
-          <input {...form.register(`fields.${index}.label`)} placeholder="No of admission" />
-        </label>
-        <label className="stack small">
-          Type
-          <select {...form.register(`fields.${index}.type`)}>
-            <option value="text">Text</option>
-            <option value="textarea">Textarea</option>
-            <option value="number">Number</option>
-            <option value="email">Email</option>
-            <option value="date">Date</option>
-            <option value="select">Select</option>
-            <option value="radio">Radio</option>
-            <option value="checkbox">Checkbox</option>
-          </select>
-        </label>
-      </div>
+      <label className="stack small">
+        Section title
+        <input {...form.register(`sections.${index}.title`)} placeholder="Admission details" />
+      </label>
 
       <label className="stack small">
-        Options
-        <input {...form.register(`fields.${index}.optionsText`)} placeholder="Option A, Option B, Option C" />
+        Section description
+        <textarea {...form.register(`sections.${index}.description`)} placeholder="Use this section to capture yearly admission data" />
       </label>
 
-      <label className="small" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <input type="checkbox" {...form.register(`fields.${index}.required`)} style={{ width: 18, height: 18 }} />
-        Required
-      </label>
-
-      <label className="small" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <input
-          type="checkbox"
-          checked={hasSubFields}
-          onChange={(event) => {
-            const checked = event.target.checked;
-            form.setValue(`fields.${index}.hasSubFields`, checked, { shouldDirty: true });
-            if (checked && subFields.length === 0) {
-              form.setValue(`fields.${index}.subFields`, [{ label: "", required: false }], { shouldDirty: true });
-            }
-            if (!checked) {
-              form.setValue(`fields.${index}.subFields`, [], { shouldDirty: true });
-            }
-          }}
-          style={{ width: 18, height: 18 }}
-        />
-        Add sub-fields under this field
-      </label>
-
-      {hasSubFields ? (
-        <div className="stack field-group-box">
-          <div className="field-toolbar">
-            <div>
-              <strong>Sub-fields</strong>
-              <p className="muted small">Example: year 2019, year 2020, year 2021</p>
-            </div>
-            <button type="button" className="ghost-button" onClick={addSubField}>
-              Add sub-field
-            </button>
-          </div>
-
-          <div className="stack">
-            {subFields.map((subField, subIndex) => (
-              <div className="grid cols-2" key={`${index}-${subIndex}`}>
-                <label className="stack small">
-                  Sub-field label
-                  <input
-                    value={subField.label}
-                    onChange={(event) => updateSubField(subIndex, { label: event.target.value })}
-                    placeholder="year 2019"
-                  />
-                </label>
-                <div className="stack small" style={{ alignSelf: "end" }}>
-                  <label className="small" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <input
-                      type="checkbox"
-                      checked={subField.required}
-                      onChange={(event) => updateSubField(subIndex, { required: event.target.checked })}
-                      style={{ width: 18, height: 18 }}
-                    />
-                    Required
-                  </label>
-                  <button type="button" className="ghost-button" onClick={() => removeSubField(subIndex)}>
-                    Remove sub-field
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+      <div className="field-toolbar">
+        <div>
+          <strong>Fields</strong>
+          <p className="muted small">Add one or more fields inside this section.</p>
         </div>
-      ) : null}
+        <button
+          type="button"
+          className="ghost-button"
+          onClick={() =>
+            fields.append({
+              label: "",
+              type: "text",
+              required: true,
+              optionsText: "",
+            })
+          }
+        >
+          Add field
+        </button>
+      </div>
+
+      <div className="stack">
+        {fields.fields.map((field, fieldIndex) => (
+          <div className="field-group-box stack" key={field.id}>
+            <div className="field-toolbar">
+              <strong>Field {fieldIndex + 1}</strong>
+              <button type="button" className="ghost-button" onClick={() => fields.remove(fieldIndex)} disabled={fields.fields.length === 1}>
+                Remove
+              </button>
+            </div>
+
+            <div className="grid cols-2">
+              <label className="stack small">
+                Label
+                <input {...form.register(`sections.${index}.fields.${fieldIndex}.label`)} placeholder="Year 2019" />
+              </label>
+              <label className="stack small">
+                Type
+                <select {...form.register(`sections.${index}.fields.${fieldIndex}.type`)}>
+                  <option value="text">Text</option>
+                  <option value="textarea">Textarea</option>
+                  <option value="number">Number</option>
+                  <option value="email">Email</option>
+                  <option value="date">Date</option>
+                  <option value="select">Select</option>
+                  <option value="radio">Radio</option>
+                  <option value="checkbox">Checkbox</option>
+                </select>
+              </label>
+            </div>
+
+            <label className="stack small">
+              Options
+              <input {...form.register(`sections.${index}.fields.${fieldIndex}.optionsText`)} placeholder="Option A, Option B, Option C" />
+            </label>
+
+            <label className="small" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <input type="checkbox" {...form.register(`sections.${index}.fields.${fieldIndex}.required`)} style={{ width: 18, height: 18 }} />
+              Required
+            </label>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

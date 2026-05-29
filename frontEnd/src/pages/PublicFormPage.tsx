@@ -47,7 +47,8 @@ export function PublicFormPage() {
     enabled: Boolean(token),
   });
 
-  const fields = formQuery.data?.fields ?? [];
+  const sections = formQuery.data?.sections ?? [];
+  const fields = useMemo(() => sections.flatMap((section) => section.fields), [sections]);
   const submissionSchema = useMemo(() => buildSchema(fields), [fields]);
   const existingValuesMap = useMemo(() => {
     const values = existingSubmissionQuery.data?.submissionValue ?? [];
@@ -145,7 +146,7 @@ export function PublicFormPage() {
             submitMutation.mutate({
               formId: formQuery.data.id,
               departmentId: departmentQuery.data.id,
-              values: formQuery.data.fields.map((field) => ({
+              values: fields.map((field) => ({
                 fieldId: field.id,
                 value: values[field.id] ?? "",
               })),
@@ -156,8 +157,22 @@ export function PublicFormPage() {
           {isAlreadySubmitted ? <div className="notice">This form is already submitted. It is now read-only.</div> : null}
 
           <div className="form-section">
-            {formQuery.data.fields.map((field) => (
-              <FieldInput key={field.id} field={field} control={form.control} register={form.register} />
+            {sections.map((section) => (
+              <div className="field-card stack" key={section.id}>
+                <div className="field-toolbar">
+                  <div>
+                    <strong>{section.title}</strong>
+                    {section.description ? <p className="muted small">{section.description}</p> : null}
+                  </div>
+                  <span className="badge">{section.fields.length} fields</span>
+                </div>
+
+                <div className="stack">
+                  {section.fields.map((field) => (
+                    <FieldInput key={field.id} field={field} control={form.control} register={form.register} />
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
 
@@ -182,7 +197,7 @@ export function PublicFormPage() {
                 draftMutation.mutate({
                   formId: formQuery.data.id,
                   departmentId: departmentQuery.data.id,
-                  values: formQuery.data.fields.map((field) => ({
+                  values: fields.map((field) => ({
                     fieldId: field.id,
                     value: values[field.id] ?? "",
                   })),

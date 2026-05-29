@@ -45,6 +45,17 @@ export type FormField = {
   required: boolean;
   sortOrder: number;
   options: FieldOption[];
+  sectionId?: string;
+  section?: FormSection;
+};
+
+export type FormSection = {
+  id: string;
+  formId: string;
+  title: string;
+  description?: string | null;
+  sortOrder: number;
+  fields: FormField[];
 };
 
 export type SubmissionValue = {
@@ -79,7 +90,7 @@ export type Form = {
   deadline?: string | null;
   createdById: string;
   createdBy?: User;
-  fields: FormField[];
+  sections: FormSection[];
   submissions: Array<Pick<Submission, "id">> | Submission[];
   createdAt: string;
   updatedAt: string;
@@ -95,11 +106,12 @@ export type FormBuilderField = {
   type: "text" | "textarea" | "number" | "email" | "date" | "select" | "radio" | "checkbox";
   required: boolean;
   optionsText: string;
-  hasSubFields?: boolean;
-  subFields?: Array<{
-    label: string;
-    required: boolean;
-  }>;
+};
+
+export type FormBuilderSection = {
+  title: string;
+  description: string;
+  fields: FormBuilderField[];
 };
 
 export type FormBuilderValues = {
@@ -107,5 +119,5 @@ export type FormBuilderValues = {
   description: string;
   deadline: string;
   isOpen: boolean;
-  fields: FormBuilderField[];
+  sections: FormBuilderSection[];
 };

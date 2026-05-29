@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { formsApi, submissionsApi } from "../../lib/api";
 import Modal from "../../components/Modal";
@@ -33,6 +33,50 @@ export function AdminDashboardPage() {
     queryFn: () => submissionsApi.getById(selectedSubmissionId as string),
     enabled: Boolean(selectedSubmissionId),
   });
+
+  const submissionDetail = submissionDetailQuery.data;
+  const submissionSections = useMemo(() => {
+    if (!submissionDetail) {
+      return [];
+    }
+
+    const sections = submissionDetail.form?.sections ?? [];
+
+    const valuesByFieldId = new Map(submissionDetail.submissionValue.map((value) => [value.fieldId, value]));
+
+    if (sections.length === 0) {
+      return [
+        {
+          title: "Submission values",
+          description: null,
+          fields: submissionDetail.submissionValue.map((value) => ({
+            label: value.field?.label ?? value.fieldId,
+            value: value.value,
+          })),
+        },
+      ];
+    }
+
+    return sections.map((section) => ({
+      title: section.title,
+      description: section.description ?? null,
+      fields: section.fields.map((field) => ({
+        label: field.label,
+        value: valuesByFieldId.get(field.id)?.value ?? "No response",
+      })),
+    }));
+  }, [submissionDetail]);
+
+  const [expandedSections, setExpandedSections] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!submissionDetail) return;
+    setExpandedSections(submissionSections.map((s) => s.id));
+  }, [submissionDetail?.id]);
+
+  const toggleSection = (id: string) => {
+    setExpandedSections((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]));
+  };
 
   const deleteSubmissionMutation = useMutation({
     mutationFn: (id: string) => submissionsApi.delete(id),
@@ -150,44 +194,56 @@ export function AdminDashboardPage() {
           </div>
         ) : null}
 
-        <Modal open={Boolean(selectedSubmissionId)} onClose={() => setSelectedSubmissionId(null)} title={submissionDetailQuery.data ? `Submission • ${submissionDetailQuery.data.id}` : "Submission details"}>
+        <Modal open={Boolean(selectedSubmissionId)} onClose={() => setSelectedSubmissionId(null)} title={submissionDetail ? `Submission • ${submissionDetail.id}` : "Submission details"}>
           {submissionDetailQuery.isLoading ? <p className="muted">Loading submission details...</p> : null}
           {submissionDetailQuery.isError ? <p className="error">Unable to load this submission detail.</p> : null}
 
-          {submissionDetailQuery.data ? (
+          {submissionDetail ? (
             <div>
-              <div style={{ display: "grid", gap: 6, marginBottom: 8 }}>
-                <div className="muted small">Form: {submissionDetailQuery.data.form?.title ?? submissionDetailQuery.data.formId}</div>
-                <div className="muted small">Submitted by: {submissionDetailQuery.data.submittedBy?.username ?? submissionDetailQuery.data.submittedById} ({submissionDetailQuery.data.submittedBy?.email ?? "no-email"})</div>
-                <div className="muted small">Department: {submissionDetailQuery.data.department?.department_Name ?? submissionDetailQuery.data.departmentId}</div>
-                <div className="muted small">Status: {submissionDetailQuery.data.status}</div>
-                <div className="muted small">Submitted at: {submissionDetailQuery.data.submittedAt ? new Date(submissionDetailQuery.data.submittedAt).toLocaleString() : "-"}</div>
-                <div className="muted small">Created: {new Date(submissionDetailQuery.data.createdAt).toLocaleString()}</div>
+              <div className="field-card" style={{ marginBottom: 14 }}>
+                <strong>Submission summary</strong>
+                <div className="muted small">Form: {submissionDetail.form?.title ?? submissionDetail.formId}</div>
+                <div className="muted small">Submitted by: {submissionDetail.submittedBy?.username ?? submissionDetail.submittedById}</div>
+                <div className="muted small">Department: {submissionDetail.department?.department_Name ?? submissionDetail.departmentId}</div>
+                <div className="muted small">Status: {submissionDetail.status}</div>
+                <div className="muted small">Submitted at: {submissionDetail.submittedAt ? new Date(submissionDetail.submittedAt).toLocaleString() : "-"}</div>
               </div>
 
-              <table className="detail-table">
-                <thead>
-                  <tr>
-                    <th>Field</th>
-                    <th>Value</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {submissionDetailQuery.data.submissionValue.map((value) => (
-                    <tr key={value.id}>
-                      <td>{value.field?.label ?? value.fieldId}</td>
-                      <td>{value.value}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <div className="stack">
+                {submissionSections.map((section) => (
+                  <div key={section.id} className="field-card">
+                    <div className="field-toolbar">
+                      <div>
+                        <strong>{section.title}</strong>
+                        {section.description ? <p className="muted small">{section.description}</p> : null}
+                      </div>
+                      <div>
+                        <button type="button" className="link-button" onClick={() => toggleSection(section.id)}>
+                          {expandedSections.includes(section.id) ? "Hide" : "Show"}
+                        </button>
+                      </div>
+                    </div>
+
+                    {expandedSections.includes(section.id) ? (
+                      <div className="stack" style={{ marginTop: 12 }}>
+                        {section.fields.map((field) => (
+                          <div key={`${section.id}-${field.id}`} className="field-group-box">
+                            <div className="small muted">{field.label}</div>
+                            <div>{field.value}</div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
 
               <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
                 <button
                   type="button"
                   onClick={() => {
                     if (window.confirm("Delete this submission? This cannot be undone.")) {
-                      deleteSubmissionMutation.mutate(submissionDetailQuery.data!.id);
+                      deleteSubmissionMutation.mutate(submissionDetail.id);
                     }
                   }}
                   className="ghost-button"
@@ -239,7 +295,7 @@ export function AdminDashboardPage() {
                       <td>
                         <span className={`badge ${form.isOpen ? "open" : "closed"}`}>{form.isOpen ? "Open" : "Closed"}</span>
                       </td>
-                      <td>{Array.isArray(form.fields) ? form.fields.length : 0}</td>
+                      <td>{Array.isArray(form.sections) ? form.sections.reduce((count, section) => count + (section.fields?.length ?? 0), 0) : 0}</td>
                       <td>{Array.isArray(form.submissions) ? form.submissions.length : 0}</td>
                       <td>
                         <button
