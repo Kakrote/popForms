@@ -71,7 +71,8 @@ export function AdminDashboardPage() {
 
   useEffect(() => {
     if (!submissionDetail) return;
-    setExpandedSections(submissionSections.map((s) => s.id));
+    // start with sections collapsed by default
+    setExpandedSections([]);
   }, [submissionDetail?.id]);
 
   const toggleSection = (id: string) => {

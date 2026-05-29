@@ -73,7 +73,8 @@ export function FormDetailPage() {
 
   useEffect(() => {
     if (!selectedSubmission) return;
-    setExpandedSections(submissionSections.map((s) => s.id));
+    // start with sections collapsed by default
+    setExpandedSections([]);
   }, [selectedSubmission?.id]);
 
   const toggleSection = (id: string) => {
