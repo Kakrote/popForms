@@ -74,18 +74,26 @@ export const findUserSubmissionByForm = async (formId: string, submittedById: st
                     field: {
                         include: {
                             options: true,
+                            section: true,
                         },
                     },
                 },
             },
             form: {
                 include: {
-                    fields: {
+                    sections: {
                         orderBy: {
                             sortOrder: "asc",
                         },
                         include: {
-                            options: true,
+                            fields: {
+                                orderBy: {
+                                    sortOrder: "asc",
+                                },
+                                include: {
+                                    options: true,
+                                },
+                            },
                         },
                     },
                 },
@@ -130,7 +138,12 @@ export const getAllSubmissions = async () => {
             },
             submissionValue: {
                 include: {
-                    field: true,
+                    field: {
+                        include: {
+                            options: true,
+                            section: true,
+                        },
+                    },
                 },
             },
         },
@@ -170,7 +183,12 @@ export const getMySubmissions = async (submittedById: string) => {
             },
             submissionValue: {
                 include: {
-                    field: true,
+                    field: {
+                        include: {
+                            options: true,
+                            section: true,
+                        },
+                    },
                 },
             },
         },
@@ -186,12 +204,19 @@ export const getSubmissionById = async (id: string) => {
         include: {
             form: {
                 include: {
-                    fields: {
+                    sections: {
                         orderBy: {
                             sortOrder: "asc",
                         },
                         include: {
-                            options: true,
+                            fields: {
+                                orderBy: {
+                                    sortOrder: "asc",
+                                },
+                                include: {
+                                    options: true,
+                                },
+                            },
                         },
                     },
                 },
@@ -262,7 +287,12 @@ export const getMyDrafts = async (submittedById: string) => {
             },
             submissionValue: {
                 include: {
-                    field: true,
+                    field: {
+                        include: {
+                            options: true,
+                            section: true,
+                        },
+                    },
                 },
             },
         },

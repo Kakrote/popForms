@@ -84,11 +84,27 @@ model Form {
   deadline    DateTime?
   createdById String
   createdBy   User         @relation("CreatedForms", fields: [createdById], references: [id])
-  fields      Field[]
+  sections    FormSection[]
   accesses    FormAccess[]
   submissions Submission[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+}
+
+model FormSection {
+  id String @id @default(cuid())
+
+  formId String
+  form   Form @relation(fields: [formId], references: [id], onDelete: Cascade)
+
+  title String
+  description String?
+  sortOrder Int @default(0)
+
+  fields Field[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 //
@@ -98,8 +114,8 @@ model Form {
 model Field {
   id String @id @default(cuid())
 
-  formId String
-  form   Form   @relation(fields: [formId], references: [id], onDelete: Cascade)
+  sectionId String
+  section   FormSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
 
   label String
 
@@ -122,7 +138,7 @@ model Field {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([formId, fieldKey])
+  @@unique([sectionId, fieldKey])
 }
 
 // FIELD OPTIONS

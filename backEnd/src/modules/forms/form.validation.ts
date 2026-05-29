@@ -7,10 +7,16 @@ const formFieldSchema = z.object({
 	options: z.array(z.string()).optional(),
 });
 
+const formSectionSchema = z.object({
+	title: z.string().min(1, "Section title is required"),
+	description: z.string().optional(),
+	fields: z.array(formFieldSchema).optional(),
+});
+
 export const createFormSchema = z.object({
 	title: z.string().min(1, "Form title is required"),
 	description: z.string().optional(),
-	fields: z.array(formFieldSchema).optional(),
+	sections: z.array(formSectionSchema).optional(),
 	isOpen: z.boolean().optional(),
 	deadline: z.coerce.date().optional(),
 });
@@ -19,7 +25,7 @@ export const updateFormSchema = z.object({
 	id: z.string().min(1, "Form ID is required"),
 	title: z.string().min(1).optional(),
 	description: z.string().optional(),
-	fields: z.array(formFieldSchema).optional(),
+	sections: z.array(formSectionSchema).optional(),
 	isOpen: z.boolean().optional(),
 	deadline: z.coerce.date().optional(),
 });

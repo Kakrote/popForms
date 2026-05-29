@@ -27,19 +27,28 @@ export const createForm = async (data: CreateFormInput, createdById: string) => 
                     id: createdById,
                 },
             },
-            fields: data.fields?.length
+            sections: data.sections?.length
                 ? {
-                      create: data.fields.map((field, index) => ({
-                          label: field.label,
-                          fieldKey: generateSlug(field.label),
-                          fieldType: fieldTypeMap[field.type],
-                          required: field.required ?? false,
-                          sortOrder: index,
-                          options: field.options?.length
+                      create: data.sections.map((section, sectionIndex) => ({
+                          title: section.title,
+                          description: section.description,
+                          sortOrder: sectionIndex,
+                          fields: section.fields?.length
                               ? {
-                                    create: field.options.map((option) => ({
-                                        label: option,
-                                        value: option,
+                                    create: section.fields.map((field, fieldIndex) => ({
+                                        label: field.label,
+                                        fieldKey: generateSlug(field.label),
+                                        fieldType: fieldTypeMap[field.type],
+                                        required: field.required ?? false,
+                                        sortOrder: fieldIndex,
+                                        options: field.options?.length
+                                            ? {
+                                                  create: field.options.map((option) => ({
+                                                      label: option,
+                                                      value: option,
+                                                  })),
+                                              }
+                                            : undefined,
                                     })),
                                 }
                               : undefined,
@@ -56,12 +65,19 @@ export const getAllForms = async () => {
             createdAt: "desc",
         },
         include: {
-            fields: {
+            sections: {
                 orderBy: {
                     sortOrder: "asc",
                 },
                 include: {
-                    options: true,
+                    fields: {
+                        orderBy: {
+                            sortOrder: "asc",
+                        },
+                        include: {
+                            options: true,
+                        },
+                    },
                 },
             },
             submissions: {
@@ -90,12 +106,19 @@ export const getFormBySlug = async (slug: string) => {
             slug,
         },
         include: {
-            fields: {
+            sections: {
                 orderBy: {
                     sortOrder: "asc",
                 },
                 include: {
-                    options: true,
+                    fields: {
+                        orderBy: {
+                            sortOrder: "asc",
+                        },
+                        include: {
+                            options: true,
+                        },
+                    },
                 },
             },
             accesses: {

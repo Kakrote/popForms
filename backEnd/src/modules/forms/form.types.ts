@@ -5,10 +5,16 @@ export type FormField = {
     options?: string[];
 };
 
-export type CreateFormInput = {
+export type FormSection = {
     title: string;
     description?: string;
     fields?: FormField[];
+};
+
+export type CreateFormInput = {
+    title: string;
+    description?: string;
+    sections?: FormSection[];
     isOpen?: boolean;
     deadline?: string | Date;
 };
