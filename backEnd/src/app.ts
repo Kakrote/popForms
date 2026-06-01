@@ -11,7 +11,7 @@ app.use(express.json());
 app.use("/api",router);
 
 app.get("/",(req:express.Request,res:express.Response)=>{
-    res.send("hello world form express ");
+    res.send("hello world form express2 ");
 })
 
 // Global error handler (must be after routes)
