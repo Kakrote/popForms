@@ -1,6 +1,6 @@
 import { FieldType } from "@prisma/client";
 import { prisma } from "../../lib/prisma.js";
-import { CreateFormInput, FormField } from "./form.types.js";
+import { CreateFormInput, FormField, UpdateFormInput } from "./form.types.js";
 import { generateSlug } from "../../utils/slug.js";
 
 const fieldTypeMap: Record<FormField["type"], FieldType> = {
@@ -13,6 +13,31 @@ const fieldTypeMap: Record<FormField["type"], FieldType> = {
     radio: FieldType.RADIO,
     checkbox: FieldType.CHECKBOX,
 };
+
+const buildSectionCreateData = (section: NonNullable<CreateFormInput["sections"]>[number], sectionIndex: number) => ({
+    title: section.title,
+    description: section.description,
+    sortOrder: sectionIndex,
+    fields: section.fields?.length
+        ? {
+              create: section.fields.map((field, fieldIndex) => ({
+                  label: field.label,
+                  fieldKey: generateSlug(field.label),
+                  fieldType: fieldTypeMap[field.type],
+                  required: field.required ?? false,
+                  sortOrder: fieldIndex,
+                  options: field.options?.length
+                      ? {
+                            create: field.options.map((option) => ({
+                                label: option,
+                                value: option,
+                            })),
+                        }
+                      : undefined,
+              })),
+          }
+        : undefined,
+});
 
 export const createForm = async (data: CreateFormInput, createdById: string) => {
     return await prisma.form.create({
@@ -29,33 +54,50 @@ export const createForm = async (data: CreateFormInput, createdById: string) => 
             },
             sections: data.sections?.length
                 ? {
-                      create: data.sections.map((section, sectionIndex) => ({
-                          title: section.title,
-                          description: section.description,
-                          sortOrder: sectionIndex,
-                          fields: section.fields?.length
-                              ? {
-                                    create: section.fields.map((field, fieldIndex) => ({
-                                        label: field.label,
-                                        fieldKey: generateSlug(field.label),
-                                        fieldType: fieldTypeMap[field.type],
-                                        required: field.required ?? false,
-                                        sortOrder: fieldIndex,
-                                        options: field.options?.length
-                                            ? {
-                                                  create: field.options.map((option) => ({
-                                                      label: option,
-                                                      value: option,
-                                                  })),
-                                              }
-                                            : undefined,
-                                    })),
-                                }
-                              : undefined,
-                      })),
+                      create: data.sections.map((section, sectionIndex) => buildSectionCreateData(section, sectionIndex)),
                   }
                 : undefined,
         },
+    });
+};
+
+export const updateForm = async (slug: string, data: UpdateFormInput) => {
+    const existingForm = await prisma.form.findUnique({
+        where: { slug },
+        select: { id: true, slug: true },
+    });
+
+    if (!existingForm) {
+        return null;
+    }
+
+    return await prisma.$transaction(async (transaction) => {
+        await transaction.form.update({
+            where: { slug },
+            data: {
+                title: data.title,
+                description: data.description,
+                isOpen: data.isOpen,
+                deadline: data.deadline ? new Date(data.deadline) : undefined,
+            },
+        });
+
+        if (data.sections !== undefined) {
+            await transaction.formSection.deleteMany({ where: { formId: existingForm.id } });
+
+            if (data.sections.length > 0) {
+                await transaction.form.update({
+                    where: { slug },
+                    data: {
+                        sections: {
+                            create: data.sections.map((section, sectionIndex) => buildSectionCreateData(section, sectionIndex)),
+                        },
+                    },
+                });
+            }
+        }
+
+        return await getFormBySlug(slug);
     });
 };
 

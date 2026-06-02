@@ -43,6 +43,7 @@ export default function App() {
         <Route path="/admin" element={<AppShell />}>
           <Route index element={<AdminDashboardPage />} />
           <Route path="forms/new" element={<FormBuilderPage />} />
+          <Route path="forms/:slug/edit" element={<FormBuilderPage />} />
           <Route path="forms/:slug" element={<FormDetailPage />} />
           <Route path="users/new" element={<UserCreatePage />} />
           <Route path="departments" element={<DepartmentManagementPage />} />

@@ -1,6 +1,6 @@
 import { catchAsync } from "../../utils/catchAsync.js";
-import { createFormSchema } from "./form.validation.js";
-import { createForm as createFormService, deleteForm as deleteFormService,toggleFormStatusService, listFormsService, getFormBySlugService } from "./form.service.js";
+import { createFormSchema, updateFormSchema } from "./form.validation.js";
+import { createForm as createFormService, deleteForm as deleteFormService, updateFormService, toggleFormStatusService, listFormsService, getFormBySlugService } from "./form.service.js";
 import { Request, Response } from "express";
 
 type AuthenticatedRequest = Request & {
@@ -54,10 +54,29 @@ export const deleteForm = catchAsync(
 );
 
 
+export const updateForm = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
+        const { slug } = req.params;
+        const payload = updateFormSchema.parse(req.body);
+
+        if (!req.user?.id) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized",
+            });
+        }
+
+        const form = await updateFormService(slug as string, payload);
+
+        res.status(200).json({
+            success: true,
+            message: "Form updated successfully",
+            data: form,
+        });
+});
+
 // activating and deactivating the form
 
-export const toggleFormStatus = catchAsync(
-    async(req: AuthenticatedRequest, res: Response) => {
+export const toggleFormStatus = catchAsync(async(req: AuthenticatedRequest, res: Response) => {
         const { slug } = req.params;
         const { isOpen } = req.body;
 
@@ -75,8 +94,7 @@ export const toggleFormStatus = catchAsync(
             message: `Form ${isOpen ? "activated" : "deactivated"} successfully`,
             data: form,
         });
-    }
-)
+});
 
 export const listForms = catchAsync(async (_req: Request, res: Response) => {
     const forms = await listFormsService();

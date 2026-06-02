@@ -73,6 +73,9 @@ export function FormDetailPage() {
           <button type="button" className="ghost-button" onClick={() => toggleMutation.mutate(!form.isOpen)}>
             {form.isOpen ? "Close form" : "Open form"}
           </button>
+          <Link to={`/admin/forms/${form.slug}/edit`} className="ghost-button" style={{ display: "inline-flex", justifyContent: "center" }}>
+            Edit form
+          </Link>
           <button type="button" className="ghost-button" onClick={() => setShowDeleteConfirm(true)}>
             Delete form
           </button>

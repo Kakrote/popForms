@@ -32,6 +32,29 @@ const unwrap = <T>(response: { data: ApiResponse<T> } | { data: { status?: strin
   return response.data.data;
 };
 
+const serializeFormBuilderPayload = (payload: FormBuilderValues) => ({
+  title: payload.title,
+  description: payload.description || undefined,
+  deadline: payload.deadline || undefined,
+  isOpen: payload.isOpen,
+  sections: payload.sections.map((section) => ({
+    title: section.title,
+    description: section.description || undefined,
+    fields: section.fields.map((field) => ({
+      label: field.label,
+      type: field.type,
+      required: field.required,
+      options:
+        field.type === "select" || field.type === "radio" || field.type === "checkbox"
+          ? field.optionsText
+              .split(",")
+              .map((option) => option.trim())
+              .filter(Boolean)
+          : undefined,
+    })),
+  })),
+});
+
 export const authApi = {
   login: async (payload: LoginFormValues) => {
     const response = await apiClient.post<ApiResponse<AuthPayload>>("/auth/login", payload);
@@ -53,27 +76,11 @@ export const formsApi = {
     return unwrap(response);
   },
   create: async (payload: FormBuilderValues) => {
-    const response = await apiClient.post<ApiResponse<Form>>("/forms", {
-      title: payload.title,
-      description: payload.description || undefined,
-      deadline: payload.deadline || undefined,
-      isOpen: payload.isOpen,
-      sections: payload.sections.map((section) => ({
-        title: section.title,
-        description: section.description || undefined,
-        fields: section.fields.map((field) => ({
-          label: field.label,
-          type: field.type,
-          required: field.required,
-          options: field.type === "select" || field.type === "radio" || field.type === "checkbox"
-            ? field.optionsText
-                .split(",")
-                .map((option) => option.trim())
-                .filter(Boolean)
-            : undefined,
-        })),
-      })),
-    });
+    const response = await apiClient.post<ApiResponse<Form>>("/forms", serializeFormBuilderPayload(payload));
+    return unwrap(response);
+  },
+  update: async (slug: string, payload: FormBuilderValues) => {
+    const response = await apiClient.put<ApiResponse<Form>>(`/forms/${slug}`, serializeFormBuilderPayload(payload));
     return unwrap(response);
   },
   toggleStatus: async (slug: string, isOpen: boolean) => {

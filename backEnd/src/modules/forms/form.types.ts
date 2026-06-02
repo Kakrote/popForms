@@ -19,3 +19,5 @@ export type CreateFormInput = {
     deadline?: string | Date;
 };
 
+export type UpdateFormInput = Partial<CreateFormInput>;
+

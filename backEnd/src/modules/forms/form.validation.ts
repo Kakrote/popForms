@@ -21,14 +21,7 @@ export const createFormSchema = z.object({
 	deadline: z.coerce.date().optional(),
 });
 
-export const updateFormSchema = z.object({
-	id: z.string().min(1, "Form ID is required"),
-	title: z.string().min(1).optional(),
-	description: z.string().optional(),
-	sections: z.array(formSectionSchema).optional(),
-	isOpen: z.boolean().optional(),
-	deadline: z.coerce.date().optional(),
-});
+export const updateFormSchema = createFormSchema.partial();
 
 export const getFormSchema = z.object({
 	id: z.string().min(1, "Form ID is required"),
