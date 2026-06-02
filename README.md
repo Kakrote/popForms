@@ -153,7 +153,7 @@ Run the backend, frontend, and Postgres together from the repository root:
 docker compose up --build
 ```
 
-The backend listens on `http://localhost:5000`, the frontend serves on `http://localhost:5173`, and Prisma migrations run automatically when the backend container starts.
+The backend listens on `http://192.168.8.10/api frontend serves on `http://192.168.8.10:5173`, and Prisma migrations run automatically when the backend container starts.
 
 ## Useful Entry Points
 

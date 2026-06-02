@@ -40,7 +40,7 @@ services:
       context: ./frontEnd
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: http://localhost:5000/api
+        VITE_API_URL: http://192.168.8.10:5000/api
     restart: unless-stopped
     depends_on:
       - backend
