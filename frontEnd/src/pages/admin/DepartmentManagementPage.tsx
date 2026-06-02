@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import ConfirmDialog from "../../components/ConfirmDialog";
 import { departmentApi, usersApi } from "../../lib/api";
 
 export function DepartmentManagementPage() {
@@ -16,6 +17,7 @@ export function DepartmentManagementPage() {
 
   const [departmentName, setDepartmentName] = useState("");
   const [assignedUserId, setAssignedUserId] = useState("");
+  const [pendingDeleteDepartment, setPendingDeleteDepartment] = useState<{ id: string; name: string } | null>(null);
 
   const departments = departmentsQuery.data ?? [];
   const users = usersQuery.data ?? [];
@@ -48,6 +50,7 @@ export function DepartmentManagementPage() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["departments"] });
       await queryClient.invalidateQueries({ queryKey: ["users"] });
+      setPendingDeleteDepartment(null);
     },
   });
 
@@ -132,9 +135,7 @@ export function DepartmentManagementPage() {
                   users={users}
                   onSave={(payload) => updateMutation.mutate({ id: department.id, payload })}
                   onDelete={() => {
-                    if (window.confirm("Delete this department?")) {
-                      deleteMutation.mutate(department.id);
-                    }
+                    setPendingDeleteDepartment({ id: department.id, name: department.department_Name });
                   }}
                   saving={updateMutation.isPending}
                   deleting={deleteMutation.isPending}
@@ -144,6 +145,20 @@ export function DepartmentManagementPage() {
           </table>
         </div>
       </section>
+
+      <ConfirmDialog
+        open={Boolean(pendingDeleteDepartment)}
+        title="Delete department"
+        description={`Delete ${pendingDeleteDepartment?.name ?? "this department"}? This cannot be undone.`}
+        confirmLabel="Delete department"
+        onCancel={() => setPendingDeleteDepartment(null)}
+        onConfirm={() => {
+          if (!pendingDeleteDepartment) return;
+          deleteMutation.mutate(pendingDeleteDepartment.id);
+        }}
+        busy={deleteMutation.isPending}
+        tone="danger"
+      />
     </div>
   );
 }

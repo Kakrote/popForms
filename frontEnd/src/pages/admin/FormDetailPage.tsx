@@ -1,6 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import ConfirmDialog from "../../components/ConfirmDialog";
+import { SubmissionSectionsView, type SubmissionSectionView } from "../../components/SubmissionSectionsView";
+import { getFieldTypeLabel } from "../../components/fieldTypeLabels";
 import { formsApi } from "../../lib/api";
 import type { Submission } from "../../types";
 
@@ -9,6 +12,7 @@ export function FormDetailPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const formQuery = useQuery({
     queryKey: ["form", slug],
@@ -28,6 +32,7 @@ export function FormDetailPage() {
     mutationFn: () => formsApi.remove(slug as string),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["forms"] });
+      setShowDeleteConfirm(false);
       navigate("/admin");
     },
   });
@@ -41,45 +46,7 @@ export function FormDetailPage() {
     [selectedSubmissionId, submissions]
   );
 
-  const submissionSections = useMemo(() => {
-    if (!selectedSubmission) return [];
-
-    const valuesByFieldId = new Map(selectedSubmission.submissionValue.map((v) => [v.fieldId, v.value]));
-
-    if (!sections || sections.length === 0) {
-      return [
-        {
-          id: "__no-sections",
-          title: "Submission values",
-          description: null,
-          fields: selectedSubmission.submissionValue.map((v) => ({ id: v.id, label: v.field?.label ?? v.fieldId, value: v.value })),
-        },
-      ];
-    }
-
-    return sections.map((section) => ({
-      id: section.id,
-      title: section.title,
-      description: section.description ?? null,
-      fields: section.fields.map((field) => ({
-        id: field.id,
-        label: field.label,
-        value: valuesByFieldId.get(field.id) ?? "No response",
-      })),
-    }));
-  }, [selectedSubmission, sections]);
-
-  const [expandedSections, setExpandedSections] = useState<string[]>([]);
-
-  useEffect(() => {
-    if (!selectedSubmission) return;
-    // start with sections collapsed by default
-    setExpandedSections([]);
-  }, [selectedSubmission?.id]);
-
-  const toggleSection = (id: string) => {
-    setExpandedSections((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]));
-  };
+  const submissionSections = useMemo(() => mapSubmissionSections(selectedSubmission), [selectedSubmission]);
 
   if (formQuery.isLoading) {
     return <p className="muted">Loading form...</p>;
@@ -106,7 +73,7 @@ export function FormDetailPage() {
           <button type="button" className="ghost-button" onClick={() => toggleMutation.mutate(!form.isOpen)}>
             {form.isOpen ? "Close form" : "Open form"}
           </button>
-          <button type="button" className="ghost-button" onClick={() => deleteMutation.mutate()}>
+          <button type="button" className="ghost-button" onClick={() => setShowDeleteConfirm(true)}>
             Delete form
           </button>
         </div>
@@ -149,7 +116,7 @@ export function FormDetailPage() {
                   {section.fields.map((field) => (
                     <div className="field-card" key={field.id}>
                       <strong>{field.label}</strong>
-                      <p className="muted small">{field.fieldType}</p>
+                      <p className="muted small">{getFieldTypeLabel(field.fieldType)}</p>
                       {field.options.length > 0 ? <p className="small">Options: {field.options.map((option) => option.label).join(", ")}</p> : null}
                     </div>
                   ))}
@@ -201,34 +168,7 @@ export function FormDetailPage() {
                   <p className="muted small">Submitted by: {selectedSubmission.submittedBy?.username ?? selectedSubmission.submittedById}</p>
                   <p className="muted small">Department: {selectedSubmission.department?.department_Name ?? selectedSubmission.departmentId}</p>
 
-                  <div className="stack">
-                    {submissionSections.map((section) => (
-                      <div className="field-card" key={section.id}>
-                        <div className="field-toolbar">
-                          <div>
-                            <strong>{section.title}</strong>
-                            {section.description ? <p className="muted small">{section.description}</p> : null}
-                          </div>
-                          <div>
-                            <button type="button" className="link-button" onClick={() => toggleSection(section.id)}>
-                              {expandedSections.includes(section.id) ? "Hide" : "Show"}
-                            </button>
-                          </div>
-                        </div>
-
-                        {expandedSections.includes(section.id) ? (
-                          <div className="stack" style={{ marginTop: 12 }}>
-                            {section.fields.map((field) => (
-                              <div key={field.id} className="field-group-box">
-                                <div className="small muted">{field.label}</div>
-                                <div>{field.value}</div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : null}
-                      </div>
-                    ))}
-                  </div>
+                  <SubmissionSectionsView sections={submissionSections} emptyMessage="This submission does not contain any values." />
                 </div>
               </>
             ) : (
@@ -238,9 +178,55 @@ export function FormDetailPage() {
         </div>
       </section>
 
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        title="Delete form"
+        description={`Delete ${form.title}? This cannot be undone.`}
+        confirmLabel="Delete form"
+        onCancel={() => setShowDeleteConfirm(false)}
+        onConfirm={() => deleteMutation.mutate()}
+        busy={deleteMutation.isPending}
+        tone="danger"
+      />
+
       <Link to="/admin" className="muted small">
         Back to dashboard
       </Link>
     </div>
   );
+}
+
+function mapSubmissionSections(submission: Submission | undefined): SubmissionSectionView[] {
+  if (!submission) {
+    return [];
+  }
+
+  const sections = submission.form?.sections ?? [];
+  const valuesByFieldId = new Map(submission.submissionValue.map((value) => [value.fieldId, value.value]));
+
+  if (sections.length === 0) {
+    return [
+      {
+        id: "__no-sections",
+        title: "Submission values",
+        description: null,
+        fields: submission.submissionValue.map((value) => ({
+          id: value.id,
+          label: value.field?.label ?? value.fieldId,
+          value: value.value,
+        })),
+      },
+    ];
+  }
+
+  return sections.map((section) => ({
+    id: section.id,
+    title: section.title,
+    description: section.description ?? null,
+    fields: section.fields.map((field) => ({
+      id: field.id,
+      label: `${field.label} · ${getFieldTypeLabel(field.fieldType)}`,
+      value: valuesByFieldId.get(field.id) ?? "No response",
+    })),
+  }));
 }

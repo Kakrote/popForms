@@ -112,6 +112,16 @@ button:disabled {
   box-shadow: none;
 }
 
+.danger-button {
+  background: var(--danger);
+  color: white;
+}
+
+.danger-button:hover {
+  background: #8f1d13;
+  box-shadow: 0 12px 24px rgba(180, 35, 24, 0.18);
+}
+
 .page {
   min-height: 100vh;
   padding: 32px;
@@ -428,6 +438,13 @@ p {
   gap: 12px;
 }
 
+.modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
 .detail-table {
   width: 100%;
   border-collapse: collapse;
@@ -443,5 +460,10 @@ p {
   width: 35%;
   color: var(--muted);
   text-align: left;
+}
+
+.submission-value {
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 

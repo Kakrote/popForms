@@ -1,13 +1,23 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { formsApi, submissionsApi } from "../../lib/api";
+import ConfirmDialog from "../../components/ConfirmDialog";
 import Modal from "../../components/Modal";
+import { SubmissionSectionsView, type SubmissionSectionView } from "../../components/SubmissionSectionsView";
+import { getFieldTypeLabel } from "../../components/fieldTypeLabels";
+import { formsApi, submissionsApi } from "../../lib/api";
+import type { Submission } from "../../types";
+
+type PendingDelete =
+  | { kind: "submission"; id: string; label: string }
+  | { kind: "form"; slug: string; label: string }
+  | null;
 
 export function AdminDashboardPage() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null);
   const formsQuery = useQuery({
     queryKey: ["forms"],
     queryFn: formsApi.list,
@@ -20,7 +30,10 @@ export function AdminDashboardPage() {
 
   const deleteMutation = useMutation({
     mutationFn: formsApi.remove,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["forms"] }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["forms"] });
+      setPendingDelete(null);
+    },
   });
 
   const submissionsQuery = useQuery({
@@ -35,59 +48,14 @@ export function AdminDashboardPage() {
   });
 
   const submissionDetail = submissionDetailQuery.data;
-  const submissionSections = useMemo(() => {
-    if (!submissionDetail) {
-      return [];
-    }
-
-    const sections = submissionDetail.form?.sections ?? [];
-
-    const valuesByFieldId = new Map(submissionDetail.submissionValue.map((value) => [value.fieldId, value]));
-
-    if (sections.length === 0) {
-      return [
-        {
-          id: "__no-sections",
-          title: "Submission values",
-          description: null,
-          fields: submissionDetail.submissionValue.map((value) => ({
-            id: value.id,
-            label: value.field?.label ?? value.fieldId,
-            value: value.value,
-          })),
-        },
-      ];
-    }
-
-    return sections.map((section) => ({
-      id: section.id,
-      title: section.title,
-      description: section.description ?? null,
-      fields: section.fields.map((field) => ({
-        id: field.id,
-        label: field.label,
-        value: valuesByFieldId.get(field.id)?.value ?? "No response",
-      })),
-    }));
-  }, [submissionDetail]);
-
-  const [expandedSections, setExpandedSections] = useState<string[]>([]);
-
-  useEffect(() => {
-    if (!submissionDetail) return;
-    // start with sections collapsed by default
-    setExpandedSections([]);
-  }, [submissionDetail?.id]);
-
-  const toggleSection = (id: string) => {
-    setExpandedSections((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]));
-  };
+  const submissionSections = useMemo(() => mapSubmissionSections(submissionDetail), [submissionDetail]);
 
   const deleteSubmissionMutation = useMutation({
     mutationFn: (id: string) => submissionsApi.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["submissions"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["submissions"] });
       setSelectedSubmissionId(null);
+      setPendingDelete(null);
     },
   });
 
@@ -175,22 +143,24 @@ export function AdminDashboardPage() {
                     </td>
                     <td>{new Date(submission.submittedAt ?? submission.createdAt).toLocaleString()}</td>
                     <td>
-                          <div style={{ display: "flex", gap: 8 }}>
-                            <button type="button" className="ghost-button" onClick={() => setSelectedSubmissionId(submission.id)}>
-                              View values
-                            </button>
-                            <button
-                              type="button"
-                              className="ghost-button"
-                              onClick={() => {
-                                if (window.confirm("Delete this submission? This cannot be undone.")) {
-                                  deleteSubmissionMutation.mutate(submission.id);
-                                }
-                              }}
-                            >
-                              Delete
-                            </button>
-                          </div>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <button type="button" className="ghost-button" onClick={() => setSelectedSubmissionId(submission.id)}>
+                          View values
+                        </button>
+                        <button
+                          type="button"
+                          className="ghost-button"
+                          onClick={() =>
+                            setPendingDelete({
+                              kind: "submission",
+                              id: submission.id,
+                              label: `${submission.form?.title ?? "this submission"} / ${submission.submittedBy?.username ?? submission.submittedById}`,
+                            })
+                          }
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -214,43 +184,18 @@ export function AdminDashboardPage() {
                 <div className="muted small">Submitted at: {submissionDetail.submittedAt ? new Date(submissionDetail.submittedAt).toLocaleString() : "-"}</div>
               </div>
 
-              <div className="stack">
-                {submissionSections.map((section) => (
-                  <div key={section.id} className="field-card">
-                    <div className="field-toolbar">
-                      <div>
-                        <strong>{section.title}</strong>
-                        {section.description ? <p className="muted small">{section.description}</p> : null}
-                      </div>
-                      <div>
-                        <button type="button" className="link-button" onClick={() => toggleSection(section.id)}>
-                          {expandedSections.includes(section.id) ? "Hide" : "Show"}
-                        </button>
-                      </div>
-                    </div>
-
-                    {expandedSections.includes(section.id) ? (
-                      <div className="stack" style={{ marginTop: 12 }}>
-                        {section.fields.map((field) => (
-                          <div key={`${section.id}-${field.id}`} className="field-group-box">
-                            <div className="small muted">{field.label}</div>
-                            <div>{field.value}</div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-                ))}
-              </div>
+              <SubmissionSectionsView sections={submissionSections} emptyMessage="This submission does not contain any values." />
 
               <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
                 <button
                   type="button"
-                  onClick={() => {
-                    if (window.confirm("Delete this submission? This cannot be undone.")) {
-                      deleteSubmissionMutation.mutate(submissionDetail.id);
-                    }
-                  }}
+                  onClick={() =>
+                    setPendingDelete({
+                      kind: "submission",
+                      id: submissionDetail.id,
+                      label: `${submissionDetail.form?.title ?? "this submission"} / ${submissionDetail.submittedBy?.username ?? submissionDetail.submittedById}`,
+                    })
+                  }
                   className="ghost-button"
                 >
                   Delete submission
@@ -327,7 +272,7 @@ export function AdminDashboardPage() {
                           <button
                             type="button"
                             className="ghost-button"
-                            onClick={() => deleteMutation.mutate(form.slug)}
+                            onClick={() => setPendingDelete({ kind: "form", slug: form.slug, label: form.title })}
                             disabled={deleteMutation.isPending}
                           >
                             Delete
@@ -341,7 +286,66 @@ export function AdminDashboardPage() {
             </table>
           </div>
         ) : null}
+
+        <ConfirmDialog
+          open={Boolean(pendingDelete)}
+          title={pendingDelete?.kind === "submission" ? "Delete submission" : "Delete form"}
+          description={
+            pendingDelete?.kind === "submission"
+              ? `Delete ${pendingDelete.label}? This cannot be undone and the values will be removed from the dashboard.`
+              : `Delete ${pendingDelete?.label ?? "this form"}? This cannot be undone and the form link will stop working.`
+          }
+          confirmLabel="Delete"
+          onCancel={() => setPendingDelete(null)}
+          onConfirm={() => {
+            if (!pendingDelete) return;
+
+            if (pendingDelete.kind === "submission") {
+              deleteSubmissionMutation.mutate(pendingDelete.id);
+              return;
+            }
+
+            deleteMutation.mutate(pendingDelete.slug);
+          }}
+          busy={deleteSubmissionMutation.isPending || deleteMutation.isPending}
+          tone="danger"
+        />
       </section>
     </div>
   );
+}
+
+function mapSubmissionSections(submission: Submission | undefined): SubmissionSectionView[] {
+  if (!submission) {
+    return [];
+  }
+
+  const sections = submission.form?.sections ?? [];
+  const valuesByFieldId = new Map(submission.submissionValue.map((value) => [value.fieldId, value.value]));
+
+  if (sections.length === 0) {
+    return [
+      {
+        id: "__no-sections",
+        title: "Submission values",
+        description: null,
+        fields: submission.submissionValue.map((value) => ({
+          id: value.id,
+          label: value.field?.label ?? value.fieldId,
+          value: value.value,
+        })),
+      },
+    ];
+  }
+
+  return sections.map((section) => ({
+    id: section.id,
+    title: section.title,
+    description: section.description ?? null,
+    fields: section.fields.map((field) => ({
+      id: field.id,
+      label: `${field.label}${field.fieldType ? ` · ${getFieldTypeLabel(field.fieldType)}` : ""}`,
+      value: valuesByFieldId.get(field.id) ?? "No response",
+    })),
+  }));
 }

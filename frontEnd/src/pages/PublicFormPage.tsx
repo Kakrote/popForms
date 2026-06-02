@@ -1,9 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { z } from "zod";
+import ConfirmDialog from "../components/ConfirmDialog";
 import { departmentApi, formsApi, submissionsApi } from "../lib/api";
 import { useAuthStore } from "../store/authStore";
 import type { FormField } from "../types";
@@ -28,6 +30,11 @@ export function PublicFormPage() {
   const queryClient = useQueryClient();
   const token = useAuthStore((state) => state.token);
   const user = useAuthStore((state) => state.user);
+  const [pendingFinalSubmission, setPendingFinalSubmission] = useState<{
+    formId: string;
+    departmentId: string;
+    values: Array<{ fieldId: string; value: string }>;
+  } | null>(null);
 
   const formQuery = useQuery({
     queryKey: ["public-form", slug],
@@ -77,6 +84,7 @@ export function PublicFormPage() {
   const submitMutation = useMutation({
     mutationFn: submissionsApi.create,
     onSuccess: async () => {
+      setPendingFinalSubmission(null);
       await queryClient.invalidateQueries({ queryKey: ["public-form", slug] });
       await queryClient.invalidateQueries({ queryKey: ["my-submission-by-form", formQuery.data?.id] });
       navigate("/thank-you", { replace: true });
@@ -143,7 +151,7 @@ export function PublicFormPage() {
               return;
             }
 
-            submitMutation.mutate({
+            setPendingFinalSubmission({
               formId: formQuery.data.id,
               departmentId: departmentQuery.data.id,
               values: fields.map((field) => ({
@@ -212,6 +220,20 @@ export function PublicFormPage() {
             </button>
           </div>
         </form>
+
+        <ConfirmDialog
+          open={Boolean(pendingFinalSubmission)}
+          title="Confirm final submission"
+          description="Review your answers one last time. Final submit will lock this response and replace any draft for this form."
+          confirmLabel="Submit now"
+          onCancel={() => setPendingFinalSubmission(null)}
+          onConfirm={() => {
+            if (!pendingFinalSubmission) return;
+            submitMutation.mutate(pendingFinalSubmission);
+          }}
+          busy={submitMutation.isPending}
+          tone="danger"
+        />
       </div>
     </div>
   );

@@ -1,9 +1,13 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ConfirmDialog from "../components/ConfirmDialog";
 import { departmentApi, submissionsApi } from "../lib/api";
 import { useAuthStore } from "../store/authStore";
 import Modal from "../components/Modal";
+import { SubmissionSectionsView, type SubmissionSectionView } from "../components/SubmissionSectionsView";
+import { getFieldTypeLabel } from "../components/fieldTypeLabels";
+import type { Submission } from "../types";
 
 export function UserLandingPage() {
   const user = useAuthStore((state) => state.user);
@@ -33,12 +37,16 @@ export function UserLandingPage() {
       // refresh both lists
       myDraftsQuery.refetch();
       mySubmissionsQuery.refetch();
+      setPendingDeleteDraftId(null);
     },
   });
 
   const submissions = mySubmissionsQuery.data ?? [];
 
-  const [selectedSubmission, setSelectedSubmission] = useState<any | null>(null);
+  const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
+  const [pendingDeleteDraftId, setPendingDeleteDraftId] = useState<string | null>(null);
+
+  const selectedSubmissionSections = useMemo(() => (selectedSubmission ? mapSubmissionSections(selectedSubmission) : []), [selectedSubmission]);
 
   return (
     <div className="page">
@@ -137,7 +145,8 @@ export function UserLandingPage() {
         <Modal open={Boolean(selectedSubmission)} onClose={() => setSelectedSubmission(null)} title={selectedSubmission ? `Submission • ${selectedSubmission.id}` : "Submission details"}>
           {selectedSubmission ? (
             <div>
-              <div style={{ display: "grid", gap: 6, marginBottom: 8 }}>
+              <div className="field-card" style={{ marginBottom: 14 }}>
+                <strong>Submission summary</strong>
                 <div className="muted small">Form: {selectedSubmission.form?.title ?? selectedSubmission.formId}</div>
                 <div className="muted small">Submitted by: {selectedSubmission.submittedBy?.username ?? selectedSubmission.submittedById} ({selectedSubmission.submittedBy?.email ?? "no-email"})</div>
                 <div className="muted small">Department: {selectedSubmission.department?.department_Name ?? selectedSubmission.departmentId}</div>
@@ -145,25 +154,24 @@ export function UserLandingPage() {
                 <div className="muted small">Submitted at: {selectedSubmission.submittedAt ? new Date(selectedSubmission.submittedAt).toLocaleString() : "-"}</div>
               </div>
 
-              <table className="detail-table">
-                <thead>
-                  <tr>
-                    <th>Field</th>
-                    <th>Value</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {selectedSubmission.submissionValue.map((value: any) => (
-                    <tr key={value.id}>
-                      <td>{value.field?.label ?? value.fieldId}</td>
-                      <td>{value.value}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <SubmissionSectionsView sections={selectedSubmissionSections} emptyMessage="This submission does not contain any values." />
             </div>
           ) : null}
         </Modal>
+
+        <ConfirmDialog
+          open={Boolean(pendingDeleteDraftId)}
+          title="Delete draft"
+          description="Delete this draft? This cannot be undone and you will need to recreate it from scratch."
+          confirmLabel="Delete draft"
+          onCancel={() => setPendingDeleteDraftId(null)}
+          onConfirm={() => {
+            if (!pendingDeleteDraftId) return;
+            deleteDraftMutation.mutate(pendingDeleteDraftId);
+          }}
+          busy={deleteDraftMutation.isPending}
+          tone="danger"
+        />
 
         <section className="panel stack">
           <div className="field-toolbar">
@@ -199,11 +207,7 @@ export function UserLandingPage() {
                           <button
                             type="button"
                             className="ghost-button"
-                            onClick={() => {
-                              if (window.confirm("Delete this draft?")) {
-                                deleteDraftMutation.mutate(draft.id);
-                              }
-                            }}
+                            onClick={() => setPendingDeleteDraftId(draft.id)}
                           >
                             Delete
                           </button>
@@ -219,4 +223,35 @@ export function UserLandingPage() {
       </div>
     </div>
   );
+}
+
+function mapSubmissionSections(submission: Submission): SubmissionSectionView[] {
+  const sections = submission.form?.sections ?? [];
+  const valuesByFieldId = new Map(submission.submissionValue.map((value) => [value.fieldId, value.value]));
+
+  if (sections.length === 0) {
+    return [
+      {
+        id: "__no-sections",
+        title: "Submission values",
+        description: null,
+        fields: submission.submissionValue.map((value) => ({
+          id: value.id,
+          label: value.field?.label ?? value.fieldId,
+          value: value.value,
+        })),
+      },
+    ];
+  }
+
+  return sections.map((section) => ({
+    id: section.id,
+    title: section.title,
+    description: section.description ?? null,
+    fields: section.fields.map((field) => ({
+      id: field.id,
+      label: `${field.label} · ${getFieldTypeLabel(field.fieldType)}`,
+      value: valuesByFieldId.get(field.id) ?? "No response",
+    })),
+  }));
 }

@@ -4,6 +4,7 @@ import { useFieldArray, useForm, type UseFormReturn } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { formsApi } from "../../lib/api";
+import { FIELD_TYPE_OPTIONS } from "../../components/fieldTypeLabels";
 import type { FormBuilderValues } from "../../types";
 
 const fieldSchema = z.object({
@@ -235,23 +236,21 @@ function SectionEditor({
                 <input {...form.register(`sections.${index}.fields.${fieldIndex}.label`)} placeholder="Year 2019" />
               </label>
               <label className="stack small">
-                Type
+                Field type
                 <select {...form.register(`sections.${index}.fields.${fieldIndex}.type`)}>
-                  <option value="text">Text</option>
-                  <option value="textarea">Textarea</option>
-                  <option value="number">Number</option>
-                  <option value="email">Email</option>
-                  <option value="date">Date</option>
-                  <option value="select">Select</option>
-                  <option value="radio">Radio</option>
-                  <option value="checkbox">Checkbox</option>
+                  {FIELD_TYPE_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
                 </select>
+                <span className="muted small">Paragraph is used for long answers. Dropdown and multiple choice keep the answer options tidy.</span>
               </label>
             </div>
 
             <label className="stack small">
-              Options
-              <input {...form.register(`sections.${index}.fields.${fieldIndex}.optionsText`)} placeholder="Option A, Option B, Option C" />
+              Choices
+              <input {...form.register(`sections.${index}.fields.${fieldIndex}.optionsText`)} placeholder="Comma-separated choices for dropdowns and multiple choice fields" />
             </label>
 
             <label className="small" style={{ display: "flex", alignItems: "center", gap: 10 }}>
