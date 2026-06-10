@@ -30,6 +30,8 @@ const createFormSchema = z.object({
   sections: z.array(sectionSchema).min(1, "Add at least one section"),
 }) as z.ZodType<FormBuilderValues>;
 
+const QUESTION_COLORS = ["#1c6dd0", "#0f7a4a", "#b42318", "#d97706", "#7c3aed", "#db2777"];
+
 export function FormBuilderPage() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -149,35 +151,15 @@ export function FormBuilderPage() {
 
           {isEditMode ? (
             <div className="notice">
-              Editing this form will rebuild its section and field structure. That is useful for adding or moving fields, but it can affect previous submission data.
+              Editing this form will rebuild its question and option structure. That is useful for adding or moving options, but it can affect previous submission data.
             </div>
           ) : null}
 
           <div className="field-toolbar">
             <div>
-              <h2>Sections</h2>
-              <p className="muted">Each form can have multiple sections and each section can contain multiple fields.</p>
+              <h2>Questions</h2>
+              <p className="muted">Each form can have multiple questions and each question can contain multiple options.</p>
             </div>
-            <button
-              type="button"
-              className="ghost-button"
-              onClick={() =>
-                sections.append({
-                  title: "",
-                  description: "",
-                  fields: [
-                    {
-                      label: "",
-                      type: "text",
-                      required: true,
-                      optionsText: "",
-                    },
-                  ],
-                })
-              }
-            >
-              Add section
-            </button>
           </div>
 
           <div className="form-section">
@@ -189,12 +171,41 @@ export function FormBuilderPage() {
                 moveSectionUp={() => sections.move(index, index - 1)}
                 moveSectionDown={() => sections.move(index, index + 1)}
                 removeSection={() => sections.remove(index)}
+                duplicateSection={() => {
+                  const values = form.getValues(`sections.${index}`);
+                  sections.insert(index + 1, {
+                    ...values,
+                    fields: values.fields.map(f => ({ ...f }))
+                  });
+                }}
                 canMoveUp={index > 0}
                 canMoveDown={index < sections.fields.length - 1}
                 canRemove={sections.fields.length > 1}
               />
             ))}
           </div>
+
+          <button
+            type="button"
+            className="ghost-button"
+            style={{ width: "100%", padding: "1rem", borderStyle: "dashed", color: "var(--accent)" }}
+            onClick={() =>
+              sections.append({
+                title: "",
+                description: "",
+                fields: [
+                  {
+                    label: "",
+                    type: "text",
+                    required: true,
+                    optionsText: "",
+                  },
+                ],
+              })
+            }
+          >
+            + Add question
+          </button>
 
           {form.formState.errors.sections ? <span className="error">{form.formState.errors.sections.message as string}</span> : null}
           {createMutation.isError ? (
@@ -225,6 +236,7 @@ function SectionEditor({
   moveSectionUp,
   moveSectionDown,
   removeSection,
+  duplicateSection,
   canMoveUp,
   canMoveDown,
   canRemove,
@@ -234,6 +246,7 @@ function SectionEditor({
   moveSectionUp: () => void;
   moveSectionDown: () => void;
   removeSection: () => void;
+  duplicateSection: () => void;
   canMoveUp: boolean;
   canMoveDown: boolean;
   canRemove: boolean;
@@ -243,41 +256,93 @@ function SectionEditor({
     name: `sections.${index}.fields` as const,
   });
 
+  const questionColor = QUESTION_COLORS[index % QUESTION_COLORS.length];
+
   return (
-    <div className="field-card stack">
+    <div className="field-card stack" style={{ borderLeft: `6px solid ${questionColor}` }}>
       <div className="field-toolbar">
-        <strong>Section {index + 1}</strong>
+        <strong style={{ color: questionColor }}>Question {index + 1}</strong>
         <div className="actions-row">
-          <button type="button" className="ghost-button" onClick={moveSectionUp} disabled={!canMoveUp}>
+          <button type="button" className="ghost-button small-btn" onClick={moveSectionUp} disabled={!canMoveUp}>
             Move up
           </button>
-          <button type="button" className="ghost-button" onClick={moveSectionDown} disabled={!canMoveDown}>
+          <button type="button" className="ghost-button small-btn" onClick={moveSectionDown} disabled={!canMoveDown}>
             Move down
           </button>
-          <button type="button" className="ghost-button" onClick={removeSection} disabled={!canRemove}>
-            Remove section
+          <button type="button" className="ghost-button small-btn" onClick={duplicateSection}>
+            Duplicate
+          </button>
+          <button type="button" className="ghost-button small-btn danger-text" onClick={removeSection} disabled={!canRemove}>
+            Remove
           </button>
         </div>
       </div>
 
       <label className="stack small">
-        Section title
+        Question title
         <input {...form.register(`sections.${index}.title`)} placeholder="Admission details" />
       </label>
 
       <label className="stack small">
-        Section description
-        <textarea {...form.register(`sections.${index}.description`)} placeholder="Use this section to capture yearly admission data" />
+        Question description
+        <textarea {...form.register(`sections.${index}.description`)} placeholder="Use this question to capture yearly admission data" />
       </label>
 
       <div className="field-toolbar">
-        <div>
-          <strong>Fields</strong>
-          <p className="muted small">Add one or more fields inside this section.</p>
-        </div>
+        <strong>Options</strong>
+      </div>
+
+      <div className="stack">
+        {fields.fields.map((field, fieldIndex) => (
+          <div className="field-group-box stack" key={field.id}>
+            <div className="field-toolbar">
+              <strong>Option {fieldIndex + 1}</strong>
+              <div className="actions-row">
+                <button type="button" className="ghost-button small-btn" onClick={() => fields.move(fieldIndex, fieldIndex - 1)} disabled={fieldIndex === 0}>
+                  Move up
+                </button>
+                <button type="button" className="ghost-button small-btn" onClick={() => fields.move(fieldIndex, fieldIndex + 1)} disabled={fieldIndex === fields.fields.length - 1}>
+                  Move down
+                </button>
+                <button type="button" className="ghost-button small-btn danger-text" onClick={() => fields.remove(fieldIndex)} disabled={fields.fields.length === 1}>
+                  Remove
+                </button>
+              </div>
+            </div>
+
+            <div className="grid cols-2">
+              <label className="stack small">
+                Option Label
+                <input {...form.register(`sections.${index}.fields.${fieldIndex}.label`)} placeholder="Year 2019" />
+              </label>
+              <label className="stack small">
+                Option type
+                <select {...form.register(`sections.${index}.fields.${fieldIndex}.type`)}>
+                  {FIELD_TYPE_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <label className="stack small">
+              Choices
+              <input {...form.register(`sections.${index}.fields.${fieldIndex}.optionsText`)} placeholder="Comma-separated choices for dropdowns and multiple choice options" />
+            </label>
+
+            <label className="small" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <input type="checkbox" {...form.register(`sections.${index}.fields.${fieldIndex}.required`)} style={{ width: 18, height: 18 }} />
+              Required
+            </label>
+          </div>
+        ))}
+
         <button
           type="button"
           className="ghost-button"
+          style={{ width: "100%", padding: "0.6rem", borderStyle: "dashed", fontSize: "0.85rem", color: "var(--accent)" }}
           onClick={() =>
             fields.append({
               label: "",
@@ -287,57 +352,8 @@ function SectionEditor({
             })
           }
         >
-          Add field
+          + Add option
         </button>
-      </div>
-
-      <div className="stack">
-        {fields.fields.map((field, fieldIndex) => (
-          <div className="field-group-box stack" key={field.id}>
-            <div className="field-toolbar">
-              <strong>Field {fieldIndex + 1}</strong>
-              <div className="actions-row">
-                <button type="button" className="ghost-button" onClick={() => fields.move(fieldIndex, fieldIndex - 1)} disabled={fieldIndex === 0}>
-                  Move up
-                </button>
-                <button type="button" className="ghost-button" onClick={() => fields.move(fieldIndex, fieldIndex + 1)} disabled={fieldIndex === fields.fields.length - 1}>
-                  Move down
-                </button>
-                <button type="button" className="ghost-button" onClick={() => fields.remove(fieldIndex)} disabled={fields.fields.length === 1}>
-                  Remove
-                </button>
-              </div>
-            </div>
-
-            <div className="grid cols-2">
-              <label className="stack small">
-                Label
-                <input {...form.register(`sections.${index}.fields.${fieldIndex}.label`)} placeholder="Year 2019" />
-              </label>
-              <label className="stack small">
-                Field type
-                <select {...form.register(`sections.${index}.fields.${fieldIndex}.type`)}>
-                  {FIELD_TYPE_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-                <span className="muted small">Paragraph is used for long answers. Dropdown and multiple choice keep the answer options tidy.</span>
-              </label>
-            </div>
-
-            <label className="stack small">
-              Choices
-              <input {...form.register(`sections.${index}.fields.${fieldIndex}.optionsText`)} placeholder="Comma-separated choices for dropdowns and multiple choice fields" />
-            </label>
-
-            <label className="small" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <input type="checkbox" {...form.register(`sections.${index}.fields.${fieldIndex}.required`)} style={{ width: 18, height: 18 }} />
-              Required
-            </label>
-          </div>
-        ))}
       </div>
     </div>
   );

@@ -496,6 +496,20 @@ p {
   text-align: left;
 }
 
+.small-btn {
+  padding: 0.4rem 0.7rem;
+  font-size: 0.82rem;
+  border-radius: 8px;
+}
+
+.danger-text {
+  color: var(--danger);
+}
+
+.danger-text:hover {
+  background: rgba(180, 35, 24, 0.05);
+}
+
 .submission-value {
   white-space: pre-wrap;
   word-break: break-word;

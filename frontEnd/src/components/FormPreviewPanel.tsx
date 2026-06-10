@@ -5,6 +5,8 @@ type Props = {
   values: FormBuilderValues;
 };
 
+const QUESTION_COLORS = ["#1c6dd0", "#0f7a4a", "#b42318", "#d97706", "#7c3aed", "#db2777"];
+
 export function FormPreviewPanel({ values }: Props) {
   return (
     <section className="panel stack preview-panel">
@@ -21,40 +23,47 @@ export function FormPreviewPanel({ values }: Props) {
       {values.deadline ? <div className="notice small">Deadline: {values.deadline}</div> : null}
 
       <div className="stack">
-        {values.sections.map((section, sectionIndex) => (
-          <div className="field-card stack" key={`${section.title || "section"}-${sectionIndex}`}>
-            <div className="field-toolbar">
-              <div>
-                <strong>{section.title || `Section ${sectionIndex + 1}`}</strong>
-                {section.description ? <p className="muted small">{section.description}</p> : null}
+        {values.sections.map((section, sectionIndex) => {
+          const questionColor = QUESTION_COLORS[sectionIndex % QUESTION_COLORS.length];
+          return (
+            <div
+              className="field-card stack"
+              key={`${section.title || "section"}-${sectionIndex}`}
+              style={{ borderLeft: `6px solid ${questionColor}` }}
+            >
+              <div className="field-toolbar">
+                <div>
+                  <strong style={{ color: questionColor }}>{section.title || `Question ${sectionIndex + 1}`}</strong>
+                  {section.description ? <p className="muted small">{section.description}</p> : null}
+                </div>
+                <span className="badge">{section.fields.length} options</span>
               </div>
-              <span className="badge">{section.fields.length} fields</span>
-            </div>
 
-            <div className="stack">
-              {section.fields.map((field, fieldIndex) => {
-                const options = field.optionsText
-                  .split(",")
-                  .map((option) => option.trim())
-                  .filter(Boolean);
+              <div className="stack">
+                {section.fields.map((field, fieldIndex) => {
+                  const options = field.optionsText
+                    .split(",")
+                    .map((option) => option.trim())
+                    .filter(Boolean);
 
-                return (
-                  <div className="field-group-box stack" key={`${field.label || "field"}-${fieldIndex}`}>
-                    <div className="field-toolbar">
-                      <div>
-                        <strong>{field.label || `Field ${fieldIndex + 1}`}</strong>
-                        <p className="muted small">{getFieldTypeLabel(field.type)}</p>
+                  return (
+                    <div className="field-group-box stack" key={`${field.label || "field"}-${fieldIndex}`}>
+                      <div className="field-toolbar">
+                        <div>
+                          <strong>{field.label || `Option ${fieldIndex + 1}`}</strong>
+                          <p className="muted small">{getFieldTypeLabel(field.type)}</p>
+                        </div>
+                        {field.required ? <span className="badge">Required</span> : <span className="badge">Optional</span>}
                       </div>
-                      {field.required ? <span className="badge">Required</span> : <span className="badge">Optional</span>}
-                    </div>
 
-                    {renderFieldPreview(field.type, options)}
-                  </div>
-                );
-              })}
+                      {renderFieldPreview(field.type, options)}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

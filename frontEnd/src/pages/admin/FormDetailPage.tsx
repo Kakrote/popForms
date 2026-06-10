@@ -93,7 +93,7 @@ export function FormDetailPage() {
           </div>
 
           <p>{form.description || "No description provided."}</p>
-          <p className="muted">Sections: {sections.length}</p>
+          <p className="muted">Questions: {sections.length}</p>
           <p className="muted">Submissions: {submissions.length}</p>
           <div className="notice">
             <strong>Share link</strong>
@@ -102,8 +102,8 @@ export function FormDetailPage() {
         </section>
 
         <section className="panel stack">
-          <h2>Sections</h2>
-          {sections.length === 0 ? <p className="muted">This form does not have any sections yet.</p> : null}
+          <h2>Questions</h2>
+          {sections.length === 0 ? <p className="muted">This form does not have any questions yet.</p> : null}
           <div className="stack">
             {sections.map((section) => (
               <div className="card stack" key={section.id}>
@@ -112,7 +112,7 @@ export function FormDetailPage() {
                     <strong>{section.title}</strong>
                     {section.description ? <p className="muted small">{section.description}</p> : null}
                   </div>
-                  <span className="badge">{section.fields.length} fields</span>
+                  <span className="badge">{section.fields.length} options</span>
                 </div>
 
                 <div className="stack">
@@ -120,7 +120,7 @@ export function FormDetailPage() {
                     <div className="field-card" key={field.id}>
                       <strong>{field.label}</strong>
                       <p className="muted small">{getFieldTypeLabel(field.fieldType)}</p>
-                      {field.options.length > 0 ? <p className="small">Options: {field.options.map((option) => option.label).join(", ")}</p> : null}
+                      {field.options.length > 0 ? <p className="small">Choices: {field.options.map((option) => option.label).join(", ")}</p> : null}
                     </div>
                   ))}
                 </div>

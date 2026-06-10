@@ -12,6 +12,8 @@ import type { FormField } from "../types";
 
 type SubmissionValues = Record<string, string>;
 
+const QUESTION_COLORS = ["#1c6dd0", "#0f7a4a", "#b42318", "#d97706", "#7c3aed", "#db2777"];
+
 function buildSchema(fields: FormField[]) {
   const shape: Record<string, z.ZodTypeAny> = {};
 
@@ -165,23 +167,30 @@ export function PublicFormPage() {
           {isAlreadySubmitted ? <div className="notice">This form is already submitted. It is now read-only.</div> : null}
 
           <div className="form-section">
-            {sections.map((section) => (
-              <div className="field-card stack" key={section.id}>
-                <div className="field-toolbar">
-                  <div>
-                    <strong>{section.title}</strong>
-                    {section.description ? <p className="muted small">{section.description}</p> : null}
+            {sections.map((section, sectionIndex) => {
+              const questionColor = QUESTION_COLORS[sectionIndex % QUESTION_COLORS.length];
+              return (
+                <div
+                  className="field-card stack"
+                  key={section.id}
+                  style={{ borderLeft: `6px solid ${questionColor}` }}
+                >
+                  <div className="field-toolbar">
+                    <div>
+                      <strong style={{ color: questionColor }}>{section.title}</strong>
+                      {section.description ? <p className="muted small">{section.description}</p> : null}
+                    </div>
+                    <span className="badge">{section.fields.length} options</span>
                   </div>
-                  <span className="badge">{section.fields.length} fields</span>
-                </div>
 
-                <div className="stack">
-                  {section.fields.map((field) => (
-                    <FieldInput key={field.id} field={field} control={form.control} register={form.register} />
-                  ))}
+                  <div className="stack">
+                    {section.fields.map((field) => (
+                      <FieldInput key={field.id} field={field} control={form.control} register={form.register} />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {submitMutation.isError ? <div className="notice" style={{ borderColor: "rgba(180,35,24,0.2)", background: "rgba(180,35,24,0.06)", color: "#8e1d14" }}>{(submitMutation.error as Error).message}</div> : null}
