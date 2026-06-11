@@ -26,11 +26,24 @@ export function FormPreviewPanel({ values }: Props) {
         {values.sections.map((section, sectionIndex) => {
           const questionColor = QUESTION_COLORS[sectionIndex % QUESTION_COLORS.length];
           return (
-            <div
-              className="field-card stack"
-              key={`${section.title || "section"}-${sectionIndex}`}
-              style={{ borderLeft: `6px solid ${questionColor}` }}
-            >
+            <div key={`${section.title || "section"}-${sectionIndex}`} className="stack">
+              {(section.headerLabel || section.headerDescription) && (
+                <div className="section-separator stack" style={{ 
+                  marginTop: sectionIndex === 0 ? 0 : "2rem", 
+                  marginBottom: "1rem", 
+                  padding: "1.25rem", 
+                  background: "rgba(0,0,0,0.03)", 
+                  borderRadius: "10px",
+                  borderLeft: "4px solid var(--accent)"
+                }}>
+                  {section.headerLabel && <h3 style={{ margin: 0, fontSize: "1.25rem" }}>{section.headerLabel}</h3>}
+                  {section.headerDescription && <p className="muted small" style={{ margin: "0.4rem 0 0 0" }}>{section.headerDescription}</p>}
+                </div>
+              )}
+              <div
+                className="field-card stack"
+                style={{ borderLeft: `6px solid ${questionColor}` }}
+              >
               <div className="field-toolbar">
                 <div>
                   <strong style={{ color: questionColor }}>{section.title || `Question ${sectionIndex + 1}`}</strong>
@@ -62,6 +75,7 @@ export function FormPreviewPanel({ values }: Props) {
                 })}
               </div>
             </div>
+          </div>
           );
         })}
       </div>

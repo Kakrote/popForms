@@ -170,11 +170,24 @@ export function PublicFormPage() {
             {sections.map((section, sectionIndex) => {
               const questionColor = QUESTION_COLORS[sectionIndex % QUESTION_COLORS.length];
               return (
-                <div
-                  className="field-card stack"
-                  key={section.id}
-                  style={{ borderLeft: `6px solid ${questionColor}` }}
-                >
+                <div key={section.id} className="stack">
+                  {(section.headerLabel || section.headerDescription) && (
+                    <div className="section-separator stack" style={{ 
+                      marginTop: sectionIndex === 0 ? 0 : "3rem", 
+                      marginBottom: "1.5rem", 
+                      padding: "1.5rem", 
+                      background: "rgba(0,0,0,0.03)", 
+                      borderRadius: "12px",
+                      borderLeft: "4px solid var(--accent)"
+                    }}>
+                      {section.headerLabel && <h2 style={{ margin: 0, fontSize: "1.5rem", color: "var(--foreground)" }}>{section.headerLabel}</h2>}
+                      {section.headerDescription && <p className="muted" style={{ margin: "0.5rem 0 0 0", fontSize: "1rem" }}>{section.headerDescription}</p>}
+                    </div>
+                  )}
+                  <div
+                    className="field-card stack"
+                    style={{ borderLeft: `6px solid ${questionColor}` }}
+                  >
                   <div className="field-toolbar">
                     <div>
                       <strong style={{ color: questionColor }}>{section.title}</strong>
@@ -189,6 +202,7 @@ export function PublicFormPage() {
                     ))}
                   </div>
                 </div>
+              </div>
               );
             })}
           </div>

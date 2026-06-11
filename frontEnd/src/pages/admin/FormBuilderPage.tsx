@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useFieldArray, useForm, useWatch, type UseFormReturn } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { z } from "zod";
@@ -17,6 +17,8 @@ const fieldSchema = z.object({
 });
 
 const sectionSchema = z.object({
+  headerLabel: z.string().optional(),
+  headerDescription: z.string().optional(),
   title: z.string().min(1, "Section title is required"),
   description: z.string(),
   fields: z.array(fieldSchema).min(1, "Add at least one field to the section"),
@@ -77,6 +79,7 @@ export function FormBuilderPage() {
     mutationFn: formsApi.create,
     onSuccess: async (createdForm) => {
       await queryClient.invalidateQueries({ queryKey: ["forms"] });
+      await queryClient.invalidateQueries({ queryKey: ["public-form", createdForm.slug] });
       navigate(`/admin/forms/${createdForm.slug}`);
     },
   });
@@ -86,6 +89,7 @@ export function FormBuilderPage() {
     onSuccess: async (updatedForm) => {
       await queryClient.invalidateQueries({ queryKey: ["forms"] });
       await queryClient.invalidateQueries({ queryKey: ["form", slug] });
+      await queryClient.invalidateQueries({ queryKey: ["public-form", slug] });
       navigate(`/admin/forms/${updatedForm.slug}`);
     },
   });
@@ -258,6 +262,19 @@ function SectionEditor({
 
   const questionColor = QUESTION_COLORS[index % QUESTION_COLORS.length];
 
+  const headerLabel = useWatch({ control: form.control, name: `sections.${index}.headerLabel` });
+  const headerDescription = useWatch({ control: form.control, name: `sections.${index}.headerDescription` });
+  
+  // Initialize based on whether there's already data
+  const [showSeparator, setShowSeparator] = useState(!!(headerLabel || headerDescription));
+
+  // If data appears (e.g. after form reset/load), show it
+  useEffect(() => {
+    if (headerLabel || headerDescription) {
+      setShowSeparator(true);
+    }
+  }, [headerLabel, headerDescription]);
+
   return (
     <div className="field-card stack" style={{ borderLeft: `6px solid ${questionColor}` }}>
       <div className="field-toolbar">
@@ -277,6 +294,44 @@ function SectionEditor({
           </button>
         </div>
       </div>
+
+      {!showSeparator ? (
+        <button
+          type="button"
+          className="ghost-button small-btn"
+          style={{ alignSelf: "flex-start", color: "var(--accent)", marginBottom: "8px" }}
+          onClick={() => setShowSeparator(true)}
+        >
+          + Add section header
+        </button>
+      ) : (
+        <div className="stack" style={{ background: "rgba(0,0,0,0.02)", padding: "12px", borderRadius: "8px", border: "1px dashed rgba(0,0,0,0.1)", marginBottom: "8px" }}>
+          <div className="field-toolbar" style={{ marginBottom: "8px" }}>
+            <p className="muted small"><strong>Optional Separator:</strong> Appears before this question.</p>
+            <button
+              type="button"
+              className="ghost-button small-btn danger-text"
+              onClick={() => {
+                form.setValue(`sections.${index}.headerLabel`, "");
+                form.setValue(`sections.${index}.headerDescription`, "");
+                setShowSeparator(false);
+              }}
+            >
+              Remove
+            </button>
+          </div>
+          <div className="grid cols-2">
+            <label className="stack small">
+              Separator Label
+              <input {...form.register(`sections.${index}.headerLabel`)} placeholder="e.g. Personal Information" />
+            </label>
+            <label className="stack small">
+              Separator Description
+              <input {...form.register(`sections.${index}.headerDescription`)} placeholder="e.g. Tell us about yourself" />
+            </label>
+          </div>
+        </div>
+      )}
 
       <label className="stack small">
         Question title
@@ -367,6 +422,8 @@ function createBlankBuilderValues(): FormBuilderValues {
     isOpen: true,
     sections: [
       {
+        headerLabel: "",
+        headerDescription: "",
         title: "",
         description: "",
         fields: [
@@ -390,6 +447,8 @@ function mapFormToBuilderValues(form: Form): FormBuilderValues {
     isOpen: form.isOpen,
     sections: form.sections.length > 0
       ? form.sections.map((section) => ({
+          headerLabel: section.headerLabel ?? "",
+          headerDescription: section.headerDescription ?? "",
           title: section.title,
           description: section.description ?? "",
           fields: section.fields.map((field) => ({

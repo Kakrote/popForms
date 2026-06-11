@@ -97,6 +97,9 @@ model FormSection {
   formId String
   form   Form @relation(fields: [formId], references: [id], onDelete: Cascade)
 
+  headerLabel String?
+  headerDescription String?
+
   title String
   description String?
   sortOrder Int @default(0)

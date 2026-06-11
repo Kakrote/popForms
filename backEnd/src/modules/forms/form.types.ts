@@ -6,6 +6,8 @@ export type FormField = {
 };
 
 export type FormSection = {
+    headerLabel?: string;
+    headerDescription?: string;
     title: string;
     description?: string;
     fields?: FormField[];

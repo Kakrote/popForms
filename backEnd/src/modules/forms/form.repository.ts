@@ -15,6 +15,8 @@ const fieldTypeMap: Record<FormField["type"], FieldType> = {
 };
 
 const buildSectionCreateData = (section: NonNullable<CreateFormInput["sections"]>[number], sectionIndex: number) => ({
+    headerLabel: section.headerLabel,
+    headerDescription: section.headerDescription,
     title: section.title,
     description: section.description,
     sortOrder: sectionIndex,

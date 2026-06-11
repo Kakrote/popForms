@@ -32,28 +32,35 @@ const unwrap = <T>(response: { data: ApiResponse<T> } | { data: { status?: strin
   return response.data.data;
 };
 
-const serializeFormBuilderPayload = (payload: FormBuilderValues) => ({
-  title: payload.title,
-  description: payload.description || undefined,
-  deadline: payload.deadline || undefined,
-  isOpen: payload.isOpen,
-  sections: payload.sections.map((section) => ({
-    title: section.title,
-    description: section.description || undefined,
-    fields: section.fields.map((field) => ({
-      label: field.label,
-      type: field.type,
-      required: field.required,
-      options:
-        field.type === "select" || field.type === "radio" || field.type === "checkbox"
-          ? field.optionsText
-              .split(",")
-              .map((option) => option.trim())
-              .filter(Boolean)
-          : undefined,
+const serializeFormBuilderPayload = (payload: FormBuilderValues) => {
+  console.log("Serializing payload:", payload);
+  const result = {
+    title: payload.title,
+    description: payload.description || undefined,
+    deadline: payload.deadline || undefined,
+    isOpen: payload.isOpen,
+    sections: payload.sections.map((section) => ({
+      headerLabel: section.headerLabel,
+      headerDescription: section.headerDescription,
+      title: section.title,
+      description: section.description || undefined,
+      fields: section.fields.map((field) => ({
+        label: field.label,
+        type: field.type,
+        required: field.required,
+        options:
+          field.type === "select" || field.type === "radio" || field.type === "checkbox"
+            ? field.optionsText
+                .split(",")
+                .map((option) => option.trim())
+                .filter(Boolean)
+            : undefined,
+      })),
     })),
-  })),
-});
+  };
+  console.log("Serialized result:", result);
+  return result;
+};
 
 export const authApi = {
   login: async (payload: LoginFormValues) => {

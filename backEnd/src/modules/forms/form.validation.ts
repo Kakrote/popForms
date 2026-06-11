@@ -8,6 +8,8 @@ const formFieldSchema = z.object({
 });
 
 const formSectionSchema = z.object({
+	headerLabel: z.string().optional(),
+	headerDescription: z.string().optional(),
 	title: z.string().min(1, "Section title is required"),
 	description: z.string().optional(),
 	fields: z.array(formFieldSchema).optional(),

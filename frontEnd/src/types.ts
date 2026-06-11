@@ -52,6 +52,8 @@ export type FormField = {
 export type FormSection = {
   id: string;
   formId: string;
+  headerLabel?: string | null;
+  headerDescription?: string | null;
   title: string;
   description?: string | null;
   sortOrder: number;
@@ -109,6 +111,8 @@ export type FormBuilderField = {
 };
 
 export type FormBuilderSection = {
+  headerLabel?: string;
+  headerDescription?: string;
   title: string;
   description: string;
   fields: FormBuilderField[];
