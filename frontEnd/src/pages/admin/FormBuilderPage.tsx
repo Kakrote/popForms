@@ -8,6 +8,18 @@ import FormPreviewPanel from "../../components/FormPreviewPanel";
 import { FIELD_TYPE_OPTIONS } from "../../components/fieldTypeLabels";
 import { formsApi } from "../../lib/api";
 import type { Form, FormBuilderValues } from "../../types";
+import { 
+  ArrowUp, 
+  ArrowDown, 
+  Trash2, 
+  Copy, 
+  PlusCircle, 
+  Plus, 
+  Minus,
+  Save, 
+  FileText,
+  AlertCircle
+} from "lucide-react";
 
 const fieldSchema = z.object({
   label: z.string().min(1, "Field label is required"),
@@ -32,7 +44,7 @@ const createFormSchema = z.object({
   sections: z.array(sectionSchema).min(1, "Add at least one section"),
 }) as z.ZodType<FormBuilderValues>;
 
-const QUESTION_COLORS = ["#1c6dd0", "#0f7a4a", "#b42318", "#d97706", "#7c3aed", "#db2777"];
+const QUESTION_COLORS = ["#6366f1", "#10b981", "#ef4444", "#f59e0b", "#a855f7", "#ec4899"];
 
 export function FormBuilderPage() {
   const queryClient = useQueryClient();
@@ -50,7 +62,6 @@ export function FormBuilderPage() {
     if (formQuery.data) {
       return mapFormToBuilderValues(formQuery.data);
     }
-
     return createBlankBuilderValues();
   }, [formQuery.data]);
 
@@ -60,10 +71,7 @@ export function FormBuilderPage() {
   });
 
   useEffect(() => {
-    if (!isEditMode || !formQuery.data) {
-      return;
-    }
-
+    if (!isEditMode || !formQuery.data) return;
     form.reset(defaultValues);
   }, [defaultValues, form, formQuery.data, isEditMode]);
 
@@ -103,67 +111,85 @@ export function FormBuilderPage() {
   }
 
   const isBusy = createMutation.isPending || updateMutation.isPending;
-  const heading = isEditMode ? "Edit form" : "Create form";
-  const actionLabel = isEditMode ? "Save changes" : "Create form";
+  const heading = isEditMode ? "Edit Form" : "Create Form";
+  const actionLabel = isEditMode ? "Save Changes" : "Create Form";
 
   return (
     <div className="stack">
       <div className="topbar">
         <div>
           <p className="eyebrow">Builder</p>
-          <h1>{heading}</h1>
-          <p className="muted">Build the form on the left and review the final layout in the live preview on the right.</p>
+          <h1 style={{ fontSize: "2rem", margin: 0 }}>{heading}</h1>
+          <p className="muted" style={{ marginTop: 4 }}>Build the form structure on the left, and review live layout rendering on the right.</p>
         </div>
       </div>
 
       <div className="split">
         <form
+          id="form-builder-form"
           className="panel stack"
           onSubmit={form.handleSubmit((values) => {
             if (isEditMode) {
               updateMutation.mutate(values);
               return;
             }
-
             createMutation.mutate(values);
           })}
+          style={{ background: "rgba(15, 22, 40, 0.8)", border: "1px solid var(--border)" }}
         >
+          {/* Basic Form Details */}
           <div className="grid cols-2">
-            <label className="stack small">
+            <label className="stack small" style={{ gap: 6 }}>
               Title
-              <input {...form.register("title")} placeholder="Employee onboarding" />
+              <input 
+                id="builder-form-title"
+                {...form.register("title")} 
+                placeholder="Employee Onboarding Survey" 
+              />
               {form.formState.errors.title ? <span className="error">{form.formState.errors.title.message}</span> : null}
             </label>
-            <label className="stack small">
+            <label className="stack small" style={{ gap: 6 }}>
               Deadline
-              <input type="date" {...form.register("deadline")} />
+              <input 
+                id="builder-form-deadline"
+                type="date" 
+                {...form.register("deadline")} 
+              />
             </label>
           </div>
 
-          <label className="stack small">
+          <label className="stack small" style={{ gap: 6 }}>
             Description
-            <textarea {...form.register("description")} placeholder="Short description for users" />
+            <textarea 
+              id="builder-form-description"
+              {...form.register("description")} 
+              placeholder="Provide context or instructions for your users..." 
+            />
           </label>
 
-          <label className="stack small" style={{ maxWidth: 220 }}>
-            <span>Form status</span>
-            <select {...form.register("isOpen", { setValueAs: (value) => value === "true" })}>
-              <option value="true">Open</option>
-              <option value="false">Closed</option>
+          <label className="stack small" style={{ maxWidth: 220, gap: 6 }}>
+            <span>Form Status</span>
+            <select 
+              id="builder-form-status"
+              {...form.register("isOpen", { setValueAs: (value) => value === "true" })}
+            >
+              <option value="true">Open (Accepting Submissions)</option>
+              <option value="false">Closed (Draft / Inactive)</option>
             </select>
           </label>
 
           {isEditMode ? (
-            <div className="notice">
-              Editing this form will rebuild its question and option structure. That is useful for adding or moving options, but it can affect previous submission data.
+            <div className="notice" style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 10 }}>
+              <AlertCircle size={18} style={{ flexShrink: 0 }} />
+              <span className="small">
+                Updating this form will overwrite the structure. Note: Adding, renaming, or removing questions may impact existing response values.
+              </span>
             </div>
           ) : null}
 
-          <div className="field-toolbar">
-            <div>
-              <h2>Questions</h2>
-              <p className="muted">Each form can have multiple questions and each question can contain multiple options.</p>
-            </div>
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 20 }}>
+            <h2 style={{ fontSize: "1.25rem", margin: 0 }}>Questions & Sections</h2>
+            <p className="muted small" style={{ margin: "4px 0 0 0" }}>Create sections (cards) and populate them with inputs (fields).</p>
           </div>
 
           <div className="form-section">
@@ -190,9 +216,10 @@ export function FormBuilderPage() {
           </div>
 
           <button
+            id="builder-add-question-btn"
             type="button"
             className="ghost-button"
-            style={{ width: "100%", padding: "1rem", borderStyle: "dashed", color: "var(--accent)" }}
+            style={{ width: "100%", padding: "1rem", borderStyle: "dashed", color: "var(--accent)", display: "flex", justifyContent: "center", gap: 8 }}
             onClick={() =>
               sections.append({
                 title: "",
@@ -208,23 +235,33 @@ export function FormBuilderPage() {
               })
             }
           >
-            + Add question
+            <PlusCircle size={18} />
+            Add Question Section
           </button>
 
           {form.formState.errors.sections ? <span className="error">{form.formState.errors.sections.message as string}</span> : null}
+          
           {createMutation.isError ? (
-            <div className="notice" style={{ borderColor: "rgba(180,35,24,0.2)", background: "rgba(180,35,24,0.06)", color: "#8e1d14" }}>
-              {(createMutation.error as Error).message}
+            <div className="notice error-notice" style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 10 }}>
+              <AlertCircle size={18} />
+              <span className="small">{(createMutation.error as Error).message}</span>
             </div>
           ) : null}
           {updateMutation.isError ? (
-            <div className="notice" style={{ borderColor: "rgba(180,35,24,0.2)", background: "rgba(180,35,24,0.06)", color: "#8e1d14" }}>
-              {(updateMutation.error as Error).message}
+            <div className="notice error-notice" style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 10 }}>
+              <AlertCircle size={18} />
+              <span className="small">{(updateMutation.error as Error).message}</span>
             </div>
           ) : null}
 
-          <button type="submit" disabled={isBusy}>
-            {isBusy ? (isEditMode ? "Saving..." : "Creating...") : actionLabel}
+          <button 
+            id="builder-submit-form-btn"
+            type="submit" 
+            disabled={isBusy}
+            style={{ padding: "0.85rem 1.5rem" }}
+          >
+            <Save size={18} />
+            {isBusy ? (isEditMode ? "Saving Changes..." : "Creating Form...") : actionLabel}
           </button>
         </form>
 
@@ -265,10 +302,8 @@ function SectionEditor({
   const headerLabel = useWatch({ control: form.control, name: `sections.${index}.headerLabel` });
   const headerDescription = useWatch({ control: form.control, name: `sections.${index}.headerDescription` });
   
-  // Initialize based on whether there's already data
   const [showSeparator, setShowSeparator] = useState(!!(headerLabel || headerDescription));
 
-  // If data appears (e.g. after form reset/load), show it
   useEffect(() => {
     if (headerLabel || headerDescription) {
       setShowSeparator(true);
@@ -276,39 +311,79 @@ function SectionEditor({
   }, [headerLabel, headerDescription]);
 
   return (
-    <div className="field-card stack" style={{ borderLeft: `6px solid ${questionColor}` }}>
-      <div className="field-toolbar">
-        <strong style={{ color: questionColor }}>Question {index + 1}</strong>
+    <div 
+      className="field-card stack" 
+      style={{ 
+        borderLeft: `5px solid ${questionColor}`, 
+        background: "rgba(255, 255, 255, 0.01)",
+        gap: 16
+      }}
+    >
+      <div className="field-toolbar" style={{ margin: 0, paddingBottom: 10, borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+        <strong style={{ color: questionColor, fontSize: "1.05rem" }}>Question Section {index + 1}</strong>
         <div className="actions-row">
-          <button type="button" className="ghost-button small-btn" onClick={moveSectionUp} disabled={!canMoveUp}>
-            Move up
+          <button 
+            id={`section-${index}-move-up`}
+            type="button" 
+            className="ghost-button small-btn" 
+            onClick={moveSectionUp} 
+            disabled={!canMoveUp}
+            style={{ padding: 6 }}
+          >
+            <ArrowUp size={14} />
           </button>
-          <button type="button" className="ghost-button small-btn" onClick={moveSectionDown} disabled={!canMoveDown}>
-            Move down
+          <button 
+            id={`section-${index}-move-down`}
+            type="button" 
+            className="ghost-button small-btn" 
+            onClick={moveSectionDown} 
+            disabled={!canMoveDown}
+            style={{ padding: 6 }}
+          >
+            <ArrowDown size={14} />
           </button>
-          <button type="button" className="ghost-button small-btn" onClick={duplicateSection}>
-            Duplicate
+          <button 
+            id={`section-${index}-duplicate`}
+            type="button" 
+            className="ghost-button small-btn" 
+            onClick={duplicateSection}
+            style={{ padding: "6px 10px", gap: 4 }}
+          >
+            <Copy size={13} />
+            <span className="small">Copy</span>
           </button>
-          <button type="button" className="ghost-button small-btn danger-text" onClick={removeSection} disabled={!canRemove}>
-            Remove
+          <button 
+            id={`section-${index}-remove`}
+            type="button" 
+            className="ghost-button small-btn danger-text" 
+            onClick={removeSection} 
+            disabled={!canRemove}
+            style={{ padding: "6px 10px", gap: 4 }}
+          >
+            <Trash2 size={13} />
+            <span className="small">Delete</span>
           </button>
         </div>
       </div>
 
+      {/* Separator Section Toggle */}
       {!showSeparator ? (
         <button
+          id={`section-${index}-add-header`}
           type="button"
           className="ghost-button small-btn"
-          style={{ alignSelf: "flex-start", color: "var(--accent)", marginBottom: "8px" }}
+          style={{ alignSelf: "flex-start", color: "var(--accent)", gap: 4 }}
           onClick={() => setShowSeparator(true)}
         >
-          + Add section header
+          <Plus size={14} />
+          Add Section Header Separator
         </button>
       ) : (
-        <div className="stack" style={{ background: "rgba(0,0,0,0.02)", padding: "12px", borderRadius: "8px", border: "1px dashed rgba(0,0,0,0.1)", marginBottom: "8px" }}>
-          <div className="field-toolbar" style={{ marginBottom: "8px" }}>
-            <p className="muted small"><strong>Optional Separator:</strong> Appears before this question.</p>
+        <div className="stack" style={{ background: "rgba(255,255,255,0.015)", padding: 14, borderRadius: 10, border: "1px dashed rgba(255,255,255,0.1)", gap: 12 }}>
+          <div className="field-toolbar" style={{ margin: 0 }}>
+            <span className="small" style={{ fontWeight: 600, color: "#fff" }}>Header Separator (Optional)</span>
             <button
+              id={`section-${index}-remove-header`}
               type="button"
               className="ghost-button small-btn danger-text"
               onClick={() => {
@@ -316,63 +391,112 @@ function SectionEditor({
                 form.setValue(`sections.${index}.headerDescription`, "");
                 setShowSeparator(false);
               }}
+              style={{ padding: "4px 8px", gap: 4 }}
             >
+              <Minus size={12} />
               Remove
             </button>
           </div>
-          <div className="grid cols-2">
-            <label className="stack small">
-              Separator Label
-              <input {...form.register(`sections.${index}.headerLabel`)} placeholder="e.g. Personal Information" />
+          <div className="grid cols-2" style={{ gap: 12 }}>
+            <label className="stack small" style={{ gap: 4 }}>
+              Title
+              <input 
+                id={`section-${index}-header-label`}
+                {...form.register(`sections.${index}.headerLabel`)} 
+                placeholder="e.g., Personal Details" 
+              />
             </label>
-            <label className="stack small">
-              Separator Description
-              <input {...form.register(`sections.${index}.headerDescription`)} placeholder="e.g. Tell us about yourself" />
+            <label className="stack small" style={{ gap: 4 }}>
+              Description
+              <input 
+                id={`section-${index}-header-desc`}
+                {...form.register(`sections.${index}.headerDescription`)} 
+                placeholder="e.g., Tell us about yourself" 
+              />
             </label>
           </div>
         </div>
       )}
 
-      <label className="stack small">
-        Question title
-        <input {...form.register(`sections.${index}.title`)} placeholder="Admission details" />
-      </label>
-
-      <label className="stack small">
-        Question description
-        <textarea {...form.register(`sections.${index}.description`)} placeholder="Use this question to capture yearly admission data" />
-      </label>
-
-      <div className="field-toolbar">
-        <strong>Options</strong>
+      {/* Title & Description of Section */}
+      <div className="grid cols-2" style={{ gap: 12 }}>
+        <label className="stack small" style={{ gap: 4 }}>
+          Section Title
+          <input 
+            id={`section-${index}-title`}
+            {...form.register(`sections.${index}.title`)} 
+            placeholder="Contact Information" 
+          />
+        </label>
+        <label className="stack small" style={{ gap: 4 }}>
+          Section Description
+          <input 
+            id={`section-${index}-description`}
+            {...form.register(`sections.${index}.description`)} 
+            placeholder="Provide contact details below..." 
+          />
+        </label>
       </div>
 
-      <div className="stack">
+      <div style={{ display: "flex", alignItems: "center", gap: 6, borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 14, marginTop: 4 }}>
+        <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#fff" }}>Form Fields</span>
+      </div>
+
+      {/* Fields List */}
+      <div className="stack" style={{ gap: 12 }}>
         {fields.fields.map((field, fieldIndex) => (
-          <div className="field-group-box stack" key={field.id}>
-            <div className="field-toolbar">
-              <strong>Option {fieldIndex + 1}</strong>
+          <div className="field-group-box stack" key={field.id} style={{ gap: 12, background: "rgba(255,255,255,0.015)", border: "1px solid rgba(255,255,255,0.04)" }}>
+            <div className="field-toolbar" style={{ margin: 0 }}>
+              <strong style={{ fontSize: "0.85rem", color: "#fff" }}>Field Option {fieldIndex + 1}</strong>
               <div className="actions-row">
-                <button type="button" className="ghost-button small-btn" onClick={() => fields.move(fieldIndex, fieldIndex - 1)} disabled={fieldIndex === 0}>
-                  Move up
+                <button 
+                  id={`section-${index}-field-${fieldIndex}-move-up`}
+                  type="button" 
+                  className="ghost-button small-btn" 
+                  onClick={() => fields.move(fieldIndex, fieldIndex - 1)} 
+                  disabled={fieldIndex === 0}
+                  style={{ padding: 4 }}
+                >
+                  <ArrowUp size={12} />
                 </button>
-                <button type="button" className="ghost-button small-btn" onClick={() => fields.move(fieldIndex, fieldIndex + 1)} disabled={fieldIndex === fields.fields.length - 1}>
-                  Move down
+                <button 
+                  id={`section-${index}-field-${fieldIndex}-move-down`}
+                  type="button" 
+                  className="ghost-button small-btn" 
+                  onClick={() => fields.move(fieldIndex, fieldIndex + 1)} 
+                  disabled={fieldIndex === fields.fields.length - 1}
+                  style={{ padding: 4 }}
+                >
+                  <ArrowDown size={12} />
                 </button>
-                <button type="button" className="ghost-button small-btn danger-text" onClick={() => fields.remove(fieldIndex)} disabled={fields.fields.length === 1}>
-                  Remove
+                <button 
+                  id={`section-${index}-field-${fieldIndex}-remove`}
+                  type="button" 
+                  className="ghost-button small-btn danger-text" 
+                  onClick={() => fields.remove(fieldIndex)} 
+                  disabled={fields.fields.length === 1}
+                  style={{ padding: 4 }}
+                >
+                  <Trash2 size={12} />
                 </button>
               </div>
             </div>
 
-            <div className="grid cols-2">
-              <label className="stack small">
-                Option Label
-                <input {...form.register(`sections.${index}.fields.${fieldIndex}.label`)} placeholder="Year 2019" />
+            <div className="grid cols-2" style={{ gap: 12 }}>
+              <label className="stack small" style={{ gap: 4 }}>
+                Field Label
+                <input 
+                  id={`section-${index}-field-${fieldIndex}-label`}
+                  {...form.register(`sections.${index}.fields.${fieldIndex}.label`)} 
+                  placeholder="e.g., Full Name" 
+                />
               </label>
-              <label className="stack small">
-                Option type
-                <select {...form.register(`sections.${index}.fields.${fieldIndex}.type`)}>
+              <label className="stack small" style={{ gap: 4 }}>
+                Input Type
+                <select 
+                  id={`section-${index}-field-${fieldIndex}-type`}
+                  {...form.register(`sections.${index}.fields.${fieldIndex}.type`)}
+                >
                   {FIELD_TYPE_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
@@ -382,22 +506,32 @@ function SectionEditor({
               </label>
             </div>
 
-            <label className="stack small">
-              Choices
-              <input {...form.register(`sections.${index}.fields.${fieldIndex}.optionsText`)} placeholder="Comma-separated choices for dropdowns and multiple choice options" />
+            <label className="stack small" style={{ gap: 4 }}>
+              Options (Dropdowns/Radio/Checkboxes)
+              <input 
+                id={`section-${index}-field-${fieldIndex}-options`}
+                {...form.register(`sections.${index}.fields.${fieldIndex}.optionsText`)} 
+                placeholder="Option A, Option B, Option C (comma-separated)" 
+              />
             </label>
 
-            <label className="small" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <input type="checkbox" {...form.register(`sections.${index}.fields.${fieldIndex}.required`)} style={{ width: 18, height: 18 }} />
-              Required
+            <label className="small" style={{ display: "inline-flex", alignItems: "center", gap: 8, cursor: "pointer", userSelect: "none" }}>
+              <input 
+                id={`section-${index}-field-${fieldIndex}-required`}
+                type="checkbox" 
+                {...form.register(`sections.${index}.fields.${fieldIndex}.required`)} 
+                style={{ width: 16, height: 16 }} 
+              />
+              <span style={{ color: "var(--text)" }}>Mark as Required field</span>
             </label>
           </div>
         ))}
 
         <button
+          id={`section-${index}-add-field-btn`}
           type="button"
           className="ghost-button"
-          style={{ width: "100%", padding: "0.6rem", borderStyle: "dashed", fontSize: "0.85rem", color: "var(--accent)" }}
+          style={{ width: "100%", padding: "0.6rem", borderStyle: "dashed", fontSize: "0.825rem", color: "var(--accent)", display: "flex", justifyContent: "center", gap: 6 }}
           onClick={() =>
             fields.append({
               label: "",
@@ -407,7 +541,8 @@ function SectionEditor({
             })
           }
         >
-          + Add option
+          <PlusCircle size={14} />
+          Add Field Input
         </button>
       </div>
     </div>
@@ -463,14 +598,8 @@ function mapFormToBuilderValues(form: Form): FormBuilderValues {
 }
 
 function formatDateInput(value?: string | null) {
-  if (!value) {
-    return "";
-  }
-
+  if (!value) return "";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
-
+  if (Number.isNaN(date.getTime())) return "";
   return date.toISOString().slice(0, 10);
 }

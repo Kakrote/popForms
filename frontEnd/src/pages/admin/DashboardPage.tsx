@@ -7,6 +7,19 @@ import { SubmissionSectionsView, type SubmissionSectionView } from "../../compon
 import { getFieldTypeLabel } from "../../components/fieldTypeLabels";
 import { formsApi, submissionsApi } from "../../lib/api";
 import type { Submission } from "../../types";
+import { 
+  ClipboardList, 
+  CheckCircle2, 
+  XCircle, 
+  Inbox, 
+  Eye, 
+  Trash2, 
+  Copy, 
+  Check, 
+  Settings, 
+  Plus, 
+  AlertCircle
+} from "lucide-react";
 
 type PendingDelete =
   | { kind: "submission"; id: string; label: string }
@@ -18,6 +31,8 @@ export function AdminDashboardPage() {
   const navigate = useNavigate();
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<PendingDelete>(null);
+  const [copiedFormId, setCopiedFormId] = useState<string | null>(null);
+
   const formsQuery = useQuery({
     queryKey: ["forms"],
     queryFn: formsApi.list,
@@ -65,53 +80,86 @@ export function AdminDashboardPage() {
   const openForms = forms.filter((form) => form.isOpen).length;
   const closedForms = forms.length - openForms;
 
+  const handleCopyLink = (formId: string, slug: string) => {
+    const shareLink = `${window.location.origin}/forms/${slug}`;
+    navigator.clipboard.writeText(shareLink).then(() => {
+      setCopiedFormId(formId);
+      setTimeout(() => setCopiedFormId(null), 2000);
+    });
+  };
+
   return (
     <div className="stack">
       <div className="topbar">
         <div>
           <p className="eyebrow">Overview</p>
-          <h1>Dashboard</h1>
-          <p className="muted">Monitor forms and submissions from the first demo-ready build.</p>
+          <h1 style={{ fontSize: "2rem", margin: 0 }}>Dashboard</h1>
+          <p className="muted" style={{ marginTop: 4 }}>Monitor forms and submissions from the first demo-ready build.</p>
         </div>
         <Link to="/admin/forms/new">
-          <button type="button">Create form</button>
+          <button type="button" id="admin-create-form-btn">
+            <Plus size={18} />
+            Create form
+          </button>
         </Link>
       </div>
 
+      {/* Metrics Cards */}
       <section className="stat-grid">
         <div className="stat">
-          <span className="muted">Forms</span>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span className="muted">Total Forms</span>
+            <div style={{ color: "var(--accent)" }}><ClipboardList size={20} /></div>
+          </div>
           <strong>{forms.length}</strong>
         </div>
+        
         <div className="stat">
-          <span className="muted">Open</span>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span className="muted">Active Forms</span>
+            <div style={{ color: "var(--success)" }}><CheckCircle2 size={20} /></div>
+          </div>
           <strong>{openForms}</strong>
         </div>
+
         <div className="stat">
-          <span className="muted">Closed</span>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span className="muted">Closed Forms</span>
+            <div style={{ color: "var(--danger)" }}><XCircle size={20} /></div>
+          </div>
           <strong>{closedForms}</strong>
         </div>
+
         <div className="stat">
-          <span className="muted">Submissions</span>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span className="muted">Submissions</span>
+            <div style={{ color: "#a855f7" }}><Inbox size={20} /></div>
+          </div>
           <strong>{totalSubmissions}</strong>
         </div>
       </section>
 
+      {/* Submissions Section */}
       <section className="panel stack">
         <div className="field-toolbar">
           <div>
-            <h2>All submissions</h2>
-            <p className="muted">Admin view contains submitted records only.</p>
+            <h2 style={{ margin: 0 }}>Recent Submissions</h2>
+            <p className="muted small" style={{ margin: 0 }}>Admin view contains submitted records only.</p>
           </div>
-          <span className="badge">Submitted only</span>
+          <span className="badge SUBMITTED">Submitted only</span>
         </div>
 
         {submissionsQuery.isLoading ? <p className="muted">Loading submissions...</p> : null}
         {submissionsQuery.isError ? <p className="error">Unable to load submissions right now.</p> : null}
-        {!submissionsQuery.isLoading && submissions.length === 0 ? <p className="muted">No submitted records yet.</p> : null}
+        {!submissionsQuery.isLoading && submissions.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "40px 0", color: "var(--muted)" }}>
+            <AlertCircle size={28} style={{ marginBottom: 10, opacity: 0.5 }} />
+            <p>No submitted records yet.</p>
+          </div>
+        ) : null}
 
         {submissions.length > 0 ? (
-          <div style={{ overflowX: "auto" }}>
+          <div className="table-container">
             <table className="table">
               <thead>
                 <tr>
@@ -121,14 +169,14 @@ export function AdminDashboardPage() {
                   <th>Department</th>
                   <th>Status</th>
                   <th>Submitted at</th>
-                  <th>Details</th>
+                  <th style={{ textAlign: "right" }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {submissions.map((submission) => (
                   <tr key={submission.id}>
-                    <td>{submission.form?.title ?? submission.formId}</td>
-                    <td>
+                    <td style={{ fontWeight: 600, color: "#fff" }}>{submission.form?.title ?? submission.formId}</td>
+                    <td className="small" style={{ maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {submission.submissionValue && submission.submissionValue.length > 0
                         ? submission.submissionValue
                             .slice(0, 2)
@@ -139,17 +187,24 @@ export function AdminDashboardPage() {
                     <td>{submission.submittedBy?.username ?? submission.submittedById}</td>
                     <td>{submission.department?.department_Name ?? submission.departmentId}</td>
                     <td>
-                      <span className="badge">{submission.status}</span>
+                      <span className="badge SUBMITTED">{submission.status}</span>
                     </td>
                     <td>{new Date(submission.submittedAt ?? submission.createdAt).toLocaleString()}</td>
                     <td>
-                      <div style={{ display: "flex", gap: 8 }}>
-                        <button type="button" className="ghost-button" onClick={() => setSelectedSubmissionId(submission.id)}>
-                          View values
+                      <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                        <button 
+                          id={`view-sub-btn-${submission.id}`}
+                          type="button" 
+                          className="ghost-button small-btn" 
+                          onClick={() => setSelectedSubmissionId(submission.id)}
+                        >
+                          <Eye size={14} />
+                          View Values
                         </button>
                         <button
+                          id={`delete-sub-btn-${submission.id}`}
                           type="button"
-                          className="ghost-button"
+                          className="ghost-button small-btn danger-text"
                           onClick={() =>
                             setPendingDelete({
                               kind: "submission",
@@ -158,6 +213,7 @@ export function AdminDashboardPage() {
                             })
                           }
                         >
+                          <Trash2 size={14} />
                           Delete
                         </button>
                       </div>
@@ -169,25 +225,29 @@ export function AdminDashboardPage() {
           </div>
         ) : null}
 
-        <Modal open={Boolean(selectedSubmissionId)} onClose={() => setSelectedSubmissionId(null)} title={submissionDetail ? `Submission • ${submissionDetail.id}` : "Submission details"}>
+        {/* View Submission Modal */}
+        <Modal open={Boolean(selectedSubmissionId)} onClose={() => setSelectedSubmissionId(null)} title={submissionDetail ? `Submission Details` : "Details"}>
           {submissionDetailQuery.isLoading ? <p className="muted">Loading submission details...</p> : null}
           {submissionDetailQuery.isError ? <p className="error">Unable to load this submission detail.</p> : null}
 
           {submissionDetail ? (
-            <div>
-              <div className="field-card" style={{ marginBottom: 14 }}>
-                <strong>Submission summary</strong>
-                <div className="muted small">Form: {submissionDetail.form?.title ?? submissionDetail.formId}</div>
-                <div className="muted small">Submitted by: {submissionDetail.submittedBy?.username ?? submissionDetail.submittedById}</div>
-                <div className="muted small">Department: {submissionDetail.department?.department_Name ?? submissionDetail.departmentId}</div>
-                <div className="muted small">Status: {submissionDetail.status}</div>
-                <div className="muted small">Submitted at: {submissionDetail.submittedAt ? new Date(submissionDetail.submittedAt).toLocaleString() : "-"}</div>
+            <div className="stack">
+              <div className="field-card" style={{ background: "rgba(255, 255, 255, 0.02)" }}>
+                <strong style={{ fontSize: "1.1rem", display: "block", marginBottom: 10, color: "#fff" }}>Receipt Summary</strong>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }} className="small">
+                  <div className="muted">Form Name: <span style={{ color: "#fff" }}>{submissionDetail.form?.title ?? submissionDetail.formId}</span></div>
+                  <div className="muted">Submitted By: <span style={{ color: "#fff" }}>{submissionDetail.submittedBy?.username ?? submissionDetail.submittedById}</span></div>
+                  <div className="muted">Department: <span style={{ color: "#fff" }}>{submissionDetail.department?.department_Name ?? submissionDetail.departmentId}</span></div>
+                  <div className="muted">Status: <span className="badge SUBMITTED" style={{ padding: "1px 8px", fontSize: "0.7rem" }}>{submissionDetail.status}</span></div>
+                  <div className="muted" style={{ gridColumn: "span 2" }}>Submitted: <span style={{ color: "#fff" }}>{submissionDetail.submittedAt ? new Date(submissionDetail.submittedAt).toLocaleString() : "-"}</span></div>
+                </div>
               </div>
 
               <SubmissionSectionsView sections={submissionSections} emptyMessage="This submission does not contain any values." />
 
-              <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+              <div style={{ display: "flex", gap: 8, marginTop: 12, justifyContent: "flex-end" }}>
                 <button
+                  id="modal-delete-sub-btn"
                   type="button"
                   onClick={() =>
                     setPendingDelete({
@@ -196,8 +256,9 @@ export function AdminDashboardPage() {
                       label: `${submissionDetail.form?.title ?? "this submission"} / ${submissionDetail.submittedBy?.username ?? submissionDetail.submittedById}`,
                     })
                   }
-                  className="ghost-button"
+                  className="ghost-button danger-text"
                 >
+                  <Trash2 size={16} />
                   Delete submission
                 </button>
               </div>
@@ -206,22 +267,27 @@ export function AdminDashboardPage() {
         </Modal>
       </section>
 
+      {/* Forms Section */}
       <section className="panel stack">
         <div className="field-toolbar">
           <div>
-            <h2>Forms</h2>
-            <p className="muted">Toggle availability, inspect submissions, or share the public form link.</p>
+            <h2 style={{ margin: 0 }}>Forms Manager</h2>
+            <p className="muted small" style={{ margin: 0 }}>Toggle availability, inspect submissions, or share public links.</p>
           </div>
           <span className="badge">Admin only</span>
         </div>
 
         {formsQuery.isLoading ? <p className="muted">Loading forms...</p> : null}
         {formsQuery.isError ? <p className="error">Unable to load forms right now.</p> : null}
-
-        {!formsQuery.isLoading && forms.length === 0 ? <p className="muted">No forms have been created yet.</p> : null}
+        {!formsQuery.isLoading && forms.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "40px 0", color: "var(--muted)" }}>
+            <AlertCircle size={28} style={{ marginBottom: 10, opacity: 0.5 }} />
+            <p>No forms have been created yet.</p>
+          </div>
+        ) : null}
 
         {forms.length > 0 ? (
-          <div style={{ overflowX: "auto" }}>
+          <div className="table-container">
             <table className="table">
               <thead>
                 <tr>
@@ -229,52 +295,64 @@ export function AdminDashboardPage() {
                   <th>Status</th>
                   <th>Fields</th>
                   <th>Submissions</th>
-                  <th>Share link</th>
-                  <th>Actions</th>
+                  <th>Share Link</th>
+                  <th style={{ textAlign: "right" }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {forms.map((form) => {
-                  const shareLink = `${window.location.origin}/forms/${form.slug}`;
+                  const isCopied = copiedFormId === form.id;
                   return (
                     <tr key={form.id}>
                       <td>
-                        <strong>{form.title}</strong>
-                        <div className="muted small">/{form.slug}</div>
+                        <strong style={{ color: "#fff" }}>{form.title}</strong>
+                        <div className="muted small" style={{ fontFamily: "monospace" }}>/{form.slug}</div>
                       </td>
                       <td>
                         <span className={`badge ${form.isOpen ? "open" : "closed"}`}>{form.isOpen ? "Open" : "Closed"}</span>
                       </td>
-                      <td>{Array.isArray(form.sections) ? form.sections.reduce((count, section) => count + (section.fields?.length ?? 0), 0) : 0}</td>
-                      <td>{Array.isArray(form.submissions) ? form.submissions.length : 0}</td>
+                      <td>{Array.isArray(form.sections) ? form.sections.reduce((count, section) => count + (section.fields?.length ?? 0), 0) : 0} fields</td>
+                      <td>{Array.isArray(form.submissions) ? form.submissions.length : 0} entries</td>
                       <td>
                         <button
-                          className="ghost-button"
+                          id={`copy-link-${form.id}`}
+                          className="ghost-button small-btn"
                           type="button"
-                          onClick={() => navigator.clipboard.writeText(shareLink)}
+                          onClick={() => handleCopyLink(form.id, form.slug)}
+                          style={{ minWidth: "105px" }}
                         >
-                          Copy link
+                          {isCopied ? <Check size={14} color="var(--success)" /> : <Copy size={14} />}
+                          {isCopied ? "Copied!" : "Copy Link"}
                         </button>
                       </td>
                       <td>
-                        <div className="stack" style={{ gap: 8 }}>
-                          <button type="button" onClick={() => navigate(`/admin/forms/${form.slug}`)}>
+                        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                          <button 
+                            id={`manage-form-${form.id}`}
+                            type="button" 
+                            className="small-btn"
+                            onClick={() => navigate(`/admin/forms/${form.slug}`)}
+                          >
+                            <Settings size={14} />
                             Manage
                           </button>
                           <button
+                            id={`toggle-form-${form.id}`}
                             type="button"
-                            className="ghost-button"
+                            className="ghost-button small-btn"
                             onClick={() => toggleMutation.mutate({ slug: form.slug, isOpen: !form.isOpen })}
                             disabled={toggleMutation.isPending}
                           >
                             {form.isOpen ? "Close" : "Open"}
                           </button>
                           <button
+                            id={`delete-form-${form.id}`}
                             type="button"
-                            className="ghost-button"
+                            className="ghost-button small-btn danger-text"
                             onClick={() => setPendingDelete({ kind: "form", slug: form.slug, label: form.title })}
                             disabled={deleteMutation.isPending}
                           >
+                            <Trash2 size={14} />
                             Delete
                           </button>
                         </div>
@@ -287,15 +365,16 @@ export function AdminDashboardPage() {
           </div>
         ) : null}
 
+        {/* Delete Confirm Dialog */}
         <ConfirmDialog
           open={Boolean(pendingDelete)}
-          title={pendingDelete?.kind === "submission" ? "Delete submission" : "Delete form"}
+          title={pendingDelete?.kind === "submission" ? "Delete Submission" : "Delete Form"}
           description={
             pendingDelete?.kind === "submission"
-              ? `Delete ${pendingDelete.label}? This cannot be undone and the values will be removed from the dashboard.`
-              : `Delete ${pendingDelete?.label ?? "this form"}? This cannot be undone and the form link will stop working.`
+              ? `Are you sure you want to delete ${pendingDelete.label}? This cannot be undone and values will be permanently removed.`
+              : `Are you sure you want to delete ${pendingDelete?.label ?? "this form"}? This will permanently close the form and delete all associated entries.`
           }
-          confirmLabel="Delete"
+          confirmLabel="Delete permanently"
           onCancel={() => setPendingDelete(null)}
           onConfirm={() => {
             if (!pendingDelete) return;
@@ -327,7 +406,7 @@ function mapSubmissionSections(submission: Submission | undefined): SubmissionSe
     return [
       {
         id: "__no-sections",
-        title: "Submission values",
+        title: "Submission Values",
         description: null,
         fields: submission.submissionValue.map((value) => ({
           id: value.id,
@@ -344,7 +423,7 @@ function mapSubmissionSections(submission: Submission | undefined): SubmissionSe
     description: section.description ?? null,
     fields: section.fields.map((field) => ({
       id: field.id,
-      label: `${field.label}${field.fieldType ? ` · ${getFieldTypeLabel(field.fieldType)}` : ""}`,
+      label: `${field.label}${field.fieldType ? ` • ${getFieldTypeLabel(field.fieldType)}` : ""}`,
       value: valuesByFieldId.get(field.id) ?? "No response",
     })),
   }));

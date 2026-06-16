@@ -5,6 +5,17 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Link } from "react-router-dom";
 import { departmentApi, usersApi } from "../../lib/api";
+import { 
+  Users, 
+  User, 
+  Mail, 
+  Shield, 
+  Building2, 
+  Edit2, 
+  CheckCircle2, 
+  AlertTriangle,
+  Link2
+} from "lucide-react";
 
 const editUserSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -60,8 +71,7 @@ export function UserManagementPage() {
   }, [form, selectedUserId, users]);
 
   useEffect(() => {
-    const selectedUser = users.find((user) => user.id === selectedUserId);
-
+    const selectedUser = users.find((u) => u.id === selectedUserId);
     if (selectedUser) {
       form.reset({
         username: selectedUser.username,
@@ -83,7 +93,6 @@ export function UserManagementPage() {
         setSelectedDepartmentId("");
       }
     };
-
     loadDepartment();
   }, [selectedUserId]);
 
@@ -94,121 +103,164 @@ export function UserManagementPage() {
   }, [departmentsQuery.data, selectedDepartmentId]);
 
   return (
-    <div className="stack">
-      <div className="topbar">
+    <div className="stack" style={{ gap: 24 }}>
+      <div className="topbar" style={{ margin: 0 }}>
         <div>
-          <p className="eyebrow">Admin tools</p>
-          <h1>Manage users</h1>
-          <p className="muted">Review users, update their basic account details, and assign departments from the existing list.</p>
+          <p className="eyebrow" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <Users size={14} />
+            Administration
+          </p>
+          <h1 style={{ fontSize: "2rem", margin: 0 }}>Manage Users</h1>
+          <p className="muted" style={{ marginTop: 4 }}>Review existing users, update basic account profiles, and assign department relationships.</p>
         </div>
-        <Link to="/admin/departments" className="ghost-button" style={{ display: "inline-block", padding: "0.85rem 1rem" }}>
-          Create/manage departments
+        <Link to="/admin/departments" id="users-go-depts-btn" className="ghost-button">
+          <Building2 size={16} />
+          Create / Manage Departments
         </Link>
       </div>
 
-      <section className="panel stack">
+      {/* Users Table Panel */}
+      <section className="panel stack" style={{ background: "rgba(15, 22, 40, 0.8)", border: "1px solid var(--border)" }}>
         <div className="field-toolbar">
           <div>
-            <h2>Users</h2>
-            <p className="muted">Click a user to load their details into the editor below.</p>
+            <h2 style={{ margin: 0 }}>System Users</h2>
+            <p className="muted small" style={{ margin: 0 }}>Select a user row to edit their details and department mappings in the form below.</p>
           </div>
         </div>
 
         {usersQuery.isLoading ? <p className="muted">Loading users...</p> : null}
         {usersQuery.isError ? <p className="error">Unable to load users.</p> : null}
 
-        <div style={{ overflowX: "auto" }}>
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Username</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr key={user.id}>
-                  <td>{user.username}</td>
-                  <td>{user.email}</td>
-                  <td>
-                    <span className="badge">{user.role}</span>
-                  </td>
-                  <td>
-                    <button
-                      type="button"
-                      className="ghost-button"
-                      onClick={() => setSelectedUserId(user.id)}
-                    >
-                      Edit
-                    </button>
-                  </td>
+        {users.length > 0 ? (
+          <div className="table-container">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Username</th>
+                  <th>Email Address</th>
+                  <th>System Role</th>
+                  <th style={{ textAlign: "right" }}>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {users.map((user) => (
+                  <tr 
+                    key={user.id} 
+                    style={{ 
+                      cursor: "pointer",
+                      background: selectedUserId === user.id ? "rgba(99, 102, 241, 0.08)" : undefined 
+                    }}
+                    onClick={() => setSelectedUserId(user.id)}
+                  >
+                    <td style={{ fontWeight: 600, color: "#fff" }}>{user.username}</td>
+                    <td>{user.email}</td>
+                    <td>
+                      <span className={`badge ${user.role === "ADMIN" ? "open" : "closed"}`}>
+                        {user.role}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: "right" }}>
+                      <button
+                        id={`user-edit-row-btn-${user.id}`}
+                        type="button"
+                        className="ghost-button small-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedUserId(user.id);
+                        }}
+                      >
+                        <Edit2 size={12} />
+                        Select
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : null}
       </section>
 
+      {/* Edit Form Panel */}
       <form
+        id="user-edit-form"
         className="panel stack"
         onSubmit={form.handleSubmit((values) => {
-          const activeUser = users.find((user) => user.id === selectedUserId);
-          if (!activeUser) {
-            return;
-          }
-
+          const activeUser = users.find((u) => u.id === selectedUserId);
+          if (!activeUser) return;
           updateMutation.mutate({ id: activeUser.id, payload: values });
         })}
+        style={{ background: "rgba(15, 22, 40, 0.8)", border: "1px solid var(--border)" }}
       >
         <div className="field-toolbar">
           <div>
-            <h2>Edit user</h2>
-            <p className="muted">Make changes to the selected user and save them.</p>
+            <h2 style={{ margin: 0 }}>Edit User Details</h2>
+            <p className="muted small" style={{ margin: 0 }}>Modify general configuration details for the selected user account.</p>
           </div>
         </div>
 
-        <div className="grid cols-2">
-          <label className="stack small">
-            Username
-            <input {...form.register("username")} />
+        <div className="grid cols-2" style={{ gap: 18 }}>
+          <label className="stack small" style={{ gap: 6 }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 500, color: "var(--text)" }}>
+              <User size={14} className="muted" />
+              Username
+            </span>
+            <input id="edit-username" {...form.register("username")} />
+            {form.formState.errors.username ? <span className="error">{form.formState.errors.username.message}</span> : null}
           </label>
-          <label className="stack small">
-            Email
-            <input type="email" {...form.register("email")} />
+          <label className="stack small" style={{ gap: 6 }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 500, color: "var(--text)" }}>
+              <Mail size={14} className="muted" />
+              Email Address
+            </span>
+            <input id="edit-email" type="email" {...form.register("email")} />
+            {form.formState.errors.email ? <span className="error">{form.formState.errors.email.message}</span> : null}
           </label>
         </div>
 
-        <label className="stack small" style={{ maxWidth: 220 }}>
-          Role
-          <select {...form.register("role")}>
-            <option value="USER">User</option>
-            <option value="ADMIN">Admin</option>
+        <label className="stack small" style={{ gap: 6, maxWidth: 220 }}>
+          <span style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 500, color: "var(--text)" }}>
+            <Shield size={14} className="muted" />
+            Account Role
+          </span>
+          <select id="edit-role" {...form.register("role")}>
+            <option value="USER">User (Fill Forms)</option>
+            <option value="ADMIN">Admin (Build & Manage)</option>
           </select>
         </label>
 
-        <div style={{ marginTop: 8 }}>
-          <strong>Department</strong>
-          <div className="muted small" style={{ marginTop: 6 }}>
-            {userDepartment ? userDepartment.department_Name : "Not assigned"}
+        {/* Department Info */}
+        <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 18, marginTop: 8 }}>
+          <strong style={{ display: "block", color: "#fff", fontSize: "1rem", marginBottom: 6 }}>Department Assignment</strong>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }} className="small muted">
+            <Building2 size={14} />
+            Assigned: <span style={{ color: "#fff", fontWeight: 600 }}>{userDepartment ? userDepartment.department_Name : "None / Unassigned"}</span>
           </div>
         </div>
 
-        <div className="stack" style={{ marginTop: 12, maxWidth: 420 }}>
-          <label className="stack small">
-            Assign existing department
-            <select value={selectedDepartmentId} onChange={(event) => setSelectedDepartmentId(event.target.value)}>
-              <option value="">Select department</option>
-              {(departmentsQuery.data ?? []).map((department) => (
-                <option key={department.id} value={department.id}>
-                  {department.department_Name} {department.user?.username ? `(currently: ${department.user.username})` : ""}
+        {/* Assign Department Action */}
+        <div className="stack" style={{ marginTop: 12, maxWidth: 500, gap: 12 }}>
+          <label className="stack small" style={{ gap: 6 }}>
+            <span style={{ fontWeight: 500, color: "var(--text)" }}>Assign Existing Department</span>
+            <select 
+              id="edit-assign-dept-select"
+              value={selectedDepartmentId} 
+              onChange={(e) => setSelectedDepartmentId(e.target.value)}
+            >
+              <option value="">Choose department...</option>
+              {(departmentsQuery.data ?? []).map((dept) => (
+                <option key={dept.id} value={dept.id}>
+                  {dept.department_Name} {dept.user?.username ? `(assigned to: ${dept.user.username})` : "(unassigned)"}
                 </option>
               ))}
             </select>
           </label>
+          
           <button
+            id="edit-assign-dept-btn"
             type="button"
+            className="ghost-button"
+            style={{ alignSelf: "flex-start", gap: 6 }}
             onClick={async () => {
               if (!selectedUserId || !selectedDepartmentId) return;
               try {
@@ -217,21 +269,38 @@ export function UserManagementPage() {
                 queryClient.invalidateQueries({ queryKey: ["departments"] });
                 const dept = await departmentApi.getByUser(selectedUserId);
                 setUserDepartment(dept ?? null);
+                alert("Department assigned successfully.");
               } catch (err) {
                 alert((err as Error).message || "Unable to assign department");
               }
             }}
           >
-            Assign selected department
+            <Link2 size={16} />
+            Assign Selected Department
           </button>
-          <p className="muted small">Use the department manager to create or rename departments first.</p>
         </div>
 
-        {updateMutation.isSuccess ? <div className="notice">User updated successfully.</div> : null}
-        {updateMutation.isError ? <div className="notice" style={{ borderColor: "rgba(180,35,24,0.2)", background: "rgba(180,35,24,0.06)", color: "#8e1d14" }}>{(updateMutation.error as Error).message}</div> : null}
+        {updateMutation.isSuccess ? (
+          <div className="notice" style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 10, borderColor: "var(--success-border)", background: "var(--success-bg)", color: "var(--success)" }}>
+            <CheckCircle2 size={16} />
+            <span>User profile updated successfully.</span>
+          </div>
+        ) : null}
+        
+        {updateMutation.isError ? (
+          <div className="notice error-notice" style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 10 }}>
+            <AlertTriangle size={16} />
+            <span className="small">{(updateMutation.error as Error).message}</span>
+          </div>
+        ) : null}
 
-        <button type="submit" disabled={updateMutation.isPending}>
-          {updateMutation.isPending ? "Saving..." : "Save changes"}
+        <button 
+          id="user-edit-save-btn"
+          type="submit" 
+          disabled={updateMutation.isPending}
+          style={{ alignSelf: "flex-start", padding: "0.75rem 1.5rem" }}
+        >
+          {updateMutation.isPending ? "Saving..." : "Save Changes"}
         </button>
       </form>
     </div>

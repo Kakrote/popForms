@@ -1,4 +1,5 @@
 import React from "react";
+import { X } from "lucide-react";
 
 type Props = {
   open: boolean;
@@ -14,9 +15,15 @@ export function Modal({ open, onClose, title, children }: Props) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>{title}</h3>
-          <button type="button" className="ghost-button" onClick={onClose}>
-            Close
+          <h3 style={{ margin: 0, fontSize: "1.25rem", color: "#fff" }}>{title}</h3>
+          <button 
+            id="modal-close-btn"
+            type="button" 
+            className="ghost-button" 
+            onClick={onClose}
+            style={{ padding: 6, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%" }}
+          >
+            <X size={16} />
           </button>
         </div>
         <div className="modal-body">{children}</div>

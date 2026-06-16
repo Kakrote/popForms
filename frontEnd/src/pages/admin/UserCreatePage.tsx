@@ -3,6 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { authApi } from "../../lib/api";
+import { User, Mail, Key, Shield, UserPlus, CheckCircle2, AlertTriangle } from "lucide-react";
 
 const userSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -37,51 +38,101 @@ export function UserCreatePage() {
   });
 
   return (
-    <div className="stack">
+    <div className="stack" style={{ gap: 24 }}>
       <div className="topbar">
         <div>
-          <p className="eyebrow">Admin tools</p>
-          <h1>Create user</h1>
-          <p className="muted">Create the account the user will use to sign in before submitting a shared form.</p>
+          <p className="eyebrow" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <UserPlus size={14} />
+            Provisioning
+          </p>
+          <h1 style={{ fontSize: "2rem", margin: 0 }}>Create User Account</h1>
+          <p className="muted" style={{ marginTop: 4 }}>Provision new user credentials before assigning them to a department.</p>
         </div>
       </div>
 
-      <form className="panel stack" onSubmit={form.handleSubmit((values) => createMutation.mutate(values))}>
-        <div className="grid cols-2">
-          <label className="stack small">
-            Username
-            <input {...form.register("username")} placeholder="Jane Doe" />
+      <form 
+        id="create-user-form"
+        className="panel stack" 
+        onSubmit={form.handleSubmit((values) => createMutation.mutate(values))}
+        style={{ background: "rgba(15, 22, 40, 0.8)", border: "1px solid var(--border)", maxWidth: "800px" }}
+      >
+        <div className="grid cols-2" style={{ gap: 18 }}>
+          <label className="stack small" style={{ gap: 6 }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 500, color: "var(--text)" }}>
+              <User size={14} className="muted" />
+              Username
+            </span>
+            <input 
+              id="create-username"
+              {...form.register("username")} 
+              placeholder="Jane Doe" 
+            />
             {form.formState.errors.username ? <span className="error">{form.formState.errors.username.message}</span> : null}
           </label>
 
-          <label className="stack small">
-            Email
-            <input type="email" {...form.register("email")} placeholder="jane@company.com" />
+          <label className="stack small" style={{ gap: 6 }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 500, color: "var(--text)" }}>
+              <Mail size={14} className="muted" />
+              Email Address
+            </span>
+            <input 
+              id="create-email"
+              type="email" 
+              {...form.register("email")} 
+              placeholder="jane.doe@company.com" 
+            />
             {form.formState.errors.email ? <span className="error">{form.formState.errors.email.message}</span> : null}
           </label>
         </div>
 
-        <div className="grid cols-2">
-          <label className="stack small">
-            Password
-            <input type="password" {...form.register("password")} placeholder="Temporary password" />
+        <div className="grid cols-2" style={{ gap: 18 }}>
+          <label className="stack small" style={{ gap: 6 }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 500, color: "var(--text)" }}>
+              <Key size={14} className="muted" />
+              Temporary Password
+            </span>
+            <input 
+              id="create-password"
+              type="password" 
+              {...form.register("password")} 
+              placeholder="Minimum 6 characters" 
+            />
             {form.formState.errors.password ? <span className="error">{form.formState.errors.password.message}</span> : null}
           </label>
 
-          <label className="stack small" style={{ maxWidth: 220 }}>
-            Role
-            <select {...form.register("role")}>
-              <option value="USER">User</option>
-              <option value="ADMIN">Admin</option>
+          <label className="stack small" style={{ gap: 6, maxWidth: 220 }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 500, color: "var(--text)" }}>
+              <Shield size={14} className="muted" />
+              Account Role
+            </span>
+            <select id="create-role" {...form.register("role")}>
+              <option value="USER">User (Fill Forms)</option>
+              <option value="ADMIN">Admin (Build & Manage)</option>
             </select>
           </label>
         </div>
 
-        {createMutation.isSuccess ? <div className="notice">User created successfully.</div> : null}
-        {createMutation.isError ? <div className="notice" style={{ borderColor: "rgba(180,35,24,0.2)", background: "rgba(180,35,24,0.06)", color: "#8e1d14" }}>{(createMutation.error as Error).message}</div> : null}
+        {createMutation.isSuccess ? (
+          <div className="notice" style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 10, borderColor: "var(--success-border)", background: "var(--success-bg)", color: "var(--success)" }}>
+            <CheckCircle2 size={16} />
+            <span>User account provisioned successfully.</span>
+          </div>
+        ) : null}
 
-        <button type="submit" disabled={createMutation.isPending}>
-          {createMutation.isPending ? "Creating..." : "Create user"}
+        {createMutation.isError ? (
+          <div className="notice error-notice" style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 10 }}>
+            <AlertTriangle size={16} />
+            <span className="small">{(createMutation.error as Error).message}</span>
+          </div>
+        ) : null}
+
+        <button 
+          id="create-user-submit-btn"
+          type="submit" 
+          disabled={createMutation.isPending}
+          style={{ alignSelf: "flex-start", padding: "0.75rem 1.5rem" }}
+        >
+          {createMutation.isPending ? "Creating..." : "Create Account"}
         </button>
       </form>
     </div>
