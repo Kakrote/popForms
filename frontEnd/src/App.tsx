@@ -13,6 +13,7 @@ import { PublicFormPage } from "./pages/PublicFormPage";
 import { ThankYouPage } from "./pages/ThankYouPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { UserLandingPage } from "./pages/UserLandingPage";
+import { UserRedirectPage } from "./pages/UserRedirectPage";
 
 function HomeRedirect() {
   const { token, user } = useAuthStore();
@@ -35,9 +36,10 @@ export default function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/thank-you" element={<ThankYouPage />} />
       <Route path="/" element={<HomeRedirect />} />
+      <Route path="/forms/:slug" element={<PublicFormPage />} />
       <Route element={<ProtectedRoute />}> 
-        <Route path="/app" element={<UserLandingPage />} />
-        <Route path="/forms/:slug" element={<PublicFormPage />} />
+        <Route path="/app" element={<UserRedirectPage />} />
+        <Route path="/dashboard" element={<UserLandingPage />} />
       </Route>
       <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
         <Route path="/admin" element={<AppShell />}>

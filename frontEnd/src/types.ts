@@ -26,6 +26,12 @@ export type Department = {
   department_Name: string;
   userId: string;
   user?: User;
+  formAccess?: Array<{
+    id: string;
+    formId: string;
+    departmentId: string;
+    form: Form;
+  }>;
 };
 
 export type FieldOption = {

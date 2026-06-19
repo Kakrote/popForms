@@ -795,3 +795,20 @@ button:disabled {
     align-items: flex-start;
   }
 }
+
+/* Custom loading spinner */
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4.5px solid rgba(99, 102, 241, 0.1);
+  border-left-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

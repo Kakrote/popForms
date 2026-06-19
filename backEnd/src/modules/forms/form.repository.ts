@@ -266,3 +266,60 @@ export const toggleFormStatus = async (slug:string,isOpen:boolean)=>{
         }
     )
 }
+
+export const getFormsForUserDepartment = async (userId: string) => {
+    const department = await prisma.department.findUnique({
+        where: { userId },
+    });
+
+    if (!department) {
+        return [];
+    }
+
+    return await prisma.form.findMany({
+        where: {
+            isOpen: true,
+            accesses: {
+                some: {
+                    departmentId: department.id,
+                },
+            },
+        },
+        orderBy: {
+            createdAt: "desc",
+        },
+        include: {
+            sections: {
+                orderBy: {
+                    sortOrder: "asc",
+                },
+                include: {
+                    fields: {
+                        orderBy: {
+                            sortOrder: "asc",
+                        },
+                        include: {
+                            options: true,
+                        },
+                    },
+                },
+            },
+            submissions: {
+                where: {
+                    status: "SUBMITTED",
+                },
+                select: {
+                    id: true,
+                },
+            },
+            createdBy: {
+                select: {
+                    id: true,
+                    username: true,
+                    email: true,
+                    role: true,
+                },
+            },
+        },
+    });
+};

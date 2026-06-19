@@ -8,6 +8,7 @@ import {
     updateForm as updateFormRepository,
     getAllForms,
     getFormBySlug,
+    getFormsForUserDepartment,
 } from "./form.repository.js";
 import { CreateFormInput, UpdateFormInput } from "./form.types.js";
 
@@ -54,9 +55,16 @@ export const updateFormService = async (slug: string, data: UpdateFormInput) => 
     return await updateFormRepository(slug, data);
 };
 
-export const listFormsService = async () => {
-    return await getAllForms();
+export const listFormsService = async (userId?: string, userRole?: "USER" | "ADMIN") => {
+    if (userRole === "ADMIN") {
+        return await getAllForms();
+    }
+    if (userId) {
+        return await getFormsForUserDepartment(userId);
+    }
+    return [];
 };
+
 
 export const getFormBySlugService = async (slug: string) => {
     const form = await getFormBySlug(slug);

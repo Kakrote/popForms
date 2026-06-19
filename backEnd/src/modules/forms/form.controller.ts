@@ -96,8 +96,10 @@ export const toggleFormStatus = catchAsync(async(req: AuthenticatedRequest, res:
         });
 });
 
-export const listForms = catchAsync(async (_req: Request, res: Response) => {
-    const forms = await listFormsService();
+export const listForms = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
+    const userId = req.user?.id;
+    const userRole = req.user?.role;
+    const forms = await listFormsService(userId, userRole);
 
     res.status(200).json({
         success: true,
@@ -105,9 +107,16 @@ export const listForms = catchAsync(async (_req: Request, res: Response) => {
     });
 });
 
-export const getFormBySlug = catchAsync(async (req: Request, res: Response) => {
+export const getFormBySlug = catchAsync(async (req: Request & { user?: { id: string; role: "USER" | "ADMIN" } }, res: Response) => {
     const slug = req.params.slug as string;
     const form = await getFormBySlugService(slug);
+
+    if (form) {
+        if (!req.user || req.user.role !== "ADMIN") {
+            (form as any).submissions = [];
+            (form as any).accesses = [];
+        }
+    }
 
     res.status(200).json({
         success: true,

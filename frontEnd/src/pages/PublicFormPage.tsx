@@ -6,9 +6,10 @@ import { Controller, useForm } from "react-hook-form";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { z } from "zod";
 import ConfirmDialog from "../components/ConfirmDialog";
-import { departmentApi, formsApi, submissionsApi } from "../lib/api";
+import { authApi, departmentApi, formsApi, submissionsApi } from "../lib/api";
 import { useAuthStore } from "../store/authStore";
-import type { FormField } from "../types";
+import type { FormField, LoginFormValues } from "../types";
+import Modal from "../components/Modal";
 import { 
   ArrowLeft, 
   Bookmark, 
@@ -18,7 +19,9 @@ import {
   Info, 
   Check,
   Building2,
-  AlertTriangle
+  AlertTriangle,
+  Mail,
+  Key
 } from "lucide-react";
 
 type SubmissionValues = Record<string, string>;
@@ -43,7 +46,9 @@ export function PublicFormPage() {
   const queryClient = useQueryClient();
   const token = useAuthStore((state) => state.token);
   const currentUser = useAuthStore((state) => state.user);
+  const setSession = useAuthStore((state) => state.setSession);
   
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const [pendingFinalSubmission, setPendingFinalSubmission] = useState<{
     formId: string;
     departmentId: string;
@@ -53,7 +58,7 @@ export function PublicFormPage() {
   const formQuery = useQuery({
     queryKey: ["public-form", slug],
     queryFn: () => formsApi.getBySlug(slug as string),
-    enabled: Boolean(slug && token),
+    enabled: Boolean(slug),
   });
 
   const existingSubmissionQuery = useQuery({
@@ -93,6 +98,12 @@ export function PublicFormPage() {
   });
 
   useEffect(() => {
+    if (!token) {
+      navigate("/login", { replace: true, state: { from: `/forms/${slug}` } });
+    }
+  }, [token, navigate, slug]);
+
+  useEffect(() => {
     form.reset(defaultValues);
   }, [defaultValues, form]);
 
@@ -114,33 +125,7 @@ export function PublicFormPage() {
     },
   });
 
-  if (!token || !currentUser) {
-    return (
-      <div className="center-page">
-        <div className="auth-card stack text-center" style={{ textAlign: "center" }}>
-          <div style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: 48,
-            height: 48,
-            borderRadius: 12,
-            background: "rgba(239, 68, 68, 0.1)",
-            color: "var(--danger)",
-            marginBottom: 16
-          }}>
-            <ShieldAlert size={24} />
-          </div>
-          <p className="eyebrow" style={{ color: "var(--danger)" }}>Authentication Required</p>
-          <h1>Access Denied</h1>
-          <p className="muted small">This form requires authentication. Please sign in to fill out this form.</p>
-          <Link to="/login" id="go-login-btn" className="ghost-button" style={{ display: "inline-flex", width: "100%" }}>
-            Go to login
-          </Link>
-        </div>
-      </div>
-    );
-  }
+
 
   if (formQuery.isLoading) {
     return <div className="page"><p className="muted">Loading form details...</p></div>;
@@ -164,7 +149,7 @@ export function PublicFormPage() {
           <button 
             type="button" 
             className="ghost-button small-btn" 
-            onClick={() => navigate("/app")}
+            onClick={() => navigate("/dashboard")}
             id="back-dashboard-btn"
           >
             <ArrowLeft size={14} />
@@ -196,12 +181,29 @@ export function PublicFormPage() {
             </div>
           </div>
 
-          {departmentQuery.isError ? (
+          {!token && (
+            <div className="notice" style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 14, borderColor: "rgba(99, 102, 241, 0.2)", background: "rgba(99, 102, 241, 0.05)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <Info size={18} style={{ color: "var(--accent)" }} />
+                <span>You are viewing this form in preview mode. Sign in to start responding.</span>
+              </div>
+              <button 
+                id="top-login-trigger-btn"
+                type="button" 
+                className="ghost-button small-btn" 
+                onClick={() => setShowLoginModal(true)}
+              >
+                Sign In
+              </button>
+            </div>
+          )}
+
+          {token && departmentQuery.isError ? (
             <div className="notice error-notice" style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 10 }}>
               <AlertTriangle size={18} />
               <span className="small">You need an active department assignment before responding. Please ask an Admin.</span>
             </div>
-          ) : departmentQuery.data ? (
+          ) : token && departmentQuery.data ? (
             <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.02)", padding: "10px 14px", borderRadius: 8 }} className="small muted">
               <Building2 size={14} className="muted" />
               Responding on behalf of: <span style={{ color: "#fff", fontWeight: 600 }}>{departmentQuery.data.department_Name}</span>
@@ -289,7 +291,7 @@ export function PublicFormPage() {
                           field={field} 
                           control={form.control} 
                           register={form.register} 
-                          disabled={isAlreadySubmitted || isClosed}
+                          disabled={isAlreadySubmitted || isClosed || !token}
                         />
                       ))}
                     </div>
@@ -301,48 +303,66 @@ export function PublicFormPage() {
 
           {/* Form Actions */}
           {!isAlreadySubmitted && !isClosed && (
-            <div className="panel stack" style={{ background: "rgba(15, 22, 40, 0.8)", border: "1px solid var(--border)", gap: 14 }}>
-              <div>
-                <p className="muted small" style={{ margin: 0 }}>
-                  You can save a temporary draft to complete this questionnaire later, or finalize it now. Final submit locks response values.
-                </p>
-              </div>
+            token ? (
+              <div className="panel stack" style={{ background: "rgba(15, 22, 40, 0.8)", border: "1px solid var(--border)", gap: 14 }}>
+                <div>
+                  <p className="muted small" style={{ margin: 0 }}>
+                    You can save a temporary draft to complete this questionnaire later, or finalize it now. Final submit locks response values.
+                  </p>
+                </div>
 
-              <div className="actions-row">
+                <div className="actions-row">
+                  <button
+                    id="draft-submit-btn"
+                    type="button"
+                    className="ghost-button"
+                    disabled={draftMutation.isPending || submitMutation.isPending || departmentQuery.isLoading || departmentQuery.isError}
+                    onClick={() => {
+                      if (!departmentQuery.data) return;
+
+                      const values = form.getValues();
+
+                      draftMutation.mutate({
+                        formId: formQuery.data.id,
+                        departmentId: departmentQuery.data.id,
+                        values: fields.map((field) => ({
+                          fieldId: field.id,
+                          value: values[field.id] ?? "",
+                        })),
+                      });
+                    }}
+                  >
+                    <Bookmark size={16} />
+                    {draftMutation.isPending ? "Saving Draft..." : "Save Draft"}
+                  </button>
+
+                  <button 
+                    id="final-submit-btn"
+                    type="submit" 
+                    disabled={submitMutation.isPending || draftMutation.isPending || departmentQuery.isLoading || departmentQuery.isError}
+                  >
+                    <Send size={16} />
+                    {submitMutation.isPending ? "Submitting..." : "Final Submit"}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="panel stack" style={{ background: "rgba(15, 22, 40, 0.8)", border: "1px solid var(--border)", gap: 14, alignItems: "center", textAlign: "center" }}>
+                <div>
+                  <p className="muted small" style={{ margin: 0, marginBottom: 8 }}>
+                    You must be logged in to submit this questionnaire.
+                  </p>
+                </div>
                 <button
-                  id="draft-submit-btn"
+                  id="form-login-trigger-btn"
                   type="button"
-                  className="ghost-button"
-                  disabled={draftMutation.isPending || submitMutation.isPending || departmentQuery.isLoading || departmentQuery.isError}
-                  onClick={() => {
-                    if (!departmentQuery.data) return;
-
-                    const values = form.getValues();
-
-                    draftMutation.mutate({
-                      formId: formQuery.data.id,
-                      departmentId: departmentQuery.data.id,
-                      values: fields.map((field) => ({
-                        fieldId: field.id,
-                        value: values[field.id] ?? "",
-                      })),
-                    });
-                  }}
+                  onClick={() => setShowLoginModal(true)}
+                  style={{ padding: "0.75rem 2rem" }}
                 >
-                  <Bookmark size={16} />
-                  {draftMutation.isPending ? "Saving Draft..." : "Save Draft"}
-                </button>
-
-                <button 
-                  id="final-submit-btn"
-                  type="submit" 
-                  disabled={submitMutation.isPending || draftMutation.isPending || departmentQuery.isLoading || departmentQuery.isError}
-                >
-                  <Send size={16} />
-                  {submitMutation.isPending ? "Submitting..." : "Final Submit"}
+                  Sign In to Respond
                 </button>
               </div>
-            </div>
+            )
           )}
 
           {isClosed && !isAlreadySubmitted && (
@@ -367,6 +387,23 @@ export function PublicFormPage() {
           busy={submitMutation.isPending}
           tone="danger"
         />
+
+        {/* Login Modal */}
+        <Modal 
+          open={showLoginModal} 
+          onClose={() => setShowLoginModal(false)} 
+          title="Sign In to Respond"
+        >
+          <LoginModalContent 
+            onSuccess={async (data) => {
+              setSession(data);
+              await queryClient.invalidateQueries({ queryKey: ["public-form", slug] });
+              await queryClient.invalidateQueries({ queryKey: ["my-submission-by-form", formQuery.data?.id] });
+              await queryClient.invalidateQueries({ queryKey: ["current-department"] });
+              setShowLoginModal(false);
+            }} 
+          />
+        </Modal>
       </div>
     </div>
   );
@@ -488,4 +525,90 @@ function FieldInput({
         </label>
       );
   }
+}
+
+const loginSchema = z.object({
+  email: z.email("Enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+function LoginModalContent({ onSuccess }: { onSuccess: (data: any) => void }) {
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const loginMutation = useMutation({
+    mutationFn: authApi.login,
+    onSuccess: (data) => {
+      onSuccess(data);
+    },
+  });
+
+  return (
+    <form 
+      id="modal-login-form"
+      className="stack" 
+      onSubmit={form.handleSubmit((values) => loginMutation.mutate(values))}
+      style={{ gap: 14 }}
+    >
+      <p className="muted small" style={{ margin: 0, marginBottom: 4 }}>
+        Use your credentials to sign in and begin filling out this questionnaire.
+      </p>
+
+      <div className="stack" style={{ gap: 14 }}>
+        <label className="stack small" style={{ gap: 6 }}>
+          <span style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 500, color: "var(--text)" }}>
+            <Mail size={14} className="muted" />
+            Email Address
+          </span>
+          <input 
+            id="modal-login-email"
+            type="email" 
+            {...form.register("email")} 
+            placeholder="user@example.com" 
+            style={{ paddingLeft: 14 }}
+          />
+          {form.formState.errors.email ? <span className="error">{form.formState.errors.email.message}</span> : null}
+        </label>
+
+        <label className="stack small" style={{ gap: 6 }}>
+          <span style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 500, color: "var(--text)" }}>
+            <Key size={14} className="muted" />
+            Password
+          </span>
+          <input 
+            id="modal-login-password"
+            type="password" 
+            {...form.register("password")} 
+            placeholder="••••••••" 
+            style={{ paddingLeft: 14 }}
+          />
+          {form.formState.errors.password ? <span className="error">{form.formState.errors.password.message}</span> : null}
+        </label>
+      </div>
+
+      {loginMutation.isError ? (
+        <div 
+          className="notice error-notice"
+          style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 10, padding: 12 }}
+        >
+          <AlertTriangle size={18} style={{ flexShrink: 0 }} />
+          <span className="small">{(loginMutation.error as Error).message}</span>
+        </div>
+      ) : null}
+
+      <button 
+        id="modal-login-submit-btn"
+        type="submit" 
+        disabled={loginMutation.isPending}
+        style={{ width: "100%", marginTop: 12, padding: "0.85rem" }}
+      >
+        {loginMutation.isPending ? "Signing in..." : "Login & Continue"}
+      </button>
+    </form>
+  );
 }

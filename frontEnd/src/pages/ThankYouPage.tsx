@@ -35,7 +35,7 @@ export function ThankYouPage() {
         
         <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 12 }}>
           <Link 
-            to="/app" 
+            to="/dashboard" 
             id="thank-you-dashboard-btn"
             className="ghost-button" 
             style={{ display: "inline-flex", gap: 8, alignItems: "center", padding: "0.85rem 1rem", borderRadius: 12 }}

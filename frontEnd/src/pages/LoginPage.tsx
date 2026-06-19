@@ -39,12 +39,14 @@ export function LoginPage() {
 
   useEffect(() => {
     if (token && user) {
-      navigate(user.role === "ADMIN" ? "/admin" : "/app", { replace: true });
+      const target = from && from !== "/login" ? from : user.role === "ADMIN" ? "/admin" : "/app";
+      navigate(target, { replace: true });
     }
-  }, [navigate, token, user]);
+  }, [navigate, token, user, from]);
 
   if (token && user) {
-    return <Navigate to={user.role === "ADMIN" ? "/admin" : "/app"} replace />;
+    const target = from && from !== "/login" ? from : user.role === "ADMIN" ? "/admin" : "/app";
+    return <Navigate to={target} replace />;
   }
 
   return (

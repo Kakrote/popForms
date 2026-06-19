@@ -38,7 +38,7 @@ export const getAllSubmissionsHandler = catchAsync(async (_req: Request, res: Re
 
 export const getSubmissionByIdHandler = catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
-    const submission = await getSubmission(id);
+    const submission = await getSubmission(id as string);
 
     res.status(200).json({
         success: true,
@@ -100,7 +100,7 @@ export const deleteSubmissionHandler = catchAsync(async (req: AuthenticatedReque
         return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    const deleted = await deleteSubmission(id, requester);
+    const deleted = await deleteSubmission(id as string, requester);
 
     res.status(200).json({
         success: true,

@@ -2,7 +2,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ConfirmDialog from "../components/ConfirmDialog";
-import { departmentApi, submissionsApi } from "../lib/api";
+import { departmentApi, submissionsApi, formsApi } from "../lib/api";
 import { useAuthStore } from "../store/authStore";
 import Modal from "../components/Modal";
 import { SubmissionSectionsView, type SubmissionSectionView } from "../components/SubmissionSectionsView";
@@ -54,6 +54,19 @@ export function UserLandingPage() {
 
   const submissions = mySubmissionsQuery.data ?? [];
   const drafts = myDraftsQuery.data ?? [];
+
+  const formsQuery = useQuery({
+    queryKey: ["available-forms"],
+    queryFn: formsApi.list,
+    enabled: Boolean(currentUser),
+  });
+
+  const availableForms = useMemo(() => {
+    const allForms = formsQuery.data ?? [];
+    const submittedFormIds = new Set(submissions.map((s) => s.formId));
+    const draftFormIds = new Set(drafts.map((d) => d.formId));
+    return allForms.filter((f) => !submittedFormIds.has(f.id) && !draftFormIds.has(f.id));
+  }, [formsQuery.data, submissions, drafts]);
 
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
   const [pendingDeleteDraftId, setPendingDeleteDraftId] = useState<string | null>(null);
@@ -133,6 +146,71 @@ export function UserLandingPage() {
             </div>
           </div>
         </div>
+
+        {/* Available Forms Section */}
+        <section className="panel stack" style={{ background: "rgba(255, 255, 255, 0.01)" }}>
+          <div className="field-toolbar">
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ color: "var(--accent)" }}><FileText size={20} /></div>
+              <div>
+                <h2 style={{ margin: 0 }}>Available Forms</h2>
+                <p className="muted small" style={{ margin: 0 }}>New questionnaires assigned to your department that you can start responding to.</p>
+              </div>
+            </div>
+            <span className="badge open" style={{ background: "rgba(99, 102, 241, 0.15)", color: "var(--accent)" }}>New</span>
+          </div>
+
+          {formsQuery.isLoading ? <p className="muted">Loading available forms...</p> : null}
+          {!formsQuery.isLoading && !formsQuery.isError && availableForms.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "32px 0", color: "var(--muted)" }}>
+              <AlertCircle size={24} style={{ marginBottom: 8, opacity: 0.5 }} />
+              <p className="small">No new forms available for your department.</p>
+            </div>
+          ) : null}
+
+          {availableForms.length > 0 ? (
+            <div className="table-container">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Form Title</th>
+                    <th>Description</th>
+                    <th>Deadline</th>
+                    <th style={{ textAlign: "right" }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {availableForms.map((form) => {
+                    const deadline = form.deadline ? new Date(form.deadline) : null;
+                    return (
+                      <tr key={form.id}>
+                        <td style={{ fontWeight: 600, color: "#fff" }}>{form.title}</td>
+                        <td className="small muted" style={{ maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {form.description || "No description provided."}
+                        </td>
+                        <td>{deadline ? deadline.toLocaleDateString() : "No deadline"}</td>
+                        <td>
+                          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                            <button 
+                              id={`start-form-${form.id}`}
+                              type="button" 
+                              className="small-btn"
+                              onClick={() => navigate(`/forms/${form.slug}`)}
+                              style={{ background: "var(--accent-gradient)" }}
+                            >
+                              <FileEdit size={14} />
+                              Start Response
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : null}
+        </section>
 
         {/* Drafts Section */}
         <section className="panel stack" style={{ background: "rgba(255, 255, 255, 0.01)" }}>

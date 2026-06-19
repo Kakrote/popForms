@@ -92,6 +92,11 @@ export const getDepartmentByUserId = async (userId: string) => {
                     role: true,
                 },
             },
+            formAccess: {
+                include: {
+                    form: true,
+                },
+            },
         },
     });
 };
