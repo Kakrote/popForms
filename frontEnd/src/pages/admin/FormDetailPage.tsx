@@ -5,6 +5,7 @@ import ConfirmDialog from "../../components/ConfirmDialog";
 import { SubmissionSectionsView, type SubmissionSectionView } from "../../components/SubmissionSectionsView";
 import { getFieldTypeLabel } from "../../components/fieldTypeLabels";
 import { formsApi } from "../../lib/api";
+import { copyToClipboard } from "../../lib/clipboard";
 import type { Submission } from "../../types";
 import { 
   ArrowLeft, 
@@ -69,9 +70,11 @@ export function FormDetailPage() {
   const handleCopyLink = () => {
     if (!form) return;
     const shareLink = `${window.location.origin}/forms/${form.slug}`;
-    navigator.clipboard.writeText(shareLink).then(() => {
-      setCopiedLink(true);
-      setTimeout(() => setCopiedLink(false), 2000);
+    copyToClipboard(shareLink).then((success) => {
+      if (success) {
+        setCopiedLink(true);
+        setTimeout(() => setCopiedLink(false), 2000);
+      }
     });
   };
 

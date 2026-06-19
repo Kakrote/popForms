@@ -6,6 +6,7 @@ import Modal from "../../components/Modal";
 import { SubmissionSectionsView, type SubmissionSectionView } from "../../components/SubmissionSectionsView";
 import { getFieldTypeLabel } from "../../components/fieldTypeLabels";
 import { formsApi, submissionsApi } from "../../lib/api";
+import { copyToClipboard } from "../../lib/clipboard";
 import type { Submission } from "../../types";
 import { 
   ClipboardList, 
@@ -82,9 +83,11 @@ export function AdminDashboardPage() {
 
   const handleCopyLink = (formId: string, slug: string) => {
     const shareLink = `${window.location.origin}/forms/${slug}`;
-    navigator.clipboard.writeText(shareLink).then(() => {
-      setCopiedFormId(formId);
-      setTimeout(() => setCopiedFormId(null), 2000);
+    copyToClipboard(shareLink).then((success) => {
+      if (success) {
+        setCopiedFormId(formId);
+        setTimeout(() => setCopiedFormId(null), 2000);
+      }
     });
   };
 
