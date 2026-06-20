@@ -161,7 +161,7 @@ export function FormDetailPage() {
       {/* Main Grid */}
       <div className="grid cols-2">
         {/* Left Column: Form Summary */}
-        <section className="panel stack" style={{ background: "rgba(15, 22, 40, 0.8)", border: "1px solid var(--border)" }}>
+        <section className="panel stack" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
           <div className="field-toolbar">
             <div>
               <h2 style={{ margin: 0 }}>Form Status Summary</h2>
@@ -172,18 +172,18 @@ export function FormDetailPage() {
             </span>
           </div>
 
-          <div style={{ background: "rgba(255,255,255,0.015)", padding: 16, borderRadius: 12, border: "1px solid rgba(255,255,255,0.04)" }}>
-            <p style={{ margin: 0, color: "#fff" }}>{form.description || "No description provided for this form."}</p>
+          <div style={{ background: "rgba(0,0,0,0.015)", padding: 16, borderRadius: 12, border: "1px solid var(--border)" }}>
+            <p style={{ margin: 0, color: "var(--text)" }}>{form.description || "No description provided for this form."}</p>
           </div>
 
-          <div className="grid cols-2" style={{ gap: 16, borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 16 }}>
+          <div className="grid cols-2" style={{ gap: 16, borderTop: "1px solid var(--border)", paddingTop: 16 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <div style={{ background: "rgba(99,102,241,0.1)", padding: 8, borderRadius: 8, color: "var(--accent)" }}>
                 <Layers size={18} />
               </div>
               <div>
                 <span className="muted small" style={{ display: "block" }}>Total Questions</span>
-                <strong style={{ color: "#fff" }}>{sections.length} sections</strong>
+                <strong style={{ color: "var(--text)" }}>{sections.length} sections</strong>
               </div>
             </div>
 
@@ -193,19 +193,19 @@ export function FormDetailPage() {
               </div>
               <div>
                 <span className="muted small" style={{ display: "block" }}>Submissions</span>
-                <strong style={{ color: "#fff" }}>{submissions.length} receipts</strong>
+                <strong style={{ color: "var(--text)" }}>{submissions.length} receipts</strong>
               </div>
             </div>
           </div>
 
-          <div className="notice" style={{ background: "rgba(255,255,255,0.02)", borderColor: "var(--border)", gap: 6 }}>
-            <strong style={{ color: "#fff" }}>Public Web Link</strong>
+          <div className="notice" style={{ background: "rgba(0,0,0,0.02)", borderColor: "var(--border)", gap: 6 }}>
+            <strong style={{ color: "var(--text)" }}>Public Web Link</strong>
             <span className="small" style={{ fontFamily: "monospace", wordBreak: "break-all" }}>{shareLink}</span>
           </div>
         </section>
 
         {/* Right Column: Schema/Fields List */}
-        <section className="panel stack" style={{ background: "rgba(15, 22, 40, 0.8)", border: "1px solid var(--border)" }}>
+        <section className="panel stack" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
           <h2 style={{ margin: 0 }}>Questionnaire Schema</h2>
           <p className="muted small">List of all fields configured inside sections.</p>
           
@@ -218,10 +218,10 @@ export function FormDetailPage() {
 
           <div className="stack" style={{ gap: 12, maxHeight: "350px", overflowY: "auto", paddingRight: 6 }}>
             {sections.map((section, idx) => (
-              <div className="card stack" key={section.id} style={{ background: "rgba(255,255,255,0.01)", border: "1px solid rgba(255,255,255,0.04)", padding: 16, gap: 10 }}>
+              <div className="card stack" key={section.id} style={{ background: "var(--surface-strong)", border: "1px solid var(--border)", padding: 16, gap: 10 }}>
                 <div className="field-toolbar" style={{ margin: 0 }}>
                   <div>
-                    <strong style={{ color: "#fff", fontSize: "0.95rem" }}>{idx + 1}. {section.title}</strong>
+                    <strong style={{ color: "var(--text)", fontSize: "0.95rem" }}>{idx + 1}. {section.title}</strong>
                     {section.description ? <p className="muted small" style={{ margin: "2px 0 0 0", fontSize: "0.8rem" }}>{section.description}</p> : null}
                   </div>
                   <span className="badge small">{section.fields.length} {section.fields.length === 1 ? "field" : "fields"}</span>
@@ -229,9 +229,9 @@ export function FormDetailPage() {
 
                 <div className="stack" style={{ gap: 8 }}>
                   {section.fields.map((field) => (
-                    <div className="field-card" key={field.id} style={{ background: "rgba(0,0,0,0.2)", padding: 10, borderRadius: 8 }}>
+                    <div className="field-card" key={field.id} style={{ background: "var(--surface)", border: "1px solid var(--border)", padding: 10, borderRadius: 8 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#fff" }}>{field.label}</span>
+                        <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--text)" }}>{field.label}</span>
                         <span className="badge" style={{ fontSize: "0.7rem", padding: "1px 6px" }}>{getFieldTypeLabel(field.fieldType)}</span>
                       </div>
                       {field.options.length > 0 ? (
@@ -249,7 +249,7 @@ export function FormDetailPage() {
       </div>
 
       {/* Submissions Section */}
-      <section className="panel stack" style={{ background: "rgba(15, 22, 40, 0.8)", border: "1px solid var(--border)" }}>
+      <section className="panel stack" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
         <div className="field-toolbar">
           <div>
             <h2 style={{ margin: 0 }}>Submission Receipts</h2>
@@ -275,8 +275,8 @@ export function FormDetailPage() {
                 onClick={() => setSelectedSubmissionId(submission.id)}
                 style={{ 
                   textAlign: "left", 
-                  background: selectedSubmission?.id === submission.id ? "rgba(99, 102, 241, 0.12)" : "rgba(255, 255, 255, 0.01)",
-                  borderColor: selectedSubmission?.id === submission.id ? "var(--accent)" : "rgba(255,255,255,0.04)",
+                  background: selectedSubmission?.id === submission.id ? "rgba(99, 102, 241, 0.08)" : "rgba(0, 0, 0, 0.01)",
+                  borderColor: selectedSubmission?.id === submission.id ? "var(--accent)" : "var(--border)",
                   padding: 16,
                   display: "block",
                   width: "100%",
@@ -286,7 +286,7 @@ export function FormDetailPage() {
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                  <span style={{ fontWeight: 700, color: "#fff", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ fontWeight: 700, color: "var(--text)", display: "inline-flex", alignItems: "center", gap: 6 }}>
                     <User size={13} className="muted" />
                     {submission.submittedBy?.username ?? "Unknown User"}
                   </span>
@@ -305,10 +305,10 @@ export function FormDetailPage() {
           </div>
 
           {/* Submissions Detail View */}
-          <div className="card stack" style={{ background: "rgba(0,0,0,0.15)", border: "1px solid rgba(255,255,255,0.03)", borderRadius: 16, padding: 24 }}>
+          <div className="card stack" style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, padding: 24 }}>
             {selectedSubmission ? (
               <div className="stack" style={{ gap: 16 }}>
-                <div className="field-toolbar" style={{ margin: 0, paddingBottom: 12, borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                <div className="field-toolbar" style={{ margin: 0, paddingBottom: 12, borderBottom: "1px solid var(--border)" }}>
                   <div>
                     <h3 style={{ margin: 0, fontSize: "1.1rem" }}>Submission Detail</h3>
                     <p className="muted small" style={{ margin: 0, fontFamily: "monospace" }}>ID: {selectedSubmission.id}</p>
@@ -317,12 +317,12 @@ export function FormDetailPage() {
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }} className="small muted">
-                  <div>User Name: <span style={{ color: "#fff", fontWeight: 600 }}>{selectedSubmission.submittedBy?.username ?? selectedSubmission.submittedById}</span></div>
-                  <div>Department: <span style={{ color: "#fff", fontWeight: 600 }}>{selectedSubmission.department?.department_Name ?? selectedSubmission.departmentId}</span></div>
-                  <div style={{ gridColumn: "span 2" }}>Submitted: <span style={{ color: "#fff" }}>{selectedSubmission.submittedAt ? new Date(selectedSubmission.submittedAt).toLocaleString() : "-"}</span></div>
+                  <div>User Name: <span style={{ color: "var(--text)", fontWeight: 600 }}>{selectedSubmission.submittedBy?.username ?? selectedSubmission.submittedById}</span></div>
+                  <div>Department: <span style={{ color: "var(--text)", fontWeight: 600 }}>{selectedSubmission.department?.department_Name ?? selectedSubmission.departmentId}</span></div>
+                  <div style={{ gridColumn: "span 2" }}>Submitted: <span style={{ color: "var(--text)" }}>{selectedSubmission.submittedAt ? new Date(selectedSubmission.submittedAt).toLocaleString() : "-"}</span></div>
                 </div>
 
-                <div style={{ borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 16 }}>
+                <div style={{ borderTop: "1px solid var(--border)", paddingTop: 16 }}>
                   <SubmissionSectionsView sections={submissionSections} emptyMessage="This submission does not contain any values." />
                 </div>
               </div>

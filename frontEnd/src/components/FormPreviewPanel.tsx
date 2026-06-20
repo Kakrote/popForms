@@ -10,8 +10,8 @@ const QUESTION_COLORS = ["#6366f1", "#10b981", "#ef4444", "#f59e0b", "#a855f7", 
 
 export function FormPreviewPanel({ values }: Props) {
   return (
-    <section className="panel stack preview-panel" style={{ background: "rgba(15, 22, 40, 0.4)", border: "1px dashed rgba(255,255,255,0.15)" }}>
-      <div className="field-toolbar" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: 12 }}>
+    <section className="panel stack preview-panel" style={{ background: "var(--surface-strong)", border: "1px dashed var(--border)" }}>
+      <div className="field-toolbar" style={{ borderBottom: "1px solid var(--border)", paddingBottom: 12 }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <Eye size={16} className="muted" />
@@ -23,12 +23,12 @@ export function FormPreviewPanel({ values }: Props) {
         <span className={`badge ${values.isOpen ? "open" : "closed"}`}>{values.isOpen ? "Active" : "Draft"}</span>
       </div>
 
-      <div className="preview-description" style={{ background: "rgba(255,255,255,0.015)" }}>
+      <div className="preview-description" style={{ background: "rgba(0, 0, 0, 0.02)" }}>
         {values.description || "No description provided."}
       </div>
       
       {values.deadline ? (
-        <div className="notice small" style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.02)" }}>
+        <div className="notice small" style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 6, background: "rgba(0, 0, 0, 0.02)" }}>
           <Calendar size={12} />
           <span>Deadline: {new Date(values.deadline).toLocaleDateString()}</span>
         </div>
@@ -44,11 +44,11 @@ export function FormPreviewPanel({ values }: Props) {
                   marginTop: sectionIndex === 0 ? 0 : 16, 
                   marginBottom: 0, 
                   padding: "12px 16px", 
-                  background: "rgba(255,255,255,0.02)", 
+                  background: "rgba(0, 0, 0, 0.02)", 
                   borderRadius: "10px",
                   borderLeft: `4px solid ${questionColor}`
                 }}>
-                  {section.headerLabel && <h3 style={{ margin: 0, fontSize: "1.1rem", color: "#fff" }}>{section.headerLabel}</h3>}
+                  {section.headerLabel && <h3 style={{ margin: 0, fontSize: "1.1rem", color: "var(--text)" }}>{section.headerLabel}</h3>}
                   {section.headerDescription && <p className="muted small" style={{ margin: "2px 0 0 0" }}>{section.headerDescription}</p>}
                 </div>
               )}
@@ -56,11 +56,11 @@ export function FormPreviewPanel({ values }: Props) {
                 className="field-card stack"
                 style={{ 
                   borderLeft: `5px solid ${questionColor}`, 
-                  background: "rgba(15, 22, 40, 0.4)",
+                  background: "var(--surface)",
                   padding: 20
                 }}
               >
-                <div className="field-toolbar" style={{ margin: 0, paddingBottom: 10, borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                <div className="field-toolbar" style={{ margin: 0, paddingBottom: 10, borderBottom: "1px solid var(--border)" }}>
                   <div>
                     <strong style={{ color: questionColor, fontSize: "1rem" }}>{section.title || `Question ${sectionIndex + 1}`}</strong>
                     {section.description ? <p className="muted small" style={{ margin: "4px 0 0 0" }}>{section.description}</p> : null}
@@ -76,10 +76,10 @@ export function FormPreviewPanel({ values }: Props) {
                       .filter(Boolean);
 
                     return (
-                      <div className="field-group-box stack" key={`${field.label || "field"}-${fieldIndex}`} style={{ padding: 14, background: "rgba(255,255,255,0.01)", border: "1px solid rgba(255,255,255,0.03)" }}>
+                      <div className="field-group-box stack" key={`${field.label || "field"}-${fieldIndex}`} style={{ padding: 14, background: "rgba(0, 0, 0, 0.01)", border: "1px solid var(--border)" }}>
                         <div className="field-toolbar" style={{ margin: 0, marginBottom: 8 }}>
                           <div>
-                            <strong style={{ fontSize: "0.9rem", color: "#fff" }}>{field.label || `Field ${fieldIndex + 1}`}</strong>
+                            <strong style={{ fontSize: "0.9rem", color: "var(--text)" }}>{field.label || `Field ${fieldIndex + 1}`}</strong>
                             <p className="muted small" style={{ margin: 0, fontSize: "0.75rem" }}>{getFieldTypeLabel(field.type)}</p>
                           </div>
                           {field.required ? (

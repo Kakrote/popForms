@@ -158,7 +158,7 @@ export function PublicFormPage() {
         </div>
 
         {/* Form Meta Panel */}
-        <div className="panel stack" style={{ background: "rgba(15, 22, 40, 0.8)", border: "1px solid var(--border)" }}>
+        <div className="panel stack" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
           <div className="topbar" style={{ margin: 0 }}>
             <div>
               <p className="eyebrow">Shared Questionnaire</p>
@@ -204,9 +204,9 @@ export function PublicFormPage() {
               <span className="small">You need an active department assignment before responding. Please ask an Admin.</span>
             </div>
           ) : token && departmentQuery.data ? (
-            <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.02)", padding: "10px 14px", borderRadius: 8 }} className="small muted">
+            <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(0,0,0,0.02)", padding: "10px 14px", borderRadius: 8 }} className="small muted">
               <Building2 size={14} className="muted" />
-              Responding on behalf of: <span style={{ color: "#fff", fontWeight: 600 }}>{departmentQuery.data.department_Name}</span>
+              Responding on behalf of: <span style={{ color: "var(--text)", fontWeight: 600 }}>{departmentQuery.data.department_Name}</span>
             </div>
           ) : null}
         </div>
@@ -257,12 +257,12 @@ export function PublicFormPage() {
                         marginTop: sectionIndex === 0 ? 0 : 20, 
                         marginBottom: 4, 
                         padding: "16px 20px", 
-                        background: "rgba(255, 255, 255, 0.02)", 
+                        background: "rgba(0, 0, 0, 0.02)", 
                         borderRadius: "12px",
                         borderLeft: `4px solid ${questionColor}`
                       }}
                     >
-                      {section.headerLabel && <h2 style={{ margin: 0, fontSize: "1.25rem", color: "#ffffff" }}>{section.headerLabel}</h2>}
+                      {section.headerLabel && <h2 style={{ margin: 0, fontSize: "1.25rem", color: "var(--text)" }}>{section.headerLabel}</h2>}
                       {section.headerDescription && <p className="muted small" style={{ margin: "4px 0 0 0" }}>{section.headerDescription}</p>}
                     </div>
                   )}
@@ -272,11 +272,11 @@ export function PublicFormPage() {
                     className="field-card stack"
                     style={{ 
                       borderLeft: `5px solid ${questionColor}`, 
-                      background: "rgba(15, 22, 40, 0.5)",
+                      background: "var(--surface)",
                       gap: 20
                     }}
                   >
-                    <div className="field-toolbar" style={{ margin: 0, paddingBottom: 12, borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                    <div className="field-toolbar" style={{ margin: 0, paddingBottom: 12, borderBottom: "1px solid var(--border)" }}>
                       <div>
                         <strong style={{ color: questionColor, fontSize: "1.05rem" }}>{section.title}</strong>
                         {section.description ? <p className="muted small" style={{ margin: "4px 0 0 0" }}>{section.description}</p> : null}
@@ -304,7 +304,7 @@ export function PublicFormPage() {
           {/* Form Actions */}
           {!isAlreadySubmitted && !isClosed && (
             token ? (
-              <div className="panel stack" style={{ background: "rgba(15, 22, 40, 0.8)", border: "1px solid var(--border)", gap: 14 }}>
+              <div className="panel stack" style={{ background: "var(--surface)", border: "1px solid var(--border)", gap: 14 }}>
                 <div>
                   <p className="muted small" style={{ margin: 0 }}>
                     You can save a temporary draft to complete this questionnaire later, or finalize it now. Final submit locks response values.
@@ -347,7 +347,7 @@ export function PublicFormPage() {
                 </div>
               </div>
             ) : (
-              <div className="panel stack" style={{ background: "rgba(15, 22, 40, 0.8)", border: "1px solid var(--border)", gap: 14, alignItems: "center", textAlign: "center" }}>
+              <div className="panel stack" style={{ background: "var(--surface)", border: "1px solid var(--border)", gap: 14, alignItems: "center", textAlign: "center" }}>
                 <div>
                   <p className="muted small" style={{ margin: 0, marginBottom: 8 }}>
                     You must be logged in to submit this questionnaire.
@@ -423,7 +423,7 @@ function FieldInput({
   const baseProps = register(field.id);
 
   const labelElement = (
-    <span style={{ fontWeight: 500, color: "#fff", display: "inline-flex", alignItems: "center", gap: 4 }}>
+    <span style={{ fontWeight: 500, color: "var(--text)", display: "inline-flex", alignItems: "center", gap: 4 }}>
       {field.label}
       {field.required && <span style={{ color: "var(--danger)" }}>*</span>}
     </span>
@@ -463,7 +463,7 @@ function FieldInput({
       );
     case "RADIO":
       return (
-        <div className="stack small field-card" style={{ gap: 12, background: "rgba(255,255,255,0.01)" }}>
+        <div className="stack small field-card" style={{ gap: 12, background: "rgba(0,0,0,0.01)" }}>
           <strong>{field.label} {field.required && <span style={{ color: "var(--danger)" }}>*</span>}</strong>
           <div className="stack" style={{ gap: 10 }}>
             {field.options.length > 0 ? (
@@ -497,7 +497,7 @@ function FieldInput({
           control={control}
           name={field.id}
           render={({ field: controllerField }) => (
-            <label className="stack small field-card" style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 12, background: "rgba(255,255,255,0.01)", cursor: disabled ? "default" : "pointer" }}>
+            <label className="stack small field-card" style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 12, background: "rgba(0,0,0,0.01)", cursor: disabled ? "default" : "pointer" }}>
               <input
                 id={`field-input-${field.id}`}
                 type="checkbox"
@@ -506,7 +506,7 @@ function FieldInput({
                 style={{ width: 18, height: 18 }}
                 disabled={disabled}
               />
-              <span style={{ fontWeight: 500, color: "#fff" }}>{field.label} {field.required && <span style={{ color: "var(--danger)" }}>*</span>}</span>
+              <span style={{ fontWeight: 500, color: "var(--text)" }}>{field.label} {field.required && <span style={{ color: "var(--danger)" }}>*</span>}</span>
             </label>
           )}
         />

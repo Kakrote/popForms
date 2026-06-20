@@ -15,7 +15,7 @@ export function Modal({ open, onClose, title, children }: Props) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3 style={{ margin: 0, fontSize: "1.25rem", color: "#fff" }}>{title}</h3>
+          <h3 style={{ margin: 0, fontSize: "1.25rem", color: "var(--text)" }}>{title}</h3>
           <button 
             id="modal-close-btn"
             type="button" 

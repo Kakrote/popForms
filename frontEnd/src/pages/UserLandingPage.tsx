@@ -140,7 +140,7 @@ export function UserLandingPage() {
               <div style={{ flexGrow: 1 }}>
                 <strong style={{ display: "block", fontSize: "1.1rem", marginBottom: 2 }}>Department</strong>
                 {departmentQuery.isLoading ? <p className="muted small" style={{ margin: 0 }}>Loading department...</p> : null}
-                {departmentQuery.data ? <p className="muted small" style={{ margin: 0 }}>Assigned: <span style={{ color: "#fff", fontWeight: 600 }}>{departmentQuery.data.department_Name}</span></p> : null}
+                {departmentQuery.data ? <p className="muted small" style={{ margin: 0 }}>Assigned: <span style={{ color: "var(--text)", fontWeight: 600 }}>{departmentQuery.data.department_Name}</span></p> : null}
                 {departmentQuery.isError ? <p className="error small" style={{ margin: 0 }}>This account is not attached to a department yet. Contact admin.</p> : null}
               </div>
             </div>
@@ -148,7 +148,7 @@ export function UserLandingPage() {
         </div>
 
         {/* Available Forms Section */}
-        <section className="panel stack" style={{ background: "rgba(255, 255, 255, 0.01)" }}>
+        <section className="panel stack" style={{ background: "var(--surface-strong)" }}>
           <div className="field-toolbar">
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <div style={{ color: "var(--accent)" }}><FileText size={20} /></div>
@@ -184,7 +184,7 @@ export function UserLandingPage() {
                     const deadline = form.deadline ? new Date(form.deadline) : null;
                     return (
                       <tr key={form.id}>
-                        <td style={{ fontWeight: 600, color: "#fff" }}>{form.title}</td>
+                        <td style={{ fontWeight: 600, color: "var(--text)" }}>{form.title}</td>
                         <td className="small muted" style={{ maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {form.description || "No description provided."}
                         </td>
@@ -213,7 +213,7 @@ export function UserLandingPage() {
         </section>
 
         {/* Drafts Section */}
-        <section className="panel stack" style={{ background: "rgba(255, 255, 255, 0.01)" }}>
+        <section className="panel stack" style={{ background: "var(--surface-strong)" }}>
           <div className="field-toolbar">
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <div style={{ color: "var(--accent)" }}><FileEdit size={20} /></div>
@@ -247,7 +247,7 @@ export function UserLandingPage() {
                 <tbody>
                   {drafts.map((draft) => (
                     <tr key={draft.id}>
-                      <td style={{ fontWeight: 600, color: "#fff" }}>{draft.form?.title ?? draft.formId}</td>
+                      <td style={{ fontWeight: 600, color: "var(--text)" }}>{draft.form?.title ?? draft.formId}</td>
                       <td>{new Date(draft.updatedAt).toLocaleString()}</td>
                       <td>
                         <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
@@ -280,7 +280,7 @@ export function UserLandingPage() {
         </section>
 
         {/* Submissions Section */}
-        <section className="panel stack" style={{ background: "rgba(255, 255, 255, 0.01)" }}>
+        <section className="panel stack" style={{ background: "var(--surface-strong)" }}>
           <div className="field-toolbar">
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <div style={{ color: "var(--success)" }}><History size={20} /></div>
@@ -315,7 +315,7 @@ export function UserLandingPage() {
                 <tbody>
                   {submissions.map((submission) => (
                     <tr key={submission.id}>
-                      <td style={{ fontWeight: 600, color: "#fff" }}>{submission.form?.title ?? submission.formId}</td>
+                      <td style={{ fontWeight: 600, color: "var(--text)" }}>{submission.form?.title ?? submission.formId}</td>
                       <td>
                         <span className="badge SUBMITTED">{submission.status}</span>
                       </td>
@@ -352,14 +352,14 @@ export function UserLandingPage() {
         >
           {selectedSubmission ? (
             <div>
-              <div className="field-card" style={{ marginBottom: 20, background: "rgba(255, 255, 255, 0.02)" }}>
-                <strong style={{ fontSize: "1.1rem", display: "block", marginBottom: 10, color: "#fff" }}>Receipt Summary</strong>
+              <div className="field-card" style={{ marginBottom: 20, background: "var(--surface-strong)" }}>
+                <strong style={{ fontSize: "1.1rem", display: "block", marginBottom: 10, color: "var(--text)" }}>Receipt Summary</strong>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }} className="small">
-                  <div className="muted">Form Name: <span style={{ color: "#fff" }}>{selectedSubmission.form?.title ?? selectedSubmission.formId}</span></div>
-                  <div className="muted">Submitted By: <span style={{ color: "#fff" }}>{selectedSubmission.submittedBy?.username ?? selectedSubmission.submittedById}</span></div>
-                  <div className="muted">Department: <span style={{ color: "#fff" }}>{selectedSubmission.department?.department_Name ?? selectedSubmission.departmentId}</span></div>
+                  <div className="muted">Form Name: <span style={{ color: "var(--text)" }}>{selectedSubmission.form?.title ?? selectedSubmission.formId}</span></div>
+                  <div className="muted">Submitted By: <span style={{ color: "var(--text)" }}>{selectedSubmission.submittedBy?.username ?? selectedSubmission.submittedById}</span></div>
+                  <div className="muted">Department: <span style={{ color: "var(--text)" }}>{selectedSubmission.department?.department_Name ?? selectedSubmission.departmentId}</span></div>
                   <div className="muted">Status: <span className="badge SUBMITTED" style={{ padding: "1px 8px", fontSize: "0.7rem" }}>{selectedSubmission.status}</span></div>
-                  <div className="muted" style={{ gridColumn: "span 2" }}>Submitted: <span style={{ color: "#fff" }}>{selectedSubmission.submittedAt ? new Date(selectedSubmission.submittedAt).toLocaleString() : "-"}</span></div>
+                  <div className="muted" style={{ gridColumn: "span 2" }}>Submitted: <span style={{ color: "var(--text)" }}>{selectedSubmission.submittedAt ? new Date(selectedSubmission.submittedAt).toLocaleString() : "-"}</span></div>
                 </div>
               </div>
 

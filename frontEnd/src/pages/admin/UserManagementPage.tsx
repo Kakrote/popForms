@@ -120,7 +120,7 @@ export function UserManagementPage() {
       </div>
 
       {/* Users Table Panel */}
-      <section className="panel stack" style={{ background: "rgba(15, 22, 40, 0.8)", border: "1px solid var(--border)" }}>
+      <section className="panel stack" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
         <div className="field-toolbar">
           <div>
             <h2 style={{ margin: 0 }}>System Users</h2>
@@ -152,7 +152,7 @@ export function UserManagementPage() {
                     }}
                     onClick={() => setSelectedUserId(user.id)}
                   >
-                    <td style={{ fontWeight: 600, color: "#fff" }}>{user.username}</td>
+                    <td style={{ fontWeight: 600, color: "var(--text)" }}>{user.username}</td>
                     <td>{user.email}</td>
                     <td>
                       <span className={`badge ${user.role === "ADMIN" ? "open" : "closed"}`}>
@@ -190,7 +190,7 @@ export function UserManagementPage() {
           if (!activeUser) return;
           updateMutation.mutate({ id: activeUser.id, payload: values });
         })}
-        style={{ background: "rgba(15, 22, 40, 0.8)", border: "1px solid var(--border)" }}
+        style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
       >
         <div className="field-toolbar">
           <div>
@@ -230,11 +230,11 @@ export function UserManagementPage() {
         </label>
 
         {/* Department Info */}
-        <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 18, marginTop: 8 }}>
-          <strong style={{ display: "block", color: "#fff", fontSize: "1rem", marginBottom: 6 }}>Department Assignment</strong>
+        <div style={{ borderTop: "1px solid var(--border)", paddingTop: 18, marginTop: 8 }}>
+          <strong style={{ display: "block", color: "var(--text)", fontSize: "1rem", marginBottom: 6 }}>Department Assignment</strong>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }} className="small muted">
             <Building2 size={14} />
-            Assigned: <span style={{ color: "#fff", fontWeight: 600 }}>{userDepartment ? userDepartment.department_Name : "None / Unassigned"}</span>
+            Assigned: <span style={{ color: "var(--text)", fontWeight: 600 }}>{userDepartment ? userDepartment.department_Name : "None / Unassigned"}</span>
           </div>
         </div>
 

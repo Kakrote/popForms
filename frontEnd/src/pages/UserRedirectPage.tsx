@@ -38,7 +38,7 @@ export function UserRedirectPage() {
           className="auth-card stack text-center" 
           style={{ 
             textAlign: "center", 
-            background: "rgba(15, 22, 40, 0.8)", 
+            background: "var(--surface)", 
             border: "1px solid var(--border)", 
             borderRadius: "24px", 
             padding: 40 

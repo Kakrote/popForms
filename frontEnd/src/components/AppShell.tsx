@@ -69,7 +69,7 @@ export function AppShell() {
         <div className="sidebar-footer">
           <div>
             <p className="muted small" style={{ marginBottom: 4 }}>Signed in as</p>
-            <strong style={{ color: "#fff" }}>{user?.username ?? "Admin"}</strong>
+            <strong style={{ color: "var(--text)" }}>{user?.username ?? "Admin"}</strong>
           </div>
           <button className="ghost-button" type="button" onClick={handleLogout} id="btn-logout" style={{ width: "100%" }}>
             <LogOut size={16} />

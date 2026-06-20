@@ -135,7 +135,7 @@ export function FormBuilderPage() {
             }
             createMutation.mutate(values);
           })}
-          style={{ background: "rgba(15, 22, 40, 0.8)", border: "1px solid var(--border)" }}
+          style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
         >
           {/* Basic Form Details */}
           <div className="grid cols-2">
@@ -315,11 +315,11 @@ function SectionEditor({
       className="field-card stack" 
       style={{ 
         borderLeft: `5px solid ${questionColor}`, 
-        background: "rgba(255, 255, 255, 0.01)",
+        background: "rgba(0, 0, 0, 0.01)",
         gap: 16
       }}
     >
-      <div className="field-toolbar" style={{ margin: 0, paddingBottom: 10, borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+      <div className="field-toolbar" style={{ margin: 0, paddingBottom: 10, borderBottom: "1px solid var(--border)" }}>
         <strong style={{ color: questionColor, fontSize: "1.05rem" }}>Question Section {index + 1}</strong>
         <div className="actions-row">
           <button 
@@ -379,9 +379,9 @@ function SectionEditor({
           Add Section Header Separator
         </button>
       ) : (
-        <div className="stack" style={{ background: "rgba(255,255,255,0.015)", padding: 14, borderRadius: 10, border: "1px dashed rgba(255,255,255,0.1)", gap: 12 }}>
+        <div className="stack" style={{ background: "rgba(0,0,0,0.015)", padding: 14, borderRadius: 10, border: "1px dashed var(--border)", gap: 12 }}>
           <div className="field-toolbar" style={{ margin: 0 }}>
-            <span className="small" style={{ fontWeight: 600, color: "#fff" }}>Header Separator (Optional)</span>
+            <span className="small" style={{ fontWeight: 600, color: "var(--text)" }}>Header Separator (Optional)</span>
             <button
               id={`section-${index}-remove-header`}
               type="button"
@@ -438,16 +438,16 @@ function SectionEditor({
         </label>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 6, borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 14, marginTop: 4 }}>
-        <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#fff" }}>Form Fields</span>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, borderTop: "1px solid var(--border)", paddingTop: 14, marginTop: 4 }}>
+        <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--text)" }}>Form Fields</span>
       </div>
 
       {/* Fields List */}
       <div className="stack" style={{ gap: 12 }}>
         {fields.fields.map((field, fieldIndex) => (
-          <div className="field-group-box stack" key={field.id} style={{ gap: 12, background: "rgba(255,255,255,0.015)", border: "1px solid rgba(255,255,255,0.04)" }}>
+          <div className="field-group-box stack" key={field.id} style={{ gap: 12, background: "rgba(0,0,0,0.015)", border: "1px solid var(--border)" }}>
             <div className="field-toolbar" style={{ margin: 0 }}>
-              <strong style={{ fontSize: "0.85rem", color: "#fff" }}>Field Option {fieldIndex + 1}</strong>
+              <strong style={{ fontSize: "0.85rem", color: "var(--text)" }}>Field Option {fieldIndex + 1}</strong>
               <div className="actions-row">
                 <button 
                   id={`section-${index}-field-${fieldIndex}-move-up`}

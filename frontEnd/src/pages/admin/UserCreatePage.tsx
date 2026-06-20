@@ -54,7 +54,7 @@ export function UserCreatePage() {
         id="create-user-form"
         className="panel stack" 
         onSubmit={form.handleSubmit((values) => createMutation.mutate(values))}
-        style={{ background: "rgba(15, 22, 40, 0.8)", border: "1px solid var(--border)", maxWidth: "800px" }}
+        style={{ background: "var(--surface)", border: "1px solid var(--border)", maxWidth: "800px" }}
       >
         <div className="grid cols-2" style={{ gap: 18 }}>
           <label className="stack small" style={{ gap: 6 }}>

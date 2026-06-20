@@ -178,7 +178,7 @@ export function AdminDashboardPage() {
               <tbody>
                 {submissions.map((submission) => (
                   <tr key={submission.id}>
-                    <td style={{ fontWeight: 600, color: "#fff" }}>{submission.form?.title ?? submission.formId}</td>
+                    <td style={{ fontWeight: 600, color: "var(--text)" }}>{submission.form?.title ?? submission.formId}</td>
                     <td className="small" style={{ maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {submission.submissionValue && submission.submissionValue.length > 0
                         ? submission.submissionValue
@@ -235,14 +235,14 @@ export function AdminDashboardPage() {
 
           {submissionDetail ? (
             <div className="stack">
-              <div className="field-card" style={{ background: "rgba(255, 255, 255, 0.02)" }}>
-                <strong style={{ fontSize: "1.1rem", display: "block", marginBottom: 10, color: "#fff" }}>Receipt Summary</strong>
+              <div className="field-card" style={{ background: "var(--surface-strong)" }}>
+                <strong style={{ fontSize: "1.1rem", display: "block", marginBottom: 10, color: "var(--text)" }}>Receipt Summary</strong>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }} className="small">
-                  <div className="muted">Form Name: <span style={{ color: "#fff" }}>{submissionDetail.form?.title ?? submissionDetail.formId}</span></div>
-                  <div className="muted">Submitted By: <span style={{ color: "#fff" }}>{submissionDetail.submittedBy?.username ?? submissionDetail.submittedById}</span></div>
-                  <div className="muted">Department: <span style={{ color: "#fff" }}>{submissionDetail.department?.department_Name ?? submissionDetail.departmentId}</span></div>
+                  <div className="muted">Form Name: <span style={{ color: "var(--text)" }}>{submissionDetail.form?.title ?? submissionDetail.formId}</span></div>
+                  <div className="muted">Submitted By: <span style={{ color: "var(--text)" }}>{submissionDetail.submittedBy?.username ?? submissionDetail.submittedById}</span></div>
+                  <div className="muted">Department: <span style={{ color: "var(--text)" }}>{submissionDetail.department?.department_Name ?? submissionDetail.departmentId}</span></div>
                   <div className="muted">Status: <span className="badge SUBMITTED" style={{ padding: "1px 8px", fontSize: "0.7rem" }}>{submissionDetail.status}</span></div>
-                  <div className="muted" style={{ gridColumn: "span 2" }}>Submitted: <span style={{ color: "#fff" }}>{submissionDetail.submittedAt ? new Date(submissionDetail.submittedAt).toLocaleString() : "-"}</span></div>
+                  <div className="muted" style={{ gridColumn: "span 2" }}>Submitted: <span style={{ color: "var(--text)" }}>{submissionDetail.submittedAt ? new Date(submissionDetail.submittedAt).toLocaleString() : "-"}</span></div>
                 </div>
               </div>
 
@@ -308,7 +308,7 @@ export function AdminDashboardPage() {
                   return (
                     <tr key={form.id}>
                       <td>
-                        <strong style={{ color: "#fff" }}>{form.title}</strong>
+                        <strong style={{ color: "var(--text)" }}>{form.title}</strong>
                         <div className="muted small" style={{ fontFamily: "monospace" }}>/{form.slug}</div>
                       </td>
                       <td>

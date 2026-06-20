@@ -79,7 +79,7 @@ export function DepartmentManagementPage() {
       </div>
 
       {/* Create Department Form Panel */}
-      <section className="panel stack" style={{ background: "rgba(15, 22, 40, 0.8)", border: "1px solid var(--border)", maxWidth: "800px" }}>
+      <section className="panel stack" style={{ background: "var(--surface)", border: "1px solid var(--border)", maxWidth: "800px" }}>
         <div className="field-toolbar">
           <div>
             <h2 style={{ margin: 0 }}>Create Department</h2>
@@ -150,7 +150,7 @@ export function DepartmentManagementPage() {
       </section>
 
       {/* Manage Departments Panel */}
-      <section className="panel stack" style={{ background: "rgba(15, 22, 40, 0.8)", border: "1px solid var(--border)" }}>
+      <section className="panel stack" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
         <div className="field-toolbar">
           <div>
             <h2 style={{ margin: 0 }}>Manage Departments</h2>

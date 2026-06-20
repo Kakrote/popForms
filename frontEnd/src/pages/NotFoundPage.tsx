@@ -8,9 +8,9 @@ export function NotFoundPage() {
         className="auth-card stack" 
         style={{ 
           textAlign: "center",
-          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5), var(--shadow-glowing)",
-          border: "1px solid rgba(255,255,255,0.08)",
-          background: "rgba(15, 22, 40, 0.8)",
+          boxShadow: "var(--shadow)",
+          border: "1px solid var(--border)",
+          background: "var(--surface)",
           borderRadius: "24px",
           padding: 40
         }}
