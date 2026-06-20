@@ -378,6 +378,8 @@ function mapSubmissionSections(submission: Submission | undefined): SubmissionSe
     id: section.id,
     title: section.title,
     description: section.description ?? null,
+    headerLabel: section.headerLabel ?? null,
+    headerDescription: section.headerDescription ?? null,
     fields: section.fields.map((field) => ({
       id: field.id,
       label: `${field.label} • ${getFieldTypeLabel(field.fieldType)}`,

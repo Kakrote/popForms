@@ -351,19 +351,21 @@ export function UserLandingPage() {
           title={selectedSubmission ? `Submission Details` : "Details"}
         >
           {selectedSubmission ? (
-            <div>
-              <div className="field-card" style={{ marginBottom: 20, background: "var(--surface-strong)" }}>
-                <strong style={{ fontSize: "1.1rem", display: "block", marginBottom: 10, color: "var(--text)" }}>Receipt Summary</strong>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }} className="small">
-                  <div className="muted">Form Name: <span style={{ color: "var(--text)" }}>{selectedSubmission.form?.title ?? selectedSubmission.formId}</span></div>
-                  <div className="muted">Submitted By: <span style={{ color: "var(--text)" }}>{selectedSubmission.submittedBy?.username ?? selectedSubmission.submittedById}</span></div>
-                  <div className="muted">Department: <span style={{ color: "var(--text)" }}>{selectedSubmission.department?.department_Name ?? selectedSubmission.departmentId}</span></div>
-                  <div className="muted">Status: <span className="badge SUBMITTED" style={{ padding: "1px 8px", fontSize: "0.7rem" }}>{selectedSubmission.status}</span></div>
-                  <div className="muted" style={{ gridColumn: "span 2" }}>Submitted: <span style={{ color: "var(--text)" }}>{selectedSubmission.submittedAt ? new Date(selectedSubmission.submittedAt).toLocaleString() : "-"}</span></div>
+            <div className="split" style={{ gridTemplateColumns: "1fr 1.5fr", gap: "24px", alignItems: "start" }}>
+              <div className="field-card stack" style={{ background: "var(--surface-strong)", padding: 20, position: "sticky", top: 0 }}>
+                <strong style={{ fontSize: "1.1rem", display: "block", marginBottom: 10, color: "var(--text)", borderBottom: "1px solid var(--border)", paddingBottom: 10 }}>Receipt Summary</strong>
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }} className="small">
+                  <div className="muted">Form Name: <div style={{ color: "var(--text)", fontWeight: 600, marginTop: 2 }}>{selectedSubmission.form?.title ?? selectedSubmission.formId}</div></div>
+                  <div className="muted">Submitted By: <div style={{ color: "var(--text)", fontWeight: 600, marginTop: 2 }}>{selectedSubmission.submittedBy?.username ?? selectedSubmission.submittedById}</div></div>
+                  <div className="muted">Department: <div style={{ color: "var(--text)", fontWeight: 600, marginTop: 2 }}>{selectedSubmission.department?.department_Name ?? selectedSubmission.departmentId}</div></div>
+                  <div className="muted">Status: <div style={{ marginTop: 4 }}><span className="badge SUBMITTED" style={{ padding: "3px 10px", fontSize: "0.75rem" }}>{selectedSubmission.status}</span></div></div>
+                  <div className="muted">Submitted: <div style={{ color: "var(--text)", fontWeight: 600, marginTop: 2 }}>{selectedSubmission.submittedAt ? new Date(selectedSubmission.submittedAt).toLocaleString() : "-"}</div></div>
                 </div>
               </div>
 
-              <SubmissionSectionsView sections={selectedSubmissionSections} emptyMessage="This submission does not contain any values." />
+              <div style={{ maxHeight: "calc(90vh - 120px)", overflowY: "auto", paddingRight: 6 }}>
+                <SubmissionSectionsView sections={selectedSubmissionSections} emptyMessage="This submission does not contain any values." />
+              </div>
             </div>
           ) : null}
         </Modal>
@@ -410,6 +412,8 @@ function mapSubmissionSections(submission: Submission): SubmissionSectionView[] 
     id: section.id,
     title: section.title,
     description: section.description ?? null,
+    headerLabel: section.headerLabel ?? null,
+    headerDescription: section.headerDescription ?? null,
     fields: section.fields.map((field) => ({
       id: field.id,
       label: `${field.label} • ${getFieldTypeLabel(field.fieldType)}`,

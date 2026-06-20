@@ -75,11 +75,36 @@ export function AdminDashboardPage() {
     },
   });
 
-  const forms = formsQuery.data ?? [];
-  const submissions = submissionsQuery.data ?? [];
-  const totalSubmissions = submissions.length;
-  const openForms = forms.filter((form) => form.isOpen).length;
-  const closedForms = forms.length - openForms;
+  const [submissionsSearch, setSubmissionsSearch] = useState("");
+  const [formsSearch, setFormsSearch] = useState("");
+
+  const rawForms = formsQuery.data ?? [];
+  const rawSubmissions = submissionsQuery.data ?? [];
+  const totalSubmissions = rawSubmissions.length;
+  const openForms = rawForms.filter((form) => form.isOpen).length;
+  const closedForms = rawForms.length - openForms;
+
+  const sortedSubmissions = useMemo(() => {
+    const sorted = [...rawSubmissions].sort((a, b) => {
+      const dateA = new Date(a.submittedAt ?? a.createdAt).getTime();
+      const dateB = new Date(b.submittedAt ?? b.createdAt).getTime();
+      return dateB - dateA;
+    });
+    if (!submissionsSearch.trim()) return sorted;
+    const query = submissionsSearch.toLowerCase();
+    return sorted.filter((sub) => {
+      const formTitle = (sub.form?.title ?? "").toLowerCase();
+      const user = (sub.submittedBy?.username ?? "").toLowerCase();
+      const dept = (sub.department?.department_Name ?? "").toLowerCase();
+      return formTitle.includes(query) || user.includes(query) || dept.includes(query);
+    });
+  }, [rawSubmissions, submissionsSearch]);
+
+  const filteredForms = useMemo(() => {
+    if (!formsSearch.trim()) return rawForms;
+    const query = formsSearch.toLowerCase();
+    return rawForms.filter((form) => form.title.toLowerCase().includes(query) || form.slug.toLowerCase().includes(query));
+  }, [rawForms, formsSearch]);
 
   const handleCopyLink = (formId: string, slug: string) => {
     const shareLink = `${window.location.origin}/forms/${slug}`;
@@ -114,7 +139,7 @@ export function AdminDashboardPage() {
             <span className="muted">Total Forms</span>
             <div style={{ color: "var(--accent)" }}><ClipboardList size={20} /></div>
           </div>
-          <strong>{forms.length}</strong>
+          <strong>{rawForms.length}</strong>
         </div>
         
         <div className="stat">
@@ -152,16 +177,35 @@ export function AdminDashboardPage() {
           <span className="badge SUBMITTED">Submitted only</span>
         </div>
 
+        {rawSubmissions.length > 0 && (
+          <div style={{ marginBottom: 4 }}>
+            <input
+              id="search-submissions"
+              type="text"
+              placeholder="Filter submissions by form, user, or department..."
+              value={submissionsSearch}
+              onChange={(e) => setSubmissionsSearch(e.target.value)}
+              style={{ maxWidth: "450px", fontSize: "0.875rem", padding: "8px 14px", background: "var(--surface)" }}
+            />
+          </div>
+        )}
+
         {submissionsQuery.isLoading ? <p className="muted">Loading submissions...</p> : null}
         {submissionsQuery.isError ? <p className="error">Unable to load submissions right now.</p> : null}
-        {!submissionsQuery.isLoading && submissions.length === 0 ? (
+        {!submissionsQuery.isLoading && rawSubmissions.length === 0 ? (
           <div style={{ textAlign: "center", padding: "40px 0", color: "var(--muted)" }}>
             <AlertCircle size={28} style={{ marginBottom: 10, opacity: 0.5 }} />
             <p>No submitted records yet.</p>
           </div>
         ) : null}
+        {!submissionsQuery.isLoading && rawSubmissions.length > 0 && sortedSubmissions.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "30px 0", color: "var(--muted)" }}>
+            <AlertCircle size={24} style={{ marginBottom: 8, opacity: 0.5 }} />
+            <p className="small">No submissions match your filter query.</p>
+          </div>
+        ) : null}
 
-        {submissions.length > 0 ? (
+        {sortedSubmissions.length > 0 ? (
           <div className="table-container">
             <table className="table">
               <thead>
@@ -176,7 +220,7 @@ export function AdminDashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {submissions.map((submission) => (
+                {sortedSubmissions.map((submission) => (
                   <tr key={submission.id}>
                     <td style={{ fontWeight: 600, color: "var(--text)" }}>{submission.form?.title ?? submission.formId}</td>
                     <td className="small" style={{ maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -234,36 +278,39 @@ export function AdminDashboardPage() {
           {submissionDetailQuery.isError ? <p className="error">Unable to load this submission detail.</p> : null}
 
           {submissionDetail ? (
-            <div className="stack">
-              <div className="field-card" style={{ background: "var(--surface-strong)" }}>
-                <strong style={{ fontSize: "1.1rem", display: "block", marginBottom: 10, color: "var(--text)" }}>Receipt Summary</strong>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }} className="small">
-                  <div className="muted">Form Name: <span style={{ color: "var(--text)" }}>{submissionDetail.form?.title ?? submissionDetail.formId}</span></div>
-                  <div className="muted">Submitted By: <span style={{ color: "var(--text)" }}>{submissionDetail.submittedBy?.username ?? submissionDetail.submittedById}</span></div>
-                  <div className="muted">Department: <span style={{ color: "var(--text)" }}>{submissionDetail.department?.department_Name ?? submissionDetail.departmentId}</span></div>
-                  <div className="muted">Status: <span className="badge SUBMITTED" style={{ padding: "1px 8px", fontSize: "0.7rem" }}>{submissionDetail.status}</span></div>
-                  <div className="muted" style={{ gridColumn: "span 2" }}>Submitted: <span style={{ color: "var(--text)" }}>{submissionDetail.submittedAt ? new Date(submissionDetail.submittedAt).toLocaleString() : "-"}</span></div>
+            <div className="split" style={{ gridTemplateColumns: "1fr 1.5fr", gap: "24px", alignItems: "start" }}>
+              <div className="field-card stack" style={{ background: "var(--surface-strong)", padding: 20, position: "sticky", top: 0 }}>
+                <strong style={{ fontSize: "1.1rem", display: "block", marginBottom: 10, color: "var(--text)", borderBottom: "1px solid var(--border)", paddingBottom: 10 }}>Receipt Summary</strong>
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }} className="small">
+                  <div className="muted">Form Name: <div style={{ color: "var(--text)", fontWeight: 600, marginTop: 2 }}>{submissionDetail.form?.title ?? submissionDetail.formId}</div></div>
+                  <div className="muted">Submitted By: <div style={{ color: "var(--text)", fontWeight: 600, marginTop: 2 }}>{submissionDetail.submittedBy?.username ?? submissionDetail.submittedById}</div></div>
+                  <div className="muted">Department: <div style={{ color: "var(--text)", fontWeight: 600, marginTop: 2 }}>{submissionDetail.department?.department_Name ?? submissionDetail.departmentId}</div></div>
+                  <div className="muted">Status: <div style={{ marginTop: 4 }}><span className="badge SUBMITTED" style={{ padding: "3px 10px", fontSize: "0.75rem" }}>{submissionDetail.status}</span></div></div>
+                  <div className="muted">Submitted: <div style={{ color: "var(--text)", fontWeight: 600, marginTop: 2 }}>{submissionDetail.submittedAt ? new Date(submissionDetail.submittedAt).toLocaleString() : "-"}</div></div>
+                </div>
+
+                <div style={{ borderTop: "1px solid var(--border)", marginTop: 16, paddingTop: 16 }}>
+                  <button
+                    id="modal-delete-sub-btn"
+                    type="button"
+                    onClick={() =>
+                      setPendingDelete({
+                        kind: "submission",
+                        id: submissionDetail.id,
+                        label: `${submissionDetail.form?.title ?? "this submission"} / ${submissionDetail.submittedBy?.username ?? submissionDetail.submittedById}`,
+                      })
+                    }
+                    className="ghost-button danger-text"
+                    style={{ width: "100%", padding: "8px 12px", fontSize: "0.85rem" }}
+                  >
+                    <Trash2 size={14} />
+                    Delete submission
+                  </button>
                 </div>
               </div>
 
-              <SubmissionSectionsView sections={submissionSections} emptyMessage="This submission does not contain any values." />
-
-              <div style={{ display: "flex", gap: 8, marginTop: 12, justifyContent: "flex-end" }}>
-                <button
-                  id="modal-delete-sub-btn"
-                  type="button"
-                  onClick={() =>
-                    setPendingDelete({
-                      kind: "submission",
-                      id: submissionDetail.id,
-                      label: `${submissionDetail.form?.title ?? "this submission"} / ${submissionDetail.submittedBy?.username ?? submissionDetail.submittedById}`,
-                    })
-                  }
-                  className="ghost-button danger-text"
-                >
-                  <Trash2 size={16} />
-                  Delete submission
-                </button>
+              <div style={{ maxHeight: "calc(90vh - 180px)", overflowY: "auto", paddingRight: 6 }}>
+                <SubmissionSectionsView sections={submissionSections} emptyMessage="This submission does not contain any values." />
               </div>
             </div>
           ) : null}
@@ -280,16 +327,35 @@ export function AdminDashboardPage() {
           <span className="badge">Admin only</span>
         </div>
 
+        {rawForms.length > 0 && (
+          <div style={{ marginBottom: 4 }}>
+            <input
+              id="search-forms"
+              type="text"
+              placeholder="Search forms by title or slug..."
+              value={formsSearch}
+              onChange={(e) => setFormsSearch(e.target.value)}
+              style={{ maxWidth: "350px", fontSize: "0.875rem", padding: "8px 14px", background: "var(--surface)" }}
+            />
+          </div>
+        )}
+
         {formsQuery.isLoading ? <p className="muted">Loading forms...</p> : null}
         {formsQuery.isError ? <p className="error">Unable to load forms right now.</p> : null}
-        {!formsQuery.isLoading && forms.length === 0 ? (
+        {!formsQuery.isLoading && rawForms.length === 0 ? (
           <div style={{ textAlign: "center", padding: "40px 0", color: "var(--muted)" }}>
             <AlertCircle size={28} style={{ marginBottom: 10, opacity: 0.5 }} />
             <p>No forms have been created yet.</p>
           </div>
         ) : null}
+        {!formsQuery.isLoading && rawForms.length > 0 && filteredForms.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "30px 0", color: "var(--muted)" }}>
+            <AlertCircle size={24} style={{ marginBottom: 8, opacity: 0.5 }} />
+            <p className="small">No forms match your search query.</p>
+          </div>
+        ) : null}
 
-        {forms.length > 0 ? (
+        {filteredForms.length > 0 ? (
           <div className="table-container">
             <table className="table">
               <thead>
@@ -303,7 +369,7 @@ export function AdminDashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {forms.map((form) => {
+                {filteredForms.map((form) => {
                   const isCopied = copiedFormId === form.id;
                   return (
                     <tr key={form.id}>
@@ -424,6 +490,8 @@ function mapSubmissionSections(submission: Submission | undefined): SubmissionSe
     id: section.id,
     title: section.title,
     description: section.description ?? null,
+    headerLabel: section.headerLabel ?? null,
+    headerDescription: section.headerDescription ?? null,
     fields: section.fields.map((field) => ({
       id: field.id,
       label: `${field.label}${field.fieldType ? ` • ${getFieldTypeLabel(field.fieldType)}` : ""}`,
