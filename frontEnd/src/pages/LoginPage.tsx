@@ -9,6 +9,8 @@ import { useAuthStore } from "../store/authStore";
 import type { LoginFormValues } from "../types";
 import { FileText, Key, Mail, AlertTriangle } from "lucide-react";
 
+import universityLogo from "../public/university.png";
+
 const loginSchema = z.object({
   email: z.email("Enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
@@ -64,17 +66,16 @@ export function LoginPage() {
       >
         <div style={{ textAlign: "center", marginBottom: 8 }}>
           <div style={{
-            display: "inline-flex",
+            display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            width: 52,
-            height: 52,
-            borderRadius: 16,
-            background: "var(--accent-gradient)",
-            marginBottom: 16,
-            boxShadow: "0 8px 20px rgba(99, 102, 241, 0.4)"
+            marginBottom: 20
           }}>
-            <FileText size={28} color="#fff" />
+            <img 
+              src={universityLogo} 
+              alt="Uttaranchal University Logo" 
+              style={{ maxWidth: "100%", maxHeight: "55px", objectFit: "contain" }} 
+            />
           </div>
           <p className="eyebrow" style={{ fontSize: "0.85rem", letterSpacing: "0.15em" }}>PopForms Portal</p>
           <h1 style={{ margin: "4px 0 8px 0" }}>Sign In</h1>

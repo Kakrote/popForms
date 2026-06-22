@@ -2,6 +2,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ConfirmDialog from "../components/ConfirmDialog";
+import universityLogo from "../public/university.png";
 import { departmentApi, submissionsApi, formsApi } from "../lib/api";
 import { useAuthStore } from "../store/authStore";
 import Modal from "../components/Modal";
@@ -81,7 +82,7 @@ export function UserLandingPage() {
   return (
     <div className="page">
       <div className="panel stack">
-        <div className="topbar">
+        <div className="topbar" style={{ alignItems: "flex-start" }}>
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
               <div style={{
@@ -100,12 +101,18 @@ export function UserLandingPage() {
             <h1>Welcome back, {currentUser?.username}</h1>
             <p className="muted">Track your submission records and complete drafts assigned by your administrator.</p>
           </div>
-          <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <img 
+              src={universityLogo} 
+              alt="Uttaranchal University Logo" 
+              style={{ maxHeight: "40px", objectFit: "contain" }} 
+            />
             <button
               id="user-logout-btn"
               type="button"
               className="ghost-button"
               onClick={handleLogout}
+              style={{ height: "fit-content" }}
             >
               <LogOut size={16} />
               Logout

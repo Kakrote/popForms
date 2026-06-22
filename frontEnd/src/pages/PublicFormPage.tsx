@@ -6,6 +6,7 @@ import { Controller, useForm } from "react-hook-form";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { z } from "zod";
 import ConfirmDialog from "../components/ConfirmDialog";
+import universityLogo from "../public/university.png";
 import { authApi, departmentApi, formsApi, submissionsApi } from "../lib/api";
 import { useAuthStore } from "../store/authStore";
 import type { FormField, LoginFormValues } from "../types";
@@ -177,6 +178,13 @@ export function PublicFormPage() {
           {/* LEFT COLUMN: META & STATUS & ACTIONS (STICKY) */}
           <div style={{ position: "sticky", top: "24px" }} className="stack">
             <div className="panel stack" style={{ background: "var(--surface)", border: "1px solid var(--border)", padding: 24 }}>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 16, paddingBottom: 16, borderBottom: "1px solid var(--border)" }}>
+                <img 
+                  src={universityLogo} 
+                  alt="Uttaranchal University Logo" 
+                  style={{ maxWidth: "100%", maxHeight: "48px", objectFit: "contain" }} 
+                />
+              </div>
               <div>
                 <p className="eyebrow">Shared Questionnaire</p>
                 <h1 style={{ fontSize: "1.6rem", margin: "4px 0 8px 0" }}>{formQuery.data.title}</h1>

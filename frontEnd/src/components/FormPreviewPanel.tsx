@@ -1,6 +1,7 @@
 import type { FormBuilderValues } from "../types";
 import { getFieldTypeLabel } from "./fieldTypeLabels";
 import { Eye, Calendar } from "lucide-react";
+import universityLogo from "../public/university.png";
 
 type Props = {
   values: FormBuilderValues;
@@ -11,6 +12,13 @@ const QUESTION_COLORS = ["#6366f1", "#10b981", "#ef4444", "#f59e0b", "#a855f7", 
 export function FormPreviewPanel({ values }: Props) {
   return (
     <section className="panel stack preview-panel" style={{ background: "var(--surface-strong)", border: "1px dashed var(--border)" }}>
+      <div style={{ display: "flex", justifyContent: "center", paddingBottom: 16, borderBottom: "1px dashed var(--border)", marginBottom: 4 }}>
+        <img 
+          src={universityLogo} 
+          alt="Uttaranchal University Logo" 
+          style={{ maxWidth: "100%", maxHeight: "42px", objectFit: "contain" }} 
+        />
+      </div>
       <div className="field-toolbar" style={{ borderBottom: "1px solid var(--border)", paddingBottom: 12 }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>

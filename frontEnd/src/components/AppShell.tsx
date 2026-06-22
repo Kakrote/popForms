@@ -9,6 +9,7 @@ import {
   LogOut,
   FileText
 } from "lucide-react";
+import universityLogo from "../public/university.png";
 
 export function AppShell() {
   const user = useAuthStore((state) => state.user);
@@ -24,22 +25,29 @@ export function AppShell() {
     <div className="shell">
       <aside className="sidebar">
         <div>
+          <div style={{ marginBottom: 16, display: "flex", justifyContent: "flex-start" }}>
+            <img 
+              src={universityLogo} 
+              alt="Uttaranchal University Logo" 
+              style={{ maxWidth: "100%", maxHeight: "36px", objectFit: "contain" }} 
+            />
+          </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
             <div style={{
               background: "var(--accent-gradient)",
               borderRadius: "8px",
-              width: "32px",
-              height: "32px",
+              width: "24px",
+              height: "24px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               boxShadow: "var(--shadow-glowing)"
             }}>
-              <FileText size={18} color="#fff" />
+              <FileText size={14} color="#fff" />
             </div>
-            <p className="eyebrow" style={{ margin: 0 }}>PopForms</p>
+            <p className="eyebrow" style={{ margin: 0 }}>PopForms Admin</p>
           </div>
-          <h1>Admin Portal</h1>
+          <h1 style={{ marginTop: 8 }}>Admin Portal</h1>
           <p className="muted small">Create forms, track responses, and manage status from one place.</p>
         </div>
 

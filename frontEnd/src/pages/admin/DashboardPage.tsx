@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import ConfirmDialog from "../../components/ConfirmDialog";
+import universityLogo from "../../public/university.png";
 import Modal from "../../components/Modal";
 import { SubmissionSectionsView, type SubmissionSectionView } from "../../components/SubmissionSectionsView";
 import { getFieldTypeLabel } from "../../components/fieldTypeLabels";
@@ -118,18 +119,21 @@ export function AdminDashboardPage() {
 
   return (
     <div className="stack">
-      <div className="topbar">
+      <div className="topbar" style={{ alignItems: "flex-start" }}>
         <div>
           <p className="eyebrow">Overview</p>
           <h1 style={{ fontSize: "2rem", margin: 0 }}>Dashboard</h1>
           <p className="muted" style={{ marginTop: 4 }}>Monitor forms and submissions from the first demo-ready build.</p>
         </div>
-        <Link to="/admin/forms/new">
-          <button type="button" id="admin-create-form-btn">
-            <Plus size={18} />
-            Create form
-          </button>
-        </Link>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+         
+          <Link to="/admin/forms/new">
+            <button type="button" id="admin-create-form-btn" style={{ height: "fit-content" }}>
+              <Plus size={18} />
+              Create form
+            </button>
+          </Link>
+        </div>
       </div>
 
       {/* Metrics Cards */}
