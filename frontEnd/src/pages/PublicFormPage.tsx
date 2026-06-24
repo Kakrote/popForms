@@ -7,6 +7,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { z } from "zod";
 import ConfirmDialog from "../components/ConfirmDialog";
 import universityLogo from "../public/university.png";
+import logo from "../public/logo.png";
 import { authApi, departmentApi, formsApi, submissionsApi } from "../lib/api";
 import { useAuthStore } from "../store/authStore";
 import type { FormField, LoginFormValues } from "../types";
@@ -186,7 +187,22 @@ export function PublicFormPage() {
                 />
               </div>
               <div>
-                <p className="eyebrow">Shared Questionnaire</p>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                  <div style={{
+                    background: "#fff",
+                    borderRadius: "4px",
+                    width: "24px",
+                    height: "24px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: "var(--shadow)",
+                    overflow: "hidden"
+                  }}>
+                    <img src={logo} alt="PRAGATI Icon" style={{ width: "100%", height: "100%", objectFit: "contain", padding: 1 }} />
+                  </div>
+                  <p className="eyebrow" style={{ margin: 0 }}>PRAGATI Shared Questionnaire</p>
+                </div>
                 <h1 style={{ fontSize: "1.6rem", margin: "4px 0 8px 0" }}>{formQuery.data.title}</h1>
                 <p className="muted small" style={{ margin: 0, lineHeight: 1.5 }}>
                   {formQuery.data.description || "Please answer all sections to complete this form."}

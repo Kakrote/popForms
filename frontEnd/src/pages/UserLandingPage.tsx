@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ConfirmDialog from "../components/ConfirmDialog";
 import universityLogo from "../public/university.png";
+import logo from "../public/logo.png";
 import { departmentApi, submissionsApi, formsApi } from "../lib/api";
 import { useAuthStore } from "../store/authStore";
 import Modal from "../components/Modal";
@@ -86,17 +87,22 @@ export function UserLandingPage() {
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
               <div style={{
-                background: "var(--accent-gradient)",
+                background: "#fff",
                 borderRadius: "8px",
-                width: "28px",
-                height: "28px",
+                width: "36px",
+                height: "36px",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center"
+                justifyContent: "center",
+                boxShadow: "var(--shadow)",
+                overflow: "hidden"
               }}>
-                <FileText size={16} color="#fff" />
+                <img src={logo} alt="PRAGATI Icon" style={{ width: "100%", height: "100%", objectFit: "contain", padding: 2 }} />
               </div>
-              <p className="eyebrow" style={{ margin: 0 }}>User Workspace</p>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <p className="eyebrow" style={{ margin: 0, fontWeight: 700 }}>PRAGATI Workspace</p>
+                <p className="muted" style={{ fontSize: "0.65rem", margin: 0, letterSpacing: "0.05em", textTransform: "uppercase" }}>From Data to Decisions</p>
+              </div>
             </div>
             <h1>Welcome back, {currentUser?.username}</h1>
             <p className="muted">Track your submission records and complete drafts assigned by your administrator.</p>

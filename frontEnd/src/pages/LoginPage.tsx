@@ -10,6 +10,7 @@ import type { LoginFormValues } from "../types";
 import { FileText, Key, Mail, AlertTriangle } from "lucide-react";
 
 import universityLogo from "../public/university.png";
+import logo from "../public/logo.png";
 
 const loginSchema = z.object({
   email: z.email("Enter a valid email address"),
@@ -77,9 +78,25 @@ export function LoginPage() {
               style={{ maxWidth: "100%", maxHeight: "55px", objectFit: "contain" }} 
             />
           </div>
-          <p className="eyebrow" style={{ fontSize: "0.85rem", letterSpacing: "0.15em" }}>PopForms Portal</p>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 4 }}>
+            <div style={{
+              background: "#fff",
+              borderRadius: "6px",
+              width: "28px",
+              height: "28px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "var(--shadow)",
+              overflow: "hidden"
+            }}>
+              <img src={logo} alt="PRAGATI Icon" style={{ width: "100%", height: "100%", objectFit: "contain", padding: 2 }} />
+            </div>
+            <p className="eyebrow" style={{ fontSize: "0.85rem", letterSpacing: "0.15em", margin: 0 }}>PRAGATI Portal</p>
+          </div>
+          <p className="muted" style={{ fontSize: "0.75rem", margin: "0 0 12px 0", letterSpacing: "0.05em", textTransform: "uppercase" }}>From Data to Decisions</p>
           <h1 style={{ margin: "4px 0 8px 0" }}>Sign In</h1>
-          <p className="muted small">Use your corporate account credentials to access your dashboard.</p>
+          <p className="muted small">Use your credentials to access your dashboard.</p>
         </div>
 
         <div className="stack" style={{ gap: 14 }}>

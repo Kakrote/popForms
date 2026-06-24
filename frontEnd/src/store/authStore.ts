@@ -18,7 +18,7 @@ export const useAuthStore = create<AuthState>()(
       clearSession: () => set({ token: null, user: null }),
     }),
     {
-      name: "popforms-auth",
+      name: "pragati-auth",
     }
   )
 );

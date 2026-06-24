@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import ConfirmDialog from "../../components/ConfirmDialog";
-import universityLogo from "../../public/university.png";
 import Modal from "../../components/Modal";
 import { SubmissionSectionsView, type SubmissionSectionView } from "../../components/SubmissionSectionsView";
 import { getFieldTypeLabel } from "../../components/fieldTypeLabels";

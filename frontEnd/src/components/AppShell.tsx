@@ -10,6 +10,7 @@ import {
   FileText
 } from "lucide-react";
 import universityLogo from "../public/university.png";
+import logo from "../public/logo.png";
 
 export function AppShell() {
   const user = useAuthStore((state) => state.user);
@@ -34,18 +35,22 @@ export function AppShell() {
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
             <div style={{
-              background: "var(--accent-gradient)",
+              background: "#fff",
               borderRadius: "8px",
-              width: "24px",
-              height: "24px",
+              width: "32px",
+              height: "32px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: "var(--shadow-glowing)"
+              boxShadow: "var(--shadow)",
+              overflow: "hidden"
             }}>
-              <FileText size={14} color="#fff" />
+              <img src={logo} alt="PRAGATI Icon" style={{ width: "100%", height: "100%", objectFit: "contain", padding: 2 }} />
             </div>
-            <p className="eyebrow" style={{ margin: 0 }}>PopForms Admin</p>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <p className="eyebrow" style={{ margin: 0, fontWeight: 700 }}>PRAGATI Admin</p>
+              <p className="muted" style={{ fontSize: "0.65rem", margin: 0, letterSpacing: "0.05em", textTransform: "uppercase" }}>From Data to Decisions</p>
+            </div>
           </div>
           <h1 style={{ marginTop: 8 }}>Admin Portal</h1>
           <p className="muted small">Create forms, track responses, and manage status from one place.</p>

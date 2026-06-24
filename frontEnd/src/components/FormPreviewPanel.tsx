@@ -2,6 +2,7 @@ import type { FormBuilderValues } from "../types";
 import { getFieldTypeLabel } from "./fieldTypeLabels";
 import { Eye, Calendar } from "lucide-react";
 import universityLogo from "../public/university.png";
+import logo from "../public/logo.png";
 
 type Props = {
   values: FormBuilderValues;
@@ -22,8 +23,20 @@ export function FormPreviewPanel({ values }: Props) {
       <div className="field-toolbar" style={{ borderBottom: "1px solid var(--border)", paddingBottom: 12 }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <Eye size={16} className="muted" />
-            <p className="eyebrow" style={{ margin: 0 }}>Live Preview</p>
+            <div style={{
+              background: "#fff",
+              borderRadius: "4px",
+              width: "24px",
+              height: "24px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "var(--shadow)",
+              overflow: "hidden"
+            }}>
+              <img src={logo} alt="PRAGATI Icon" style={{ width: "100%", height: "100%", objectFit: "contain", padding: 1 }} />
+            </div>
+            <p className="eyebrow" style={{ margin: 0 }}>PRAGATI Preview</p>
           </div>
           <h2 style={{ fontSize: "1.35rem", margin: "4px 0 0 0" }}>{values.title || "Untitled Questionnaire"}</h2>
           <p className="muted small" style={{ margin: 0 }}>This is how the final form will appear to users.</p>
