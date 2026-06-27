@@ -21,6 +21,7 @@ export const createFormSchema = z.object({
 	sections: z.array(formSectionSchema).optional(),
 	isOpen: z.boolean().optional(),
 	deadline: z.coerce.date().optional(),
+	departmentIds: z.array(z.string()).optional(),
 });
 
 export const updateFormSchema = createFormSchema.partial();

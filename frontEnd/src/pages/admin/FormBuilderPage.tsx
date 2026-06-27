@@ -6,7 +6,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { z } from "zod";
 import FormPreviewPanel from "../../components/FormPreviewPanel";
 import { FIELD_TYPE_OPTIONS } from "../../components/fieldTypeLabels";
-import { formsApi } from "../../lib/api";
+import { formsApi, departmentApi } from "../../lib/api";
 import type { Form, FormBuilderValues } from "../../types";
 import { 
   ArrowUp, 
@@ -51,6 +51,12 @@ export function FormBuilderPage() {
   const navigate = useNavigate();
   const { slug } = useParams<{ slug?: string }>();
   const isEditMode = Boolean(slug);
+  const [selectedDeptIds, setSelectedDeptIds] = useState<string[]>([]);
+
+  const departmentsQuery = useQuery({
+    queryKey: ["departments"],
+    queryFn: departmentApi.list,
+  });
 
   const formQuery = useQuery({
     queryKey: ["form", slug],
@@ -73,6 +79,7 @@ export function FormBuilderPage() {
   useEffect(() => {
     if (!isEditMode || !formQuery.data) return;
     form.reset(defaultValues);
+    setSelectedDeptIds(defaultValues.departmentIds ?? []);
   }, [defaultValues, form, formQuery.data, isEditMode]);
 
   const sections = useFieldArray({
@@ -129,11 +136,15 @@ export function FormBuilderPage() {
           id="form-builder-form"
           className="panel stack"
           onSubmit={form.handleSubmit((values) => {
+            const payload = {
+              ...values,
+              departmentIds: selectedDeptIds,
+            };
             if (isEditMode) {
-              updateMutation.mutate(values);
+              updateMutation.mutate(payload);
               return;
             }
-            createMutation.mutate(values);
+            createMutation.mutate(payload);
           })}
           style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
         >
@@ -177,6 +188,46 @@ export function FormBuilderPage() {
               <option value="false">Closed (Draft / Inactive)</option>
             </select>
           </label>
+
+          {/* Department Access Assignment */}
+          <div className="stack small" style={{ gap: 6 }}>
+            <span style={{ fontWeight: 600, color: "var(--text)" }}>Department Access</span>
+            <p className="muted small" style={{ margin: 0 }}>Select which departments can access and respond to this form. If none are selected, all departments will have access by default.</p>
+            {departmentsQuery.isLoading ? (
+              <p className="muted small">Loading departments...</p>
+            ) : (
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "10px",
+                marginTop: 6,
+                background: "var(--surface-strong)",
+                padding: "14px",
+                borderRadius: "12px",
+                border: "1px solid var(--border)"
+              }}>
+                {departmentsQuery.data?.map((dept) => (
+                  <label key={dept.id} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: "0.85rem", userSelect: "none" }}>
+                    <input
+                      type="checkbox"
+                      id={`builder-dept-checkbox-${dept.id}`}
+                      value={dept.id}
+                      checked={selectedDeptIds.includes(dept.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedDeptIds([...selectedDeptIds, dept.id]);
+                        } else {
+                          setSelectedDeptIds(selectedDeptIds.filter((id) => id !== dept.id));
+                        }
+                      }}
+                      style={{ width: 16, height: 16 }}
+                    />
+                    <span style={{ color: "var(--text)" }}>{dept.department_Name}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
 
           {isEditMode ? (
             <div className="notice" style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 10 }}>

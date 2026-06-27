@@ -19,6 +19,7 @@ export type CreateFormInput = {
     sections?: FormSection[];
     isOpen?: boolean;
     deadline?: string | Date;
+    departmentIds?: string[];
 };
 
 export type UpdateFormInput = Partial<CreateFormInput>;

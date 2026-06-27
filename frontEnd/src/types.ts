@@ -110,6 +110,12 @@ export type Form = {
   createdBy?: User;
   sections: FormSection[];
   submissions: Array<Pick<Submission, "id">> | Submission[];
+  accesses?: Array<{
+    id: string;
+    formId: string;
+    departmentId: string;
+    department?: Department;
+  }>;
   createdAt: string;
   updatedAt: string;
 };
@@ -140,4 +146,5 @@ export type FormBuilderValues = {
   deadline: string;
   isOpen: boolean;
   sections: FormBuilderSection[];
+  departmentIds?: string[];
 };

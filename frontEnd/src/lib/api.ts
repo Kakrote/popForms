@@ -39,6 +39,7 @@ const serializeFormBuilderPayload = (payload: FormBuilderValues) => {
     description: payload.description || undefined,
     deadline: payload.deadline || undefined,
     isOpen: payload.isOpen,
+    departmentIds: payload.departmentIds || [],
     sections: payload.sections.map((section) => ({
       headerLabel: section.headerLabel,
       headerDescription: section.headerDescription,

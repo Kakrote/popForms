@@ -41,7 +41,7 @@ const buildSectionCreateData = (section: NonNullable<CreateFormInput["sections"]
         : undefined,
 });
 
-export const createForm = async (data: CreateFormInput, createdById: string) => {
+export const createForm = async (data: CreateFormInput & { departmentIds?: string[] }, createdById: string) => {
     return await prisma.form.create({
         data: {
             title: data.title,
@@ -59,11 +59,18 @@ export const createForm = async (data: CreateFormInput, createdById: string) => 
                       create: data.sections.map((section, sectionIndex) => buildSectionCreateData(section, sectionIndex)),
                   }
                 : undefined,
+            accesses: data.departmentIds?.length
+                ? {
+                      create: data.departmentIds.map((deptId) => ({
+                          departmentId: deptId,
+                      })),
+                  }
+                : undefined,
         },
     });
 };
 
-export const updateForm = async (slug: string, data: UpdateFormInput) => {
+export const updateForm = async (slug: string, data: UpdateFormInput & { departmentIds?: string[] }) => {
     const existingForm = await prisma.form.findUnique({
         where: { slug },
         select: { id: true, slug: true },
@@ -93,6 +100,23 @@ export const updateForm = async (slug: string, data: UpdateFormInput) => {
                     data: {
                         sections: {
                             create: data.sections.map((section, sectionIndex) => buildSectionCreateData(section, sectionIndex)),
+                        },
+                    },
+                });
+            }
+        }
+
+        if (data.departmentIds !== undefined) {
+            await transaction.formAccess.deleteMany({ where: { formId: existingForm.id } });
+
+            if (data.departmentIds.length > 0) {
+                await transaction.form.update({
+                    where: { slug },
+                    data: {
+                        accesses: {
+                            create: data.departmentIds.map((deptId) => ({
+                                departmentId: deptId,
+                            })),
                         },
                     },
                 });
@@ -279,11 +303,20 @@ export const getFormsForUserDepartment = async (userId: string) => {
     return await prisma.form.findMany({
         where: {
             isOpen: true,
-            accesses: {
-                some: {
-                    departmentId: department.id,
+            OR: [
+                {
+                    accesses: {
+                        some: {
+                            departmentId: department.id,
+                        },
+                    },
                 },
-            },
+                {
+                    accesses: {
+                        none: {},
+                    },
+                },
+            ],
         },
         orderBy: {
             createdAt: "desc",

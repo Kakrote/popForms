@@ -331,6 +331,9 @@ export function UserLandingPage() {
                       <td style={{ fontWeight: 600, color: "var(--text)" }}>{submission.form?.title ?? submission.formId}</td>
                       <td>
                         <span className="badge SUBMITTED">{submission.status}</span>
+                        {submission.editHistories && submission.editHistories.length > 0 && (
+                          <span className="badge EDITED" style={{ marginLeft: 8, background: "rgba(245, 158, 11, 0.15)", color: "var(--warning)" }}>Edited</span>
+                        )}
                       </td>
                       <td>{new Date(submission.submittedAt ?? submission.createdAt).toLocaleString()}</td>
                       <td>
@@ -374,6 +377,13 @@ export function UserLandingPage() {
                   <div className="muted">Status: <div style={{ marginTop: 4 }}><span className="badge SUBMITTED" style={{ padding: "3px 10px", fontSize: "0.75rem" }}>{selectedSubmission.status}</span></div></div>
                   <div className="muted">Submitted: <div style={{ color: "var(--text)", fontWeight: 600, marginTop: 2 }}>{selectedSubmission.submittedAt ? new Date(selectedSubmission.submittedAt).toLocaleString() : "-"}</div></div>
                 </div>
+
+                {selectedSubmission.editHistories && selectedSubmission.editHistories.length > 0 && (
+                  <div className="notice warning-notice" style={{ marginTop: 16, display: "flex", flexDirection: "row", alignItems: "center", gap: 8, background: "rgba(245, 158, 11, 0.1)", color: "var(--warning)", border: "1px solid rgba(245, 158, 11, 0.2)" }}>
+                    <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                    <span className="small">This submission was edited by an administrator. See logs below.</span>
+                  </div>
+                )}
 
                 {selectedSubmission.editHistories && selectedSubmission.editHistories.length > 0 && (
                   <div style={{ marginTop: 20, paddingTop: 16, borderTop: "1px solid var(--border)" }} className="stack">

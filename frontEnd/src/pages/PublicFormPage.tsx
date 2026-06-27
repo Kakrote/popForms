@@ -243,6 +243,13 @@ export function PublicFormPage() {
                 </div>
               ) : null}
 
+              {isAlreadySubmitted && existingSubmissionQuery.data?.editHistories && existingSubmissionQuery.data.editHistories.length > 0 ? (
+                <div className="notice warning-notice" style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 10, padding: 12, background: "rgba(245, 158, 11, 0.1)", color: "var(--warning)", border: "1px solid rgba(245, 158, 11, 0.2)" }}>
+                  <AlertTriangle size={18} style={{ flexShrink: 0 }} />
+                  <span className="small">This submission was edited by an administrator. See change log details below.</span>
+                </div>
+              ) : null}
+
               {isClosed && !isAlreadySubmitted && (
                 <div className="notice error-notice" style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 10, padding: 12 }}>
                   <ShieldAlert size={18} style={{ flexShrink: 0 }} />
@@ -315,6 +322,36 @@ export function PublicFormPage() {
                       <Send size={16} />
                       {submitMutation.isPending ? "Submitting..." : "Final Submit"}
                     </button>
+                  </div>
+                </div>
+              )}
+
+              {isAlreadySubmitted && existingSubmissionQuery.data?.editHistories && existingSubmissionQuery.data.editHistories.length > 0 && (
+                <div style={{ marginTop: 24, paddingTop: 18, borderTop: "1px solid var(--border)" }} className="stack">
+                  <strong style={{ fontSize: "0.95rem", display: "block", marginBottom: 10, color: "var(--text)" }}>Admin Edit History</strong>
+                  <div className="stack" style={{ gap: 10, maxHeight: "250px", overflowY: "auto" }}>
+                    {existingSubmissionQuery.data.editHistories.map((history) => {
+                      let changesList: Array<{ fieldLabel: string; oldValue: string; newValue: string }> = [];
+                      try {
+                        changesList = JSON.parse(history.changedValues);
+                      } catch (e) {}
+
+                      return (
+                        <div key={history.id} style={{ background: "var(--surface-strong)", border: "1px solid var(--border)", padding: 10, borderRadius: 8, fontSize: "0.85rem" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, fontWeight: 600 }}>
+                            <span>Admin ({history.editedBy?.username || "Admin"})</span>
+                            <span className="muted" style={{ fontSize: "0.75rem" }}>{new Date(history.editedAt).toLocaleDateString()}</span>
+                          </div>
+                          <div className="stack" style={{ gap: 4 }}>
+                            {changesList.map((ch, idx) => (
+                              <div key={idx} className="muted" style={{ fontSize: "0.75rem" }}>
+                                <strong>{ch.fieldLabel}:</strong> <span style={{ textDecoration: "line-through" }}>"{ch.oldValue}"</span> &rarr; <span style={{ color: "var(--text)" }}>"{ch.newValue}"</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
