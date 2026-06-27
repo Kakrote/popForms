@@ -53,7 +53,19 @@ export function LoginPage() {
   }
 
   return (
-    <div className="center-page" style={{ position: "relative", minHeight: "100vh", width: "100%" }}>
+    <div className="center-page" style={{ 
+      position: "relative", 
+      minHeight: "100vh", 
+      width: "100%", 
+      display: "flex", 
+      flexDirection: "column", 
+      justifyContent: "space-between", 
+      boxSizing: "border-box",
+      // backgroundImage: 'linear-gradient(rgba(248, 250, 252, 0.88), rgba(248, 250, 252, 0.88)), url("/login_background.jpeg")',
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      backgroundRepeat: "no-repeat"
+    }}>
       {/* Top Left: University Logo */}
       <div style={{ position: "absolute", top: "24px", left: "24px" }} className="hide-mobile">
         <img 
@@ -65,66 +77,55 @@ export function LoginPage() {
 
       {/* Top Right: Name of the Portal */}
       <div style={{ position: "absolute", top: "24px", right: "24px", display: "flex", alignItems: "center", gap: 10 }} className="hide-mobile">
-        <div style={{
-          background: "#fff",
-          borderRadius: "8px",
-          width: "36px",
-          height: "36px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          boxShadow: "var(--shadow)",
-          overflow: "hidden"
-        }}>
-          <img src={logo} alt="PRAGATI Icon" style={{ width: "100%", height: "100%", objectFit: "contain", padding: 2 }} />
-        </div>
-        <span style={{ fontWeight: 700, fontSize: "1.1rem", color: "var(--text)", letterSpacing: "0.05em" }}>PRAGATI Portal</span>
+       
+        <span style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: "1.2rem", color: "var(--text)", letterSpacing: "0.05em" }}>PRAGATI PORTAL</span>
       </div>
 
-      <form 
-        id="login-form"
-        className="auth-card stack" 
-        onSubmit={form.handleSubmit((values) => loginMutation.mutate(values))}
-        style={{
-          boxShadow: "var(--shadow)",
-          border: "1px solid var(--border)",
-          background: "var(--surface)",
-          borderRadius: "24px",
-          zIndex: 10
-        }}
-      >
-        <div style={{ textAlign: "center", marginBottom: 8 }}>
-          {/* Circular big logo */}
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            marginBottom: 20
-          }}>
+      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", width: "100%", padding: "40px 0" }}>
+        <form 
+          id="login-form"
+          className="auth-card stack" 
+          onSubmit={form.handleSubmit((values) => loginMutation.mutate(values))}
+          style={{
+            boxShadow: "var(--shadow)",
+            border: "1px solid var(--border)",
+            background: "var(--surface)",
+            borderRadius: "24px",
+            zIndex: 10
+          }}
+        >
+          <div style={{ textAlign: "center", marginBottom: 8 }}>
+            {/* Circular big logo */}
             <div style={{
-              background: "#fff",
-              borderRadius: "50%",
-              width: "190px",
-              height: "190px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: "0 8px 24px rgba(99, 102, 241, 0.15)",
-              border: "3px solid var(--accent)",
-              overflow: "hidden",
-              padding: "10px"
+              marginBottom: 20
             }}>
-              <img 
-                src={logo} 
-                alt="PRAGATI Portal" 
-                style={{ width: "100%", height: "100%", objectFit: "contain" }} 
-              />
+              <div style={{
+                // background: "#fff",
+                // borderRadius: "50%",
+                width: "290px",
+                height: "290px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                // boxShadow: "0 8px 24px rgba(99, 102, 241, 0.12)",
+                // border: "3px solid var(--accent)",
+                overflow: "hidden",
+                // padding: "10px"
+              }}>
+                <img 
+                  src={logo} 
+                  alt="PRAGATI Portal" 
+                  style={{ width: "100%", height: "100%", objectFit: "contain" }} 
+                />
+              </div>
             </div>
-          </div>
 
-          <h1 style={{ margin: "4px 0 8px 0" }}>Sign In</h1>
-          <p className="muted small">Use your credentials to access your dashboard.</p>
-        </div>
+            <h1 style={{ margin: "4px 0 8px 0" }}>Sign In</h1>
+            <p className="muted small">Use your credentials to access your dashboard.</p>
+          </div>
 
         <div className="stack" style={{ gap: 14 }}>
           <label className="stack small" style={{ gap: 6 }}>
@@ -177,6 +178,19 @@ export function LoginPage() {
           {loginMutation.isPending ? "Signing in..." : "Login to Workspace"}
         </button>
       </form>
+      </div>
+      <footer style={{ 
+        textAlign: "center", 
+        padding: "20px 0", 
+        fontSize: "0.8rem",
+        color: "var(--text)",
+        opacity: 0.6,
+        width: "100%",
+        borderTop: "1px solid var(--border)",
+        zIndex: 5
+      }}>
+        &copy; Developed by IQAC, Uttaranchal University 
+      </footer>
     </div>
   );
 }

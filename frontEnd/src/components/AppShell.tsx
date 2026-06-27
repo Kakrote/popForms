@@ -48,7 +48,7 @@ export function AppShell() {
               <img src={logo} alt="PRAGATI Icon" style={{ width: "100%", height: "100%", objectFit: "contain", padding: 2 }} />
             </div>
             <div style={{ display: "flex", flexDirection: "column" }}>
-              <p className="eyebrow" style={{ margin: 0, fontWeight: 700 }}>PRAGATI Admin</p>
+              <p className="eyebrow" style={{ margin: 0, fontWeight: 700, fontFamily: "'Oswald', sans-serif", fontSize: "1.05rem", letterSpacing: "0.03em" }}>PRAGATI Admin</p>
               <p className="muted" style={{ fontSize: "0.65rem", margin: 0, letterSpacing: "0.05em", textTransform: "uppercase" }}>From Data to Decisions</p>
             </div>
           </div>
@@ -91,8 +91,21 @@ export function AppShell() {
         </div>
       </aside>
 
-      <main className="main-panel">
-        <Outlet />
+      <main className="main-panel" style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+        <div style={{ flex: 1 }}>
+          <Outlet />
+        </div>
+        <footer style={{ 
+          textAlign: "center", 
+          padding: "20px 0 10px 0", 
+          marginTop: "40px",
+          borderTop: "1px solid var(--border)",
+          fontSize: "0.8rem",
+          color: "var(--text)",
+          opacity: 0.6
+        }}>
+          &copy; Uttaranchal University developed by IQAC
+        </footer>
       </main>
     </div>
   );

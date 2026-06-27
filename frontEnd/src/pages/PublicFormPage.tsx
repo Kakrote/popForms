@@ -143,8 +143,8 @@ export function PublicFormPage() {
   const isClosed = !formQuery.data.isOpen || Boolean(deadlineDate && deadlineDate < new Date());
 
   return (
-    <div className="page" style={{ maxWidth: "1400px", margin: "0 auto" }}>
-      <div className="stack" style={{ gap: 24 }}>
+    <div className="page" style={{ maxWidth: "1400px", margin: "0 auto", display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+      <div style={{ flex: 1 }} className="stack">
         
         {/* Back Link */}
         <div>
@@ -413,6 +413,18 @@ export function PublicFormPage() {
           />
         </Modal>
       </div>
+      <footer style={{ 
+        textAlign: "center", 
+        padding: "20px 0", 
+        fontSize: "0.8rem",
+        color: "var(--text)",
+        opacity: 0.6,
+        width: "100%",
+        borderTop: "1px solid var(--border)",
+        marginTop: "40px"
+      }}>
+        &copy; Uttaranchal University developed by IQAC
+      </footer>
     </div>
   );
 }

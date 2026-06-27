@@ -81,8 +81,8 @@ export function UserLandingPage() {
   };
 
   return (
-    <div className="page">
-      <div className="panel stack">
+    <div className="page" style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+      <div style={{ flex: 1 }} className="panel stack">
         <div className="topbar" style={{ alignItems: "flex-start" }}>
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
@@ -100,7 +100,7 @@ export function UserLandingPage() {
                 <img src={logo} alt="PRAGATI Icon" style={{ width: "100%", height: "100%", objectFit: "contain", padding: 2 }} />
               </div>
               <div style={{ display: "flex", flexDirection: "column" }}>
-                <p className="eyebrow" style={{ margin: 0, fontWeight: 700 }}>PRAGATI Workspace</p>
+                <p className="eyebrow" style={{ margin: 0, fontWeight: 700, fontFamily: "'Oswald', sans-serif", fontSize: "1.05rem", letterSpacing: "0.03em" }}>PRAGATI Workspace</p>
                 <p className="muted" style={{ fontSize: "0.65rem", margin: 0, letterSpacing: "0.05em", textTransform: "uppercase" }}>From Data to Decisions</p>
               </div>
             </div>
@@ -428,6 +428,18 @@ export function UserLandingPage() {
           tone="danger"
         />
       </div>
+      <footer style={{ 
+        textAlign: "center", 
+        padding: "20px 0", 
+        fontSize: "0.8rem",
+        color: "var(--text)",
+        opacity: 0.6,
+        width: "100%",
+        borderTop: "1px solid var(--border)",
+        marginTop: "40px"
+      }}>
+        &copy; Uttaranchal University developed by IQAC
+      </footer>
     </div>
   );
 }
