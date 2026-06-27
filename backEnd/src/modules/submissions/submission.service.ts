@@ -100,3 +100,67 @@ export const deleteSubmission = async (id: string, requester: { id: string; role
 export const getCurrentUserSubmissionForForm = async (formId: string, submittedById: string) => {
     return await findUserSubmissionByForm(formId, submittedById);
 };
+
+export const adminEditSubmission = async (
+    id: string,
+    values: Array<{ fieldId: string; value: string }>,
+    adminUserId: string
+) => {
+    const existing = await prisma.submission.findUnique({
+        where: { id },
+        include: {
+            submissionValue: {
+                include: {
+                    field: true
+                }
+            }
+        }
+    });
+
+    if (!existing) {
+        throw new AppError("Submission not found", 404);
+    }
+
+    const changes: Array<{ fieldLabel: string; oldValue: string; newValue: string }> = [];
+
+    for (const newVal of values) {
+        const oldValObj = existing.submissionValue.find(v => v.fieldId === newVal.fieldId);
+        const oldValue = oldValObj ? oldValObj.value : "";
+        if (oldValue !== newVal.value) {
+            const field = await prisma.field.findUnique({ where: { id: newVal.fieldId } });
+            changes.push({
+                fieldLabel: field?.label || "Unknown Field",
+                oldValue,
+                newValue: newVal.value
+            });
+        }
+    }
+
+    const updated = await prisma.submission.update({
+        where: { id },
+        data: {
+            submissionValue: {
+                deleteMany: {},
+                create: values.map((val) => ({
+                    fieldId: val.fieldId,
+                    value: val.value,
+                })),
+            },
+        },
+        include: {
+            submissionValue: true,
+        },
+    });
+
+    if (changes.length > 0) {
+        await prisma.submissionEditHistory.create({
+            data: {
+                submissionId: id,
+                editedById: adminUserId,
+                changedValues: JSON.stringify(changes)
+            }
+        });
+    }
+
+    return updated;
+};

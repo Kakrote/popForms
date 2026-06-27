@@ -85,6 +85,10 @@ export const deleteUser = async (id: User["id"]) => {
             });
         }
 
+        await tx.submissionEditHistory.deleteMany({
+            where: { editedById: id }
+        });
+
         await tx.profile.deleteMany({
             where: { userId: id }
         });

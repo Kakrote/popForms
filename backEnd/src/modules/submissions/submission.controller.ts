@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { catchAsync } from "../../utils/catchAsync.js";
-import { submitForm, listSubmissions, getSubmission, listCurrentUserSubmissions, getCurrentUserSubmissionForForm, listCurrentUserDrafts, deleteSubmission } from "./submission.service.js";
+import { submitForm, listSubmissions, getSubmission, listCurrentUserSubmissions, getCurrentUserSubmissionForForm, listCurrentUserDrafts, deleteSubmission, adminEditSubmission } from "./submission.service.js";
 import { createSubmissionSchema } from "./submission.validation.js";
 
 type AuthenticatedRequest = Request & {
@@ -105,5 +105,22 @@ export const deleteSubmissionHandler = catchAsync(async (req: AuthenticatedReque
     res.status(200).json({
         success: true,
         data: deleted,
+    });
+});
+
+export const adminEditSubmissionHandler = catchAsync(async (req: AuthenticatedRequest, res: Response) => {
+    const adminUserId = req.user?.id as string;
+    const id = req.params.id as string;
+    const { values } = req.body as { values: Array<{ fieldId: string; value: string }> };
+
+    if (!adminUserId) {
+        return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const updated = await adminEditSubmission(id, values, adminUserId);
+
+    res.status(200).json({
+        success: true,
+        data: updated,
     });
 });

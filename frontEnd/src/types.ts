@@ -73,6 +73,15 @@ export type SubmissionValue = {
   field?: FormField;
 };
 
+export type SubmissionEditHistory = {
+  id: string;
+  submissionId: string;
+  editedById: string;
+  editedBy?: User;
+  changedValues: string;
+  editedAt: string;
+};
+
 export type Submission = {
   id: string;
   formId: string;
@@ -87,6 +96,7 @@ export type Submission = {
   department?: Department;
   submittedBy?: User;
   submissionValue: SubmissionValue[];
+  editHistories?: SubmissionEditHistory[];
 };
 
 export type Form = {

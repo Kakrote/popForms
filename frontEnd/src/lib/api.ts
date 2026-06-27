@@ -139,6 +139,10 @@ export const submissionsApi = {
     const response = await apiClient.delete<ApiResponse<Submission>>(`/submissions/${id}`);
     return unwrap(response);
   },
+  update: async (id: string, values: Array<{ fieldId: string; value: string }>) => {
+    const response = await apiClient.patch<ApiResponse<Submission>>(`/submissions/${id}`, { values });
+    return unwrap(response);
+  },
 };
 
 export const departmentApi = {

@@ -99,6 +99,20 @@ export const findUserSubmissionByForm = async (formId: string, submittedById: st
                 },
             },
             department: true,
+            editHistories: {
+                include: {
+                    editedBy: {
+                        select: {
+                            id: true,
+                            username: true,
+                            email: true,
+                        },
+                    },
+                },
+                orderBy: {
+                    editedAt: "desc",
+                },
+            },
         },
         orderBy: {
             updatedAt: "desc",
@@ -191,6 +205,20 @@ export const getMySubmissions = async (submittedById: string) => {
                     },
                 },
             },
+            editHistories: {
+                include: {
+                    editedBy: {
+                        select: {
+                            id: true,
+                            username: true,
+                            email: true,
+                        },
+                    },
+                },
+                orderBy: {
+                    editedAt: "desc",
+                },
+            },
         },
     });
 };
@@ -248,6 +276,20 @@ export const getSubmissionById = async (id: string) => {
                             options: true,
                         },
                     },
+                },
+            },
+            editHistories: {
+                include: {
+                    editedBy: {
+                        select: {
+                            id: true,
+                            username: true,
+                            email: true,
+                        },
+                    },
+                },
+                orderBy: {
+                    editedAt: "desc",
                 },
             },
         },

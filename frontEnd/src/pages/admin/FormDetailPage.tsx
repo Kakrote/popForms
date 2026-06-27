@@ -1,10 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import { SubmissionSectionsView, type SubmissionSectionView } from "../../components/SubmissionSectionsView";
 import { getFieldTypeLabel } from "../../components/fieldTypeLabels";
-import { formsApi } from "../../lib/api";
+import { formsApi, submissionsApi } from "../../lib/api";
 import { copyToClipboard } from "../../lib/clipboard";
 import type { Submission } from "../../types";
 import { 
@@ -22,7 +22,9 @@ import {
   Clock,
   Layers,
   Inbox,
-  AlertCircle
+  AlertCircle,
+  Save,
+  X
 } from "lucide-react";
 
 export function FormDetailPage() {
@@ -32,6 +34,21 @@ export function FormDetailPage() {
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [isEditingSubmission, setIsEditingSubmission] = useState(false);
+  const [editValues, setEditValues] = useState<Record<string, string>>({});
+
+  const editSubmissionMutation = useMutation({
+    mutationFn: ({ id, values }: { id: string; values: Array<{ fieldId: string; value: string }> }) =>
+      submissionsApi.update(id, values),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["form", slug] });
+      setIsEditingSubmission(false);
+      alert("Submission updated successfully.");
+    },
+    onError: (err: any) => {
+      alert(err.message || "Failed to update submission");
+    }
+  });
 
   const formQuery = useQuery({
     queryKey: ["form", slug],
@@ -66,6 +83,11 @@ export function FormDetailPage() {
   );
 
   const submissionSections = useMemo(() => mapSubmissionSections(selectedSubmission), [selectedSubmission]);
+
+  useEffect(() => {
+    setIsEditingSubmission(false);
+    setEditValues({});
+  }, [selectedSubmissionId]);
 
   const handleCopyLink = () => {
     if (!form) return;
@@ -257,11 +279,11 @@ export function FormDetailPage() {
           </div>
         </div>
 
-        <div className="split">
-          {/* Submissions Sidebar List */}
-          <div className="stack" style={{ gap: 10, maxHeight: "450px", overflowY: "auto", paddingRight: 6 }}>
+        <div className="stack" style={{ gap: 24 }}>
+          {/* Submissions List Grid */}
+          <div className="grid cols-3" style={{ gap: 12, maxHeight: "250px", overflowY: "auto", paddingRight: 6 }}>
             {submissions.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "40px 0" }}>
+              <div style={{ textAlign: "center", padding: "40px 0", gridColumn: "span 3" }}>
                 <AlertCircle size={28} className="muted" style={{ opacity: 0.5, marginBottom: 8 }} />
                 <p className="muted small">No submissions received yet.</p>
               </div>
@@ -313,7 +335,35 @@ export function FormDetailPage() {
                     <h3 style={{ margin: 0, fontSize: "1.1rem" }}>Submission Detail</h3>
                     <p className="muted small" style={{ margin: 0, fontFamily: "monospace" }}>ID: {selectedSubmission.id}</p>
                   </div>
-                  <span className="badge SUBMITTED">{selectedSubmission.status}</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span className="badge SUBMITTED">{selectedSubmission.status}</span>
+                    {!isEditingSubmission ? (
+                      <button
+                        type="button"
+                        className="ghost-button small-btn"
+                        onClick={() => {
+                          setIsEditingSubmission(true);
+                          const vals: Record<string, string> = {};
+                          selectedSubmission.submissionValue.forEach((v) => {
+                            vals[v.fieldId] = v.value;
+                          });
+                          setEditValues(vals);
+                        }}
+                      >
+                        <Settings size={12} />
+                        Edit
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="ghost-button small-btn danger-text"
+                        onClick={() => setIsEditingSubmission(false)}
+                      >
+                        <X size={12} />
+                        Cancel
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }} className="small muted">
@@ -322,9 +372,106 @@ export function FormDetailPage() {
                   <div style={{ gridColumn: "span 2" }}>Submitted: <span style={{ color: "var(--text)" }}>{selectedSubmission.submittedAt ? new Date(selectedSubmission.submittedAt).toLocaleString() : "-"}</span></div>
                 </div>
 
-                <div style={{ borderTop: "1px solid var(--border)", paddingTop: 16 }}>
-                  <SubmissionSectionsView sections={submissionSections} emptyMessage="This submission does not contain any values." />
-                </div>
+                {isEditingSubmission ? (
+                  <div className="stack" style={{ gap: 16 }}>
+                    <div style={{ display: "flex", gap: 12, marginBottom: 8 }}>
+                      <button
+                        type="button"
+                        disabled={editSubmissionMutation.isPending}
+                        onClick={() => {
+                          const payloadValues = Object.entries(editValues).map(([fieldId, value]) => ({
+                            fieldId,
+                            value,
+                          }));
+                          editSubmissionMutation.mutate({ id: selectedSubmission.id, values: payloadValues });
+                        }}
+                      >
+                        <Save size={16} />
+                        {editSubmissionMutation.isPending ? "Saving..." : "Save Changes"}
+                      </button>
+                      <button
+                        type="button"
+                        className="ghost-button"
+                        onClick={() => setIsEditingSubmission(false)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                    {sections.map((section) => (
+                      <div key={section.id} className="stack" style={{ gap: 12, background: "rgba(0,0,0,0.01)", padding: 16, borderRadius: 12, border: "1px solid var(--border)" }}>
+                        <h4 style={{ margin: 0, fontSize: "0.95rem", color: "var(--text)" }}>{section.title}</h4>
+                        {section.fields.map((field) => {
+                          const val = editValues[field.id] ?? "";
+                          return (
+                            <label key={field.id} className="stack small" style={{ gap: 6 }}>
+                              <span style={{ fontWeight: 500, color: "var(--text)" }}>{field.label}</span>
+                              {field.fieldType === "TEXTAREA" ? (
+                                <textarea
+                                  value={val}
+                                  onChange={(e) => setEditValues({ ...editValues, [field.id]: e.target.value })}
+                                />
+                              ) : field.fieldType === "SELECT" ? (
+                                <select
+                                  value={val}
+                                  onChange={(e) => setEditValues({ ...editValues, [field.id]: e.target.value })}
+                                >
+                                  <option value="">Select option...</option>
+                                  {field.options.map((opt) => (
+                                    <option key={opt.id} value={opt.value}>{opt.label}</option>
+                                  ))}
+                                </select>
+                              ) : (
+                                <input
+                                  type={field.fieldType === "NUMBER" ? "number" : field.fieldType === "DATE" ? "date" : "text"}
+                                  value={val}
+                                  onChange={(e) => setEditValues({ ...editValues, [field.id]: e.target.value })}
+                                />
+                              )}
+                            </label>
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ borderTop: "1px solid var(--border)", paddingTop: 16 }}>
+                    <SubmissionSectionsView sections={submissionSections} emptyMessage="This submission does not contain any values." />
+                  </div>
+                )}
+
+                {/* Edit History logs */}
+                {!isEditingSubmission && selectedSubmission.editHistories && selectedSubmission.editHistories.length > 0 ? (
+                  <div style={{ borderTop: "1px solid var(--border)", paddingTop: 16, marginTop: 16 }} className="stack">
+                    <h4 style={{ margin: "0 0 10px 0", fontSize: "0.95rem", display: "flex", alignItems: "center", gap: 6, color: "var(--text)" }}>
+                      <Clock size={14} className="muted" />
+                      Admin Edit History
+                    </h4>
+                    <div className="stack" style={{ gap: 10 }}>
+                      {selectedSubmission.editHistories.map((history) => {
+                        let changesList: Array<{ fieldLabel: string; oldValue: string; newValue: string }> = [];
+                        try {
+                          changesList = JSON.parse(history.changedValues);
+                        } catch (e) {}
+
+                        return (
+                          <div key={history.id} style={{ background: "rgba(0,0,0,0.01)", border: "1px solid var(--border)", padding: 12, borderRadius: 8 }} className="small">
+                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                              <span style={{ fontWeight: 600 }}>Edited by: {history.editedBy?.username || "Admin"}</span>
+                              <span className="muted">{new Date(history.editedAt).toLocaleString()}</span>
+                            </div>
+                            <div className="stack" style={{ gap: 4 }}>
+                              {changesList.map((ch, idx) => (
+                                <div key={idx} className="muted">
+                                  <strong>{ch.fieldLabel}:</strong> <span style={{ textDecoration: "line-through" }}>"{ch.oldValue}"</span> &rarr; <span style={{ color: "var(--text)" }}>"{ch.newValue}"</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
               </div>
             ) : (
               <div style={{ textAlign: "center", padding: "40px 0" }} className="muted">

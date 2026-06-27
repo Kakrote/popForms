@@ -374,6 +374,36 @@ export function UserLandingPage() {
                   <div className="muted">Status: <div style={{ marginTop: 4 }}><span className="badge SUBMITTED" style={{ padding: "3px 10px", fontSize: "0.75rem" }}>{selectedSubmission.status}</span></div></div>
                   <div className="muted">Submitted: <div style={{ color: "var(--text)", fontWeight: 600, marginTop: 2 }}>{selectedSubmission.submittedAt ? new Date(selectedSubmission.submittedAt).toLocaleString() : "-"}</div></div>
                 </div>
+
+                {selectedSubmission.editHistories && selectedSubmission.editHistories.length > 0 && (
+                  <div style={{ marginTop: 20, paddingTop: 16, borderTop: "1px solid var(--border)" }} className="stack">
+                    <strong style={{ fontSize: "1rem", display: "block", marginBottom: 10, color: "var(--text)" }}>Admin Edit History</strong>
+                    <div className="stack" style={{ gap: 10, maxHeight: "250px", overflowY: "auto" }}>
+                      {selectedSubmission.editHistories.map((history) => {
+                        let changesList: Array<{ fieldLabel: string; oldValue: string; newValue: string }> = [];
+                        try {
+                          changesList = JSON.parse(history.changedValues);
+                        } catch (e) {}
+
+                        return (
+                          <div key={history.id} style={{ background: "rgba(0,0,0,0.02)", border: "1px solid var(--border)", padding: 10, borderRadius: 8, fontSize: "0.85rem" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, fontWeight: 600 }}>
+                              <span>Admin ({history.editedBy?.username || "Admin"})</span>
+                              <span className="muted" style={{ fontSize: "0.75rem" }}>{new Date(history.editedAt).toLocaleDateString()}</span>
+                            </div>
+                            <div className="stack" style={{ gap: 4 }}>
+                              {changesList.map((ch, idx) => (
+                                <div key={idx} className="muted" style={{ fontSize: "0.8rem" }}>
+                                  <strong>{ch.fieldLabel}:</strong> <span style={{ textDecoration: "line-through" }}>"{ch.oldValue}"</span> &rarr; <span style={{ color: "var(--text)" }}>"{ch.newValue}"</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div style={{ maxHeight: "calc(90vh - 120px)", overflowY: "auto", paddingRight: 6 }}>
