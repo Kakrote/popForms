@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import logger from "../utils/logger.js";
 import { AppError } from "../utils/appError.js";
+import fs from "fs";
 
 // Optional runtime winston integration: if winston is installed we'll use it for file/console transports.
 let winstonLogger: any = null;
@@ -40,7 +41,16 @@ export default function globalErrorHandler(err: unknown, req: Request, res: Resp
 
     // Non-operational / unknown errors
     const statusCode = error.statusCode ?? 500;
-    const message = process.env.NODE_ENV === "production" ? "Internal Server Error" : (error.message ?? "Internal Server Error");
+    const message = error.message ?? "Internal Server Error";
+
+    // Log error stack to shared container volume
+    try {
+        const logContent = `\n--- ERROR ${new Date().toISOString()} ---\n` +
+          `Message: ${error.message}\n` +
+          `Stack: ${(error as Error).stack}\n` +
+          `--------------------------------------\n`;
+        fs.appendFileSync("/app/container_errors.log", logContent);
+    } catch (e) {}
 
     // Log with stack when available
     if (winstonLogger) {
