@@ -278,7 +278,15 @@ export function AdminDashboardPage() {
         {/* View Submission Modal */}
         <Modal open={Boolean(selectedSubmissionId)} onClose={() => setSelectedSubmissionId(null)} title={submissionDetail ? `Submission Details` : "Details"}>
           {submissionDetailQuery.isLoading ? <p className="muted">Loading submission details...</p> : null}
-          {submissionDetailQuery.isError ? <p className="error">Unable to load this submission detail.</p> : null}
+          {submissionDetailQuery.isError ? (
+            <div className="notice error-notice" style={{ padding: 12, marginBottom: 12, display: "flex", flexDirection: "column", gap: 6 }}>
+              <p className="error" style={{ margin: 0, fontWeight: 600 }}>Unable to load this submission detail.</p>
+              <pre style={{ fontSize: "0.75rem", margin: 0, whiteSpace: "pre-wrap", background: "rgba(0,0,0,0.03)", padding: 8, borderRadius: 6 }}>
+                Error: {(submissionDetailQuery.error as any)?.message || "Unknown error"}
+                {((submissionDetailQuery.error as any)?.response?.data?.message) && ` - ${(submissionDetailQuery.error as any).response.data.message}`}
+              </pre>
+            </div>
+          ) : null}
 
           {submissionDetail ? (
             <div className="split" style={{ gridTemplateColumns: "1fr 1.5fr", gap: "24px", alignItems: "start" }}>
