@@ -53,7 +53,34 @@ export function LoginPage() {
   }
 
   return (
-    <div className="center-page">
+    <div className="center-page" style={{ position: "relative", minHeight: "100vh", width: "100%" }}>
+      {/* Top Left: University Logo */}
+      <div style={{ position: "absolute", top: "24px", left: "24px" }} className="hide-mobile">
+        <img 
+          src={universityLogo} 
+          alt="Uttaranchal University Logo" 
+          style={{ maxHeight: "50px", objectFit: "contain" }} 
+        />
+      </div>
+
+      {/* Top Right: Name of the Portal */}
+      <div style={{ position: "absolute", top: "24px", right: "24px", display: "flex", alignItems: "center", gap: 10 }} className="hide-mobile">
+        <div style={{
+          background: "#fff",
+          borderRadius: "8px",
+          width: "36px",
+          height: "36px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "var(--shadow)",
+          overflow: "hidden"
+        }}>
+          <img src={logo} alt="PRAGATI Icon" style={{ width: "100%", height: "100%", objectFit: "contain", padding: 2 }} />
+        </div>
+        <span style={{ fontWeight: 700, fontSize: "1.1rem", color: "var(--text)", letterSpacing: "0.05em" }}>PRAGATI Portal</span>
+      </div>
+
       <form 
         id="login-form"
         className="auth-card stack" 
@@ -62,39 +89,39 @@ export function LoginPage() {
           boxShadow: "var(--shadow)",
           border: "1px solid var(--border)",
           background: "var(--surface)",
-          borderRadius: "24px"
+          borderRadius: "24px",
+          zIndex: 10
         }}
       >
         <div style={{ textAlign: "center", marginBottom: 8 }}>
+          {/* Circular big logo */}
           <div style={{
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             marginBottom: 20
           }}>
-            <img 
-              src={universityLogo} 
-              alt="Uttaranchal University Logo" 
-              style={{ maxWidth: "100%", maxHeight: "55px", objectFit: "contain" }} 
-            />
-          </div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 4 }}>
             <div style={{
               background: "#fff",
-              borderRadius: "6px",
-              width: "28px",
-              height: "28px",
+              borderRadius: "50%",
+              width: "190px",
+              height: "190px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: "var(--shadow)",
-              overflow: "hidden"
+              boxShadow: "0 8px 24px rgba(99, 102, 241, 0.15)",
+              border: "3px solid var(--accent)",
+              overflow: "hidden",
+              padding: "10px"
             }}>
-              <img src={logo} alt="PRAGATI Icon" style={{ width: "100%", height: "100%", objectFit: "contain", padding: 2 }} />
+              <img 
+                src={logo} 
+                alt="PRAGATI Portal" 
+                style={{ width: "100%", height: "100%", objectFit: "contain" }} 
+              />
             </div>
-            <p className="eyebrow" style={{ fontSize: "0.85rem", letterSpacing: "0.15em", margin: 0 }}>PRAGATI Portal</p>
           </div>
-          <p className="muted" style={{ fontSize: "0.75rem", margin: "0 0 12px 0", letterSpacing: "0.05em", textTransform: "uppercase" }}>From Data to Decisions</p>
+
           <h1 style={{ margin: "4px 0 8px 0" }}>Sign In</h1>
           <p className="muted small">Use your credentials to access your dashboard.</p>
         </div>
