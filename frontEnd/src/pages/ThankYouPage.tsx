@@ -66,7 +66,7 @@ export function ThankYouPage() {
         borderTop: "1px solid var(--border)",
         zIndex: 5
       }}>
-        &copy; Uttaranchal University developed by IQAC
+        &copy; Developed by IQAC, Uttaranchal University
       </footer>
     </div>
   );

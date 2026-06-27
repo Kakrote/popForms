@@ -423,7 +423,7 @@ export function PublicFormPage() {
         borderTop: "1px solid var(--border)",
         marginTop: "40px"
       }}>
-        &copy; Uttaranchal University developed by IQAC
+        &copy; Developed by IQAC, Uttaranchal University
       </footer>
     </div>
   );

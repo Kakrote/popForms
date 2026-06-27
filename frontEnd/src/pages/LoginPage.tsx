@@ -189,7 +189,7 @@ export function LoginPage() {
         borderTop: "1px solid var(--border)",
         zIndex: 5
       }}>
-        &copy; Developed by IQAC, Uttaranchal University 
+        &copy; Developed by IQAC, Uttaranchal University
       </footer>
     </div>
   );

@@ -104,7 +104,7 @@ export function AppShell() {
           color: "var(--text)",
           opacity: 0.6
         }}>
-          &copy; Uttaranchal University developed by IQAC
+          &copy; Developed by IQAC, Uttaranchal University
         </footer>
       </main>
     </div>
