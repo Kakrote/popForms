@@ -177,4 +177,10 @@ export const usersApi = {
     const response = await apiClient.patch<ApiResponse<User>>(`/user/${id}`, payload);
     return unwrap(response);
   },
+  remove: async (id: string) => {
+    const targetUrl = `${apiClient.defaults.baseURL || ""}/user/${id}`;
+    alert(`Requesting DELETE: ${targetUrl}`);
+    const response = await apiClient.delete<ApiResponse<User>>(`/user/${id}`);
+    return unwrap(response);
+  },
 };

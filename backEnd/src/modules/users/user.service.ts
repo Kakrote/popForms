@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { AppError } from "../../utils/appError.js";
-import { getUsersFromDB, getUser, updateUser } from "./user.repository.js";
+import { getUsersFromDB, getUser, updateUser, deleteUser } from "./user.repository.js";
 import {User} from "./user.types.js"
 
 
@@ -38,4 +38,10 @@ export const getUserById=async (id:User["id"])=>{
 export const updateUserProfile= async (id:User["id"], updateData: Partial<Prisma.UserCreateInput>)=>{
     const updatedUser = await updateUser(id,updateData);
     return sanitizeUser(updatedUser);
+}
+
+// delete user
+export const removeUser = async (id: User["id"]) => {
+    const deletedUser = await deleteUser(id);
+    return sanitizeUser(deletedUser);
 }

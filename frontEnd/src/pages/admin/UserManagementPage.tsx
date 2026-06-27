@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Link } from "react-router-dom";
 import { departmentApi, usersApi } from "../../lib/api";
+import ConfirmDialog from "../../components/ConfirmDialog";
 import { 
   Users, 
   User, 
@@ -57,6 +58,23 @@ export function UserManagementPage() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["users"] });
     },
+  });
+
+  const [pendingDeleteUser, setPendingDeleteUser] = useState<any | null>(null);
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => usersApi.remove(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["users"] });
+      await queryClient.invalidateQueries({ queryKey: ["departments"] });
+      setPendingDeleteUser(null);
+      setSelectedUserId(null);
+      alert("User removed successfully.");
+    },
+    onError: (error: any) => {
+      console.error(error);
+      alert(error?.response?.data?.message || error?.message || "Failed to remove user");
+    }
   });
 
   useEffect(() => {
@@ -160,18 +178,31 @@ export function UserManagementPage() {
                       </span>
                     </td>
                     <td style={{ textAlign: "right" }}>
-                      <button
-                        id={`user-edit-row-btn-${user.id}`}
-                        type="button"
-                        className="ghost-button small-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedUserId(user.id);
-                        }}
-                      >
-                        <Edit2 size={12} />
-                        Select
-                      </button>
+                      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+                        <button
+                          id={`user-edit-row-btn-${user.id}`}
+                          type="button"
+                          className="ghost-button small-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedUserId(user.id);
+                          }}
+                        >
+                          <Edit2 size={12} />
+                          Select
+                        </button>
+                        <button
+                          id={`user-remove-row-btn-${user.id}`}
+                          type="button"
+                          className="ghost-button small-btn danger-text"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPendingDeleteUser(user);
+                          }}
+                        >
+                          Remove User
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -294,15 +325,47 @@ export function UserManagementPage() {
           </div>
         ) : null}
 
-        <button 
-          id="user-edit-save-btn"
-          type="submit" 
-          disabled={updateMutation.isPending}
-          style={{ alignSelf: "flex-start", padding: "0.75rem 1.5rem" }}
-        >
-          {updateMutation.isPending ? "Saving..." : "Save Changes"}
-        </button>
+        <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
+          <button 
+            id="user-edit-save-btn"
+            type="submit" 
+            disabled={updateMutation.isPending}
+            style={{ padding: "0.75rem 1.5rem" }}
+          >
+            {updateMutation.isPending ? "Saving..." : "Save Changes"}
+          </button>
+          {selectedUserId && (
+            <button
+              id="user-remove-btn"
+              type="button"
+              className="danger-button"
+              style={{ padding: "0.75rem 1.5rem" }}
+              onClick={() => {
+                const activeUser = users.find((u) => u.id === selectedUserId);
+                if (activeUser) {
+                  setPendingDeleteUser(activeUser);
+                }
+              }}
+            >
+              Remove User
+            </button>
+          )}
+        </div>
       </form>
+
+      <ConfirmDialog
+        open={Boolean(pendingDeleteUser)}
+        title="Remove User"
+        description={`Warning: Are you sure you want to remove user "${pendingDeleteUser?.username ?? ""}"? This action is permanent and will remove all their profile information, department assignments, created forms, and submissions.`}
+        confirmLabel="Remove User"
+        onCancel={() => setPendingDeleteUser(null)}
+        onConfirm={() => {
+          if (!pendingDeleteUser) return;
+          deleteMutation.mutate(pendingDeleteUser.id);
+        }}
+        busy={deleteMutation.isPending}
+        tone="danger"
+      />
     </div>
   );
 }
