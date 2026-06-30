@@ -132,8 +132,14 @@ export function generateSubmissionPDF(submission: Submission) {
       const qText = value.field?.label ?? value.fieldId;
       const aText = value.value || "No response";
 
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
       const qLines = doc.splitTextToSize(`Q: ${qText}`, printableWidth);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
       const aLines = doc.splitTextToSize(`A: ${aText}`, printableWidth - 6);
+      
       const itemHeight = qLines.length * 5 + aLines.length * 5 + 6;
 
       checkPageBreak(itemHeight);
@@ -153,8 +159,14 @@ export function generateSubmissionPDF(submission: Submission) {
     sections.forEach((section) => {
       // Check and render Category Header / Separator (headerLabel & headerDescription)
       if (section.headerLabel || section.headerDescription) {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(13);
         const hLabelLines = section.headerLabel ? doc.splitTextToSize(section.headerLabel.toUpperCase(), printableWidth) : [];
+        
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(9);
         const hDescLines = section.headerDescription ? doc.splitTextToSize(section.headerDescription, printableWidth) : [];
+        
         const hHeight = (hLabelLines.length ? hLabelLines.length * 6 : 0) + (hDescLines.length ? hDescLines.length * 4.5 + 2 : 0) + 6;
         
         checkPageBreak(hHeight + 10);
@@ -182,8 +194,14 @@ export function generateSubmissionPDF(submission: Submission) {
         currentY.val += 8;
       }
 
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10.5);
       const secTitleLines = doc.splitTextToSize(section.title.toUpperCase(), printableWidth - 8);
+
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(8.5);
       const secDescLines = section.description ? doc.splitTextToSize(section.description, printableWidth) : [];
+
       const secHeaderBoxHeight = secTitleLines.length * 5 + 6;
       const secHeight = secHeaderBoxHeight + (secDescLines.length ? secDescLines.length * 4.5 + 2 : 0) + 12;
 
@@ -247,11 +265,15 @@ export function generateSubmissionPDF(submission: Submission) {
           currentY.val += itemHeight;
         } else {
           // Full width layout for long textareas or choice options
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(9.5);
           const qLines = doc.splitTextToSize(labelText, printableWidth);
           
           let responseHeight = 0;
           let aLines: string[] = [];
 
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(9);
           if (field.fieldType === "TEXTAREA" || val.length > 60) {
             aLines = doc.splitTextToSize(cleanVal, printableWidth - 8);
             responseHeight = aLines.length * 4.5 + 8; // rounded card height
@@ -406,8 +428,14 @@ export function generateBlankFormPDF(form: Form) {
     sections.forEach((section) => {
       // Check and render Category Header / Separator (headerLabel & headerDescription)
       if (section.headerLabel || section.headerDescription) {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(13);
         const hLabelLines = section.headerLabel ? doc.splitTextToSize(section.headerLabel.toUpperCase(), printableWidth) : [];
+        
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(9);
         const hDescLines = section.headerDescription ? doc.splitTextToSize(section.headerDescription, printableWidth) : [];
+        
         const hHeight = (hLabelLines.length ? hLabelLines.length * 6 : 0) + (hDescLines.length ? hDescLines.length * 4.5 + 2 : 0) + 6;
         
         checkPageBreak(hHeight + 10);
@@ -435,8 +463,14 @@ export function generateBlankFormPDF(form: Form) {
         currentY.val += 8;
       }
 
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10.5);
       const secTitleLines = doc.splitTextToSize(section.title.toUpperCase(), printableWidth - 8);
+
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(8.5);
       const secDescLines = section.description ? doc.splitTextToSize(section.description, printableWidth) : [];
+
       const secHeaderBoxHeight = secTitleLines.length * 5 + 6;
       const secHeight = secHeaderBoxHeight + (secDescLines.length ? secDescLines.length * 4.5 + 2 : 0) + 12;
 
@@ -496,6 +530,8 @@ export function generateBlankFormPDF(form: Form) {
           currentY.val += itemHeight;
         } else {
           // Full width layout
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(9.5);
           const qLines = doc.splitTextToSize(fieldLabel, printableWidth);
           
           let visualHeight = 0;
