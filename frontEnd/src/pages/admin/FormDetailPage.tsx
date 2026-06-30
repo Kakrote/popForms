@@ -7,6 +7,7 @@ import { getFieldTypeLabel } from "../../components/fieldTypeLabels";
 import { formsApi, submissionsApi } from "../../lib/api";
 import { copyToClipboard } from "../../lib/clipboard";
 import type { Submission } from "../../types";
+import { generateSubmissionPDF } from "../../lib/pdf";
 import { 
   ArrowLeft, 
   Copy, 
@@ -24,7 +25,8 @@ import {
   Inbox,
   AlertCircle,
   Save,
-  X
+  X,
+  Download
 } from "lucide-react";
 
 export function FormDetailPage() {
@@ -337,6 +339,14 @@ export function FormDetailPage() {
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <span className="badge SUBMITTED">{selectedSubmission.status}</span>
+                    <button
+                      type="button"
+                      className="ghost-button small-btn"
+                      onClick={() => generateSubmissionPDF(selectedSubmission)}
+                    >
+                      <Download size={12} />
+                      Download PDF
+                    </button>
                     {!isEditingSubmission ? (
                       <button
                         type="button"

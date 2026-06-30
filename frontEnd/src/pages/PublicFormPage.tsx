@@ -10,8 +10,9 @@ import universityLogo from "../public/university.png";
 import logo from "../public/logo.png";
 import { authApi, departmentApi, formsApi, submissionsApi } from "../lib/api";
 import { useAuthStore } from "../store/authStore";
-import type { FormField, LoginFormValues } from "../types";
+import type { FormField, LoginFormValues, Submission } from "../types";
 import Modal from "../components/Modal";
+import { generateSubmissionPDF, generateBlankFormPDF } from "../lib/pdf";
 import { 
   ArrowLeft, 
   Bookmark, 
@@ -23,7 +24,8 @@ import {
   Building2,
   AlertTriangle,
   Mail,
-  Key
+  Key,
+  Download
 } from "lucide-react";
 
 type SubmissionValues = Record<string, string>;
@@ -243,6 +245,18 @@ export function PublicFormPage() {
                 </div>
               ) : null}
 
+              {isAlreadySubmitted && existingSubmissionQuery.data && (
+                <button
+                  type="button"
+                  className="small-btn"
+                  style={{ width: "100%", marginTop: 8, background: "var(--accent-gradient)" }}
+                  onClick={() => generateSubmissionPDF(existingSubmissionQuery.data!)}
+                >
+                  <Download size={14} />
+                  Download Submitted PDF
+                </button>
+              )}
+
               {isAlreadySubmitted && existingSubmissionQuery.data?.editHistories && existingSubmissionQuery.data.editHistories.length > 0 ? (
                 <div className="notice warning-notice" style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 10, padding: 12, background: "rgba(245, 158, 11, 0.1)", color: "var(--warning)", border: "1px solid rgba(245, 158, 11, 0.2)" }}>
                   <AlertTriangle size={18} style={{ flexShrink: 0 }} />
@@ -288,6 +302,21 @@ export function PublicFormPage() {
                   <p className="muted small form-actions-tip" style={{ margin: 0, lineHeight: 1.4 }}>
                     Save drafts as you fill out questions, and execute Final Submit when finished.
                   </p>
+                  
+                  <button
+                    id="export-pdf-btn"
+                    type="button"
+                    className="ghost-button"
+                    style={{ width: "100%", borderColor: "var(--accent)", color: "var(--accent)", background: "rgba(99, 102, 241, 0.04)" }}
+                    onClick={() => {
+                      if (formQuery.data) {
+                        generateBlankFormPDF(formQuery.data);
+                      }
+                    }}
+                  >
+                    <Download size={16} />
+                    Export Form as PDF
+                  </button>
                   
                   <div className="form-actions-buttons">
                     <button

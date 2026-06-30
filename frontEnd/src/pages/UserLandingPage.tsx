@@ -10,6 +10,7 @@ import Modal from "../components/Modal";
 import { SubmissionSectionsView, type SubmissionSectionView } from "../components/SubmissionSectionsView";
 import { getFieldTypeLabel } from "../components/fieldTypeLabels";
 import type { Submission } from "../types";
+import { generateSubmissionPDF } from "../lib/pdf";
 import { 
   User, 
   Building2, 
@@ -19,7 +20,8 @@ import {
   Trash2, 
   Eye, 
   FileText,
-  AlertCircle
+  AlertCircle,
+  Download
 } from "lucide-react";
 
 export function UserLandingPage() {
@@ -376,6 +378,18 @@ export function UserLandingPage() {
                   <div className="muted">Department: <div style={{ color: "var(--text)", fontWeight: 600, marginTop: 2 }}>{selectedSubmission.department?.department_Name ?? selectedSubmission.departmentId}</div></div>
                   <div className="muted">Status: <div style={{ marginTop: 4 }}><span className="badge SUBMITTED" style={{ padding: "3px 10px", fontSize: "0.75rem" }}>{selectedSubmission.status}</span></div></div>
                   <div className="muted">Submitted: <div style={{ color: "var(--text)", fontWeight: 600, marginTop: 2 }}>{selectedSubmission.submittedAt ? new Date(selectedSubmission.submittedAt).toLocaleString() : "-"}</div></div>
+                </div>
+
+                <div style={{ marginTop: 16, borderTop: "1px solid var(--border)", paddingTop: 16 }}>
+                  <button
+                    type="button"
+                    className="small-btn"
+                    style={{ width: "100%", background: "var(--accent-gradient)" }}
+                    onClick={() => generateSubmissionPDF(selectedSubmission)}
+                  >
+                    <Download size={14} />
+                    Download PDF
+                  </button>
                 </div>
 
                 {selectedSubmission.editHistories && selectedSubmission.editHistories.length > 0 && (
