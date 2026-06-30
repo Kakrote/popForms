@@ -151,6 +151,37 @@ export function generateSubmissionPDF(submission: Submission) {
     });
   } else {
     sections.forEach((section) => {
+      // Check and render Category Header / Separator (headerLabel & headerDescription)
+      if (section.headerLabel || section.headerDescription) {
+        const hLabelLines = section.headerLabel ? doc.splitTextToSize(section.headerLabel.toUpperCase(), printableWidth) : [];
+        const hDescLines = section.headerDescription ? doc.splitTextToSize(section.headerDescription, printableWidth) : [];
+        const hHeight = (hLabelLines.length ? hLabelLines.length * 6 : 0) + (hDescLines.length ? hDescLines.length * 4.5 + 2 : 0) + 6;
+        
+        checkPageBreak(hHeight + 10);
+        
+        if (section.headerLabel) {
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(13);
+          doc.setTextColor(79, 70, 229); // Accent Indigo
+          doc.text(hLabelLines, marginX, currentY.val);
+          currentY.val += hLabelLines.length * 6;
+        }
+        
+        if (section.headerDescription) {
+          doc.setFont("helvetica", "italic");
+          doc.setFontSize(9);
+          doc.setTextColor(100, 116, 139); // slate-500
+          doc.text(hDescLines, marginX, currentY.val);
+          currentY.val += hDescLines.length * 4.5 + 2;
+        }
+        
+        // Draw category separator line
+        doc.setDrawColor(203, 213, 225); // slate-300
+        doc.setLineWidth(0.4);
+        doc.line(marginX, currentY.val + 2, pageWidth - marginX, currentY.val + 2);
+        currentY.val += 8;
+      }
+
       const secTitleLines = doc.splitTextToSize(section.title.toUpperCase(), printableWidth - 8);
       const secDescLines = section.description ? doc.splitTextToSize(section.description, printableWidth) : [];
       const secHeaderBoxHeight = secTitleLines.length * 5 + 6;
@@ -373,6 +404,37 @@ export function generateBlankFormPDF(form: Form) {
     doc.text("No questions configured in this form.", marginX, currentY.val);
   } else {
     sections.forEach((section) => {
+      // Check and render Category Header / Separator (headerLabel & headerDescription)
+      if (section.headerLabel || section.headerDescription) {
+        const hLabelLines = section.headerLabel ? doc.splitTextToSize(section.headerLabel.toUpperCase(), printableWidth) : [];
+        const hDescLines = section.headerDescription ? doc.splitTextToSize(section.headerDescription, printableWidth) : [];
+        const hHeight = (hLabelLines.length ? hLabelLines.length * 6 : 0) + (hDescLines.length ? hDescLines.length * 4.5 + 2 : 0) + 6;
+        
+        checkPageBreak(hHeight + 10);
+        
+        if (section.headerLabel) {
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(13);
+          doc.setTextColor(79, 70, 229); // Accent Indigo
+          doc.text(hLabelLines, marginX, currentY.val);
+          currentY.val += hLabelLines.length * 6;
+        }
+        
+        if (section.headerDescription) {
+          doc.setFont("helvetica", "italic");
+          doc.setFontSize(9);
+          doc.setTextColor(100, 116, 139); // slate-500
+          doc.text(hDescLines, marginX, currentY.val);
+          currentY.val += hDescLines.length * 4.5 + 2;
+        }
+        
+        // Draw category separator line
+        doc.setDrawColor(203, 213, 225); // slate-300
+        doc.setLineWidth(0.4);
+        doc.line(marginX, currentY.val + 2, pageWidth - marginX, currentY.val + 2);
+        currentY.val += 8;
+      }
+
       const secTitleLines = doc.splitTextToSize(section.title.toUpperCase(), printableWidth - 8);
       const secDescLines = section.description ? doc.splitTextToSize(section.description, printableWidth) : [];
       const secHeaderBoxHeight = secTitleLines.length * 5 + 6;
