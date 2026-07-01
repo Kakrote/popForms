@@ -161,7 +161,7 @@ export function generateSubmissionPDF(submission: Submission) {
       if (section.headerLabel || section.headerDescription) {
         doc.setFont("helvetica", "bold");
         doc.setFontSize(13);
-        const hLabelLines = section.headerLabel ? doc.splitTextToSize(section.headerLabel.toUpperCase(), printableWidth) : [];
+        const hLabelLines = section.headerLabel ? doc.splitTextToSize(section.headerLabel, printableWidth) : [];
         
         doc.setFont("helvetica", "italic");
         doc.setFontSize(9);
@@ -196,7 +196,7 @@ export function generateSubmissionPDF(submission: Submission) {
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(10.5);
-      const secTitleLines = doc.splitTextToSize(section.title.toUpperCase(), printableWidth - 8);
+      const secTitleLines = doc.splitTextToSize(section.title, printableWidth - 8);
 
       doc.setFont("helvetica", "italic");
       doc.setFontSize(8.5);
@@ -430,7 +430,7 @@ export function generateBlankFormPDF(form: Form) {
       if (section.headerLabel || section.headerDescription) {
         doc.setFont("helvetica", "bold");
         doc.setFontSize(13);
-        const hLabelLines = section.headerLabel ? doc.splitTextToSize(section.headerLabel.toUpperCase(), printableWidth) : [];
+        const hLabelLines = section.headerLabel ? doc.splitTextToSize(section.headerLabel, printableWidth) : [];
         
         doc.setFont("helvetica", "italic");
         doc.setFontSize(9);
@@ -465,7 +465,7 @@ export function generateBlankFormPDF(form: Form) {
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(10.5);
-      const secTitleLines = doc.splitTextToSize(section.title.toUpperCase(), printableWidth - 8);
+      const secTitleLines = doc.splitTextToSize(section.title, printableWidth - 8);
 
       doc.setFont("helvetica", "italic");
       doc.setFontSize(8.5);
