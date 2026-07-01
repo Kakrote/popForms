@@ -56,44 +56,7 @@ export const updateUser = async (id: User["id"], data: UpdateData) => {
 
 export const deleteUser = async (id: User["id"]) => {
     return await prisma.$transaction(async (tx) => {
-        const department = await tx.department.findUnique({
-            where: { userId: id }
-        });
-
-        if (department) {
-            await tx.submission.deleteMany({
-                where: { departmentId: department.id }
-            });
-        }
-
-        await tx.submission.deleteMany({
-            where: { submittedById: id }
-        });
-
-        const userForms = await tx.form.findMany({
-            where: { createdById: id },
-            select: { id: true }
-        });
-        const formIds = userForms.map(f => f.id);
-
-        if (formIds.length > 0) {
-            await tx.submission.deleteMany({
-                where: { formId: { in: formIds } }
-            });
-            await tx.form.deleteMany({
-                where: { id: { in: formIds } }
-            });
-        }
-
-        await tx.submissionEditHistory.deleteMany({
-            where: { editedById: id }
-        });
-
         await tx.profile.deleteMany({
-            where: { userId: id }
-        });
-
-        await tx.department.deleteMany({
             where: { userId: id }
         });
 

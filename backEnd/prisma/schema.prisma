@@ -68,8 +68,8 @@ model Profile {
 model Department {
   id              String       @id @default(cuid())
   department_Name String       @unique
-  userId          String       @unique
-  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String?      @unique
+  user            User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
   formAccess      FormAccess[]
   submission      Submission[]
 }
@@ -83,8 +83,8 @@ model Form {
   description String?
   isOpen      Boolean      @default(true)
   deadline    DateTime?
-  createdById String
-  createdBy   User         @relation("CreatedForms", fields: [createdById], references: [id])
+  createdById String?
+  createdBy   User?        @relation("CreatedForms", fields: [createdById], references: [id], onDelete: SetNull)
   sections    FormSection[]
   accesses    FormAccess[]
   submissions Submission[]
@@ -193,8 +193,8 @@ model Submission {
   departmentId String
   department   Department @relation(fields: [departmentId], references: [id])
 
-  submittedById String
-  submittedBy   User   @relation(fields: [submittedById], references: [id])
+  submittedById String?
+  submittedBy   User?  @relation(fields: [submittedById], references: [id], onDelete: SetNull)
 
   status SubmissionStatus @default(DRAFT)
 
@@ -236,8 +236,8 @@ model SubmissionEditHistory {
   id           String     @id @default(cuid())
   submissionId String
   submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
-  editedById   String
-  editedBy     User       @relation("EditedHistories", fields: [editedById], references: [id])
+  editedById   String?
+  editedBy     User?      @relation("EditedHistories", fields: [editedById], references: [id], onDelete: SetNull)
   changedValues String    // JSON string containing the changes
   editedAt     DateTime   @default(now())
 }
