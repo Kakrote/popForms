@@ -122,7 +122,7 @@ export function AdminDashboardPage() {
         <div>
           <p className="eyebrow">Overview</p>
           <h1 style={{ fontSize: "2rem", margin: 0 }}>Dashboard</h1>
-          <p className="muted" style={{ marginTop: 4 }}>Monitor forms and submissions from the first demo-ready build.</p>
+          <p className="muted" style={{ marginTop: 4 }}>Monitor forms and submissions.</p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
          
