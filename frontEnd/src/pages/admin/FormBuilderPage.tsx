@@ -155,7 +155,7 @@ export function FormBuilderPage() {
               <input 
                 id="builder-form-title"
                 {...form.register("title")} 
-                placeholder="Employee Onboarding Survey" 
+                placeholder="Give your form a title..." 
               />
               {form.formState.errors.title ? <span className="error">{form.formState.errors.title.message}</span> : null}
             </label>
