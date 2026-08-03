@@ -29,7 +29,8 @@ import {
   Sliders,
   CheckSquare,
   Sparkles,
-  HelpCircle as QuestionIcon
+  HelpCircle as QuestionIcon,
+  Check
 } from "lucide-react";
 
 ChartJS.register(
@@ -562,37 +563,87 @@ export function AnalyticsDashboardPage() {
           ) : yearData && yearData.years_data?.length > 0 ? (
             <div>
               {/* Question Selection Toolbar for Year-Wise Analysis */}
-              <div className="card" style={{ padding: 16, marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, background: "var(--surface-elevated, #f8fafc)" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <Sparkles size={20} color="var(--primary)" />
-                  <div>
-                    <strong style={{ fontSize: "1rem" }}>Year-Wise Question Deep-Dive</strong>
-                    <p className="muted small" style={{ margin: 0 }}>Select an individual question below to analyze its Year-over-Year (YoY) metric trends.</p>
+              <div className="card" style={{ padding: 20, marginBottom: 24, background: "var(--surface-elevated, #f8fafc)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <Sparkles size={20} color="var(--primary)" />
+                    <div>
+                      <strong style={{ fontSize: "1.05rem" }}>Select Question for Year-Wise Comparison</strong>
+                      <p className="muted small" style={{ margin: 0 }}>Choose an individual question to view how responses evolved year-over-year.</p>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <Filter size={16} className="muted" />
+                    <select
+                      value={selectedYearFieldId}
+                      onChange={(e) => setSelectedYearFieldId(e.target.value)}
+                      style={{
+                        padding: "8px 14px",
+                        borderRadius: 8,
+                        border: "1px solid var(--border)",
+                        background: "var(--surface)",
+                        fontWeight: 600,
+                        fontSize: "0.9rem",
+                        maxWidth: "400px"
+                      }}
+                    >
+                      <option value="ALL">📊 All Questions (Overall Form Volume)</option>
+                      {yearData.fields_list?.map((f: any, idx: number) => (
+                        <option key={f.field_id} value={f.field_id}>
+                          {f.section_title ? `[${f.section_title}] ` : ""}Q{idx + 1}: {f.label} ({f.field_type})
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <Filter size={16} className="muted" />
-                  <select
-                    value={selectedYearFieldId}
-                    onChange={(e) => setSelectedYearFieldId(e.target.value)}
+                {/* Question Clickable Chips Grid */}
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", borderTop: "1px solid var(--border)", paddingTop: 12 }}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedYearFieldId("ALL")}
                     style={{
-                      padding: "8px 14px",
-                      borderRadius: 8,
-                      border: "1px solid var(--border)",
-                      background: "var(--surface)",
+                      padding: "6px 14px",
+                      borderRadius: 20,
+                      border: selectedYearFieldId === "ALL" ? "2px solid var(--primary)" : "1px solid var(--border)",
+                      background: selectedYearFieldId === "ALL" ? "#eff6ff" : "var(--surface)",
+                      color: selectedYearFieldId === "ALL" ? "var(--primary)" : "var(--text)",
                       fontWeight: 600,
-                      fontSize: "0.9rem",
-                      minWidth: "260px"
+                      fontSize: "0.82rem",
+                      cursor: "pointer"
                     }}
                   >
-                    <option value="ALL">All Questions (Overall Form Volume)</option>
-                    {yearData.fields_list?.map((f: any) => (
-                      <option key={f.field_id} value={f.field_id}>
-                        {f.label} ({f.field_type})
-                      </option>
-                    ))}
-                  </select>
+                    All Questions (Volume)
+                  </button>
+
+                  {yearData.fields_list?.map((f: any, idx: number) => {
+                    const isSelected = selectedYearFieldId === f.field_id;
+                    return (
+                      <button
+                        key={f.field_id}
+                        type="button"
+                        onClick={() => setSelectedYearFieldId(f.field_id)}
+                        style={{
+                          padding: "6px 14px",
+                          borderRadius: 20,
+                          border: isSelected ? "2px solid var(--primary)" : "1px solid var(--border)",
+                          background: isSelected ? "#eff6ff" : "var(--surface)",
+                          color: isSelected ? "var(--primary)" : "var(--text)",
+                          fontWeight: isSelected ? 700 : 500,
+                          fontSize: "0.82rem",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6
+                        }}
+                      >
+                        <span style={{ opacity: 0.6, fontSize: "0.75rem" }}>Q{idx + 1}</span>
+                        {f.label}
+                        <span className="badge small" style={{ fontSize: "0.65rem", padding: "0px 4px" }}>{f.field_type}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -660,7 +711,8 @@ export function AnalyticsDashboardPage() {
                 <div>
                   <div style={{ marginBottom: 20 }}>
                     <span className="muted small" style={{ textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 700 }}>
-                      Year-over-Year Question Trend • {selectedYearQuestionTrend.field_type}
+                      {selectedYearQuestionTrend.section_title ? `${selectedYearQuestionTrend.section_title} • ` : ""}
+                      {selectedYearQuestionTrend.field_type} Question Year-over-Year Trend
                     </span>
                     <h2 style={{ margin: "4px 0 0 0" }}>{selectedYearQuestionTrend.label}</h2>
                   </div>
@@ -806,37 +858,87 @@ export function AnalyticsDashboardPage() {
               ) : submissionComparisonData ? (
                 <div>
                   {/* QUESTION SELECTOR TOOLBAR FOR SUBMISSION COMPARISON */}
-                  <div className="card" style={{ padding: 16, marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, background: "var(--surface-elevated, #f8fafc)" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <QuestionIcon size={20} color="var(--primary)" />
-                      <div>
-                        <strong style={{ fontSize: "1rem" }}>Select Individual Question for Comparison</strong>
-                        <p className="muted small" style={{ margin: 0 }}>Pick a question below to see a dedicated side-by-side graph across selected submissions.</p>
+                  <div className="card" style={{ padding: 20, marginBottom: 24, background: "var(--surface-elevated, #f8fafc)" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <QuestionIcon size={20} color="var(--primary)" />
+                        <div>
+                          <strong style={{ fontSize: "1.05rem" }}>Select Individual Question to Compare</strong>
+                          <p className="muted small" style={{ margin: 0 }}>Pick an individual question below to view dedicated side-by-side comparative graphs.</p>
+                        </div>
+                      </div>
+
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <Filter size={16} className="muted" />
+                        <select
+                          value={selectedSubQuestionFieldId}
+                          onChange={(e) => setSelectedSubQuestionFieldId(e.target.value)}
+                          style={{
+                            padding: "8px 14px",
+                            borderRadius: 8,
+                            border: "1px solid var(--border)",
+                            background: "var(--surface)",
+                            fontWeight: 600,
+                            fontSize: "0.9rem",
+                            maxWidth: "400px"
+                          }}
+                        >
+                          <option value="ALL">📊 All Questions (Full Diff Matrix & Summary)</option>
+                          {submissionComparisonData.fields_list?.map((f: any, idx: number) => (
+                            <option key={f.field_id} value={f.field_id}>
+                              {f.section_title ? `[${f.section_title}] ` : ""}Q{idx + 1}: {f.label} ({f.field_type})
+                            </option>
+                          ))}
+                        </select>
                       </div>
                     </div>
 
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <Filter size={16} className="muted" />
-                      <select
-                        value={selectedSubQuestionFieldId}
-                        onChange={(e) => setSelectedSubQuestionFieldId(e.target.value)}
+                    {/* Question Clickable Chips Grid */}
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", borderTop: "1px solid var(--border)", paddingTop: 12 }}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedSubQuestionFieldId("ALL")}
                         style={{
-                          padding: "8px 14px",
-                          borderRadius: 8,
-                          border: "1px solid var(--border)",
-                          background: "var(--surface)",
+                          padding: "6px 14px",
+                          borderRadius: 20,
+                          border: selectedSubQuestionFieldId === "ALL" ? "2px solid var(--primary)" : "1px solid var(--border)",
+                          background: selectedSubQuestionFieldId === "ALL" ? "#eff6ff" : "var(--surface)",
+                          color: selectedSubQuestionFieldId === "ALL" ? "var(--primary)" : "var(--text)",
                           fontWeight: 600,
-                          fontSize: "0.9rem",
-                          minWidth: "280px"
+                          fontSize: "0.82rem",
+                          cursor: "pointer"
                         }}
                       >
-                        <option value="ALL">All Questions (Full Diff Matrix & Summary)</option>
-                        {submissionComparisonData.fields_list?.map((f: any) => (
-                          <option key={f.field_id} value={f.field_id}>
-                            {f.label} ({f.field_type})
-                          </option>
-                        ))}
-                      </select>
+                        All Questions Matrix
+                      </button>
+
+                      {submissionComparisonData.fields_list?.map((f: any, idx: number) => {
+                        const isSelected = selectedSubQuestionFieldId === f.field_id;
+                        return (
+                          <button
+                            key={f.field_id}
+                            type="button"
+                            onClick={() => setSelectedSubQuestionFieldId(f.field_id)}
+                            style={{
+                              padding: "6px 14px",
+                              borderRadius: 20,
+                              border: isSelected ? "2px solid var(--primary)" : "1px solid var(--border)",
+                              background: isSelected ? "#eff6ff" : "var(--surface)",
+                              color: isSelected ? "var(--primary)" : "var(--text)",
+                              fontWeight: isSelected ? 700 : 500,
+                              fontSize: "0.82rem",
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 6
+                            }}
+                          >
+                            <span style={{ opacity: 0.6, fontSize: "0.75rem" }}>Q{idx + 1}</span>
+                            {f.label}
+                            <span className="badge small" style={{ fontSize: "0.65rem", padding: "0px 4px" }}>{f.field_type}</span>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -846,7 +948,8 @@ export function AnalyticsDashboardPage() {
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                         <div>
                           <span className="muted small" style={{ textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 700 }}>
-                            {selectedSubQuestionData.section_title} • {selectedSubQuestionData.field_type} Question
+                            {selectedSubQuestionData.section_title ? `${selectedSubQuestionData.section_title} • ` : ""}
+                            {selectedSubQuestionData.field_type} Question
                           </span>
                           <h3 style={{ margin: "4px 0 0 0" }}>{selectedSubQuestionData.label}</h3>
                         </div>

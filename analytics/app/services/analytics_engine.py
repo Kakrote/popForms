@@ -160,6 +160,7 @@ class AnalyticsEngine:
             f_type = f["field_type"]
             f_label = f["label"]
             f_key = f["field_key"]
+            sec_title = f.get("section_title", "")
             f_options = f.get("options", [])
             option_labels = {opt["value"]: opt["label"] for opt in f_options}
 
@@ -215,7 +216,7 @@ class AnalyticsEngine:
                 "label": f_label,
                 "field_key": f_key,
                 "field_type": f_type,
-                "section_title": f.get("section_title", ""),
+                "section_title": sec_title,
                 "yearly_metrics": yearly_metrics
             }
 
@@ -223,7 +224,7 @@ class AnalyticsEngine:
             "form_id": form_id,
             "years_analyzed": [int(y) for y in unique_years],
             "years_data": years_data,
-            "fields_list": [{"field_id": f["field_id"], "label": f["label"], "field_type": f["field_type"]} for f in fields],
+            "fields_list": [{"field_id": f["field_id"], "label": f["label"], "section_title": f.get("section_title", ""), "field_type": f["field_type"]} for f in fields],
             "question_year_trends": question_year_trends
         }
 
@@ -304,7 +305,7 @@ class AnalyticsEngine:
             "field_comparison": field_matrix,
             "per_field_comparisons": per_field_comparisons,
             "numeric_comparisons": numeric_comparisons,
-            "fields_list": [{"field_id": f["field_id"], "label": f["label"], "field_type": f["field_type"]} for f in fields],
+            "fields_list": [{"field_id": f["field_id"], "label": f["label"], "section_title": f.get("section_title", ""), "field_type": f["field_type"]} for f in fields],
             "metrics": {
                 "total_fields": total_fields,
                 "matching_fields": matching_fields,
