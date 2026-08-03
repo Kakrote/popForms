@@ -149,7 +149,6 @@ class AnalyticsEngine:
                 "department_breakdown": dept_counts
             })
 
-        # Per-Question Year-over-Year Comparative Analysis
         vals_df = pd.DataFrame(values) if values else pd.DataFrame(columns=["field_id", "value", "submitted_at"])
         if not vals_df.empty:
             vals_df["submission_year"] = pd.to_datetime(vals_df["submitted_at"]).dt.year
@@ -245,6 +244,7 @@ class AnalyticsEngine:
         matching_fields = 0
         total_fields = len(fields)
         numeric_comparisons = []
+        per_field_comparisons = {}
 
         for f in fields:
             f_id = f["field_id"]
@@ -272,7 +272,16 @@ class AnalyticsEngine:
                 "is_match": is_match
             })
 
-            # If numeric field, collect comparison data across submissions for chart rendering
+            per_field_comparisons[f_id] = {
+                "field_id": f_id,
+                "label": f["label"],
+                "field_key": f["field_key"],
+                "field_type": f_type,
+                "section_title": f["section_title"],
+                "values": values_by_sub,
+                "is_match": is_match
+            }
+
             if f_type == "NUMBER":
                 num_vals_by_sub = {}
                 for sub_id, val_str in values_by_sub.items():
@@ -293,7 +302,9 @@ class AnalyticsEngine:
             "form_id": form_id,
             "submissions": submissions,
             "field_comparison": field_matrix,
+            "per_field_comparisons": per_field_comparisons,
             "numeric_comparisons": numeric_comparisons,
+            "fields_list": [{"field_id": f["field_id"], "label": f["label"], "field_type": f["field_type"]} for f in fields],
             "metrics": {
                 "total_fields": total_fields,
                 "matching_fields": matching_fields,
@@ -477,7 +488,7 @@ class AnalyticsEngine:
         if df.empty:
             return {"form_id": form_id, "cumulative_growth": [], "monthly_growth_rate": []}
 
-        df["ref_date"] = pd.to_datetime(df["submitted_at"].fillna(df["created_at"]))
+        df["ref_date"] = pd.to_datetime(df["submitted_at"].fillna(df["createdAt"]))
         df = df.sort_values(by="ref_date", ascending=True)
         df["month_year"] = df["ref_date"].dt.strftime('%Y-%m')
 

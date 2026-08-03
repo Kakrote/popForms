@@ -28,7 +28,8 @@ import {
   Filter,
   Sliders,
   CheckSquare,
-  Sparkles
+  Sparkles,
+  HelpCircle as QuestionIcon
 } from "lucide-react";
 
 ChartJS.register(
@@ -48,6 +49,7 @@ export function AnalyticsDashboardPage() {
   const [selectedFormId, setSelectedFormId] = useState<string>("");
   const [selectedSubmissions, setSelectedSubmissions] = useState<string[]>([]);
   const [selectedYearFieldId, setSelectedYearFieldId] = useState<string>("ALL");
+  const [selectedSubQuestionFieldId, setSelectedSubQuestionFieldId] = useState<string>("ALL");
 
   // Fetch all forms for dropdown selectors
   const { data: forms } = useQuery({
@@ -113,6 +115,10 @@ export function AnalyticsDashboardPage() {
     ? yearData.question_year_trends[selectedYearFieldId]
     : null;
 
+  const selectedSubQuestionData = selectedSubQuestionFieldId !== "ALL" && submissionComparisonData?.per_field_comparisons
+    ? submissionComparisonData.per_field_comparisons[selectedSubQuestionFieldId]
+    : null;
+
   return (
     <div className="container" style={{ paddingBottom: 60 }}>
       {/* HEADER SECTION */}
@@ -140,6 +146,7 @@ export function AnalyticsDashboardPage() {
                 setSelectedFormId(e.target.value);
                 setSelectedSubmissions([]);
                 setSelectedYearFieldId("ALL");
+                setSelectedSubQuestionFieldId("ALL");
               }}
               style={{
                 padding: "6px 12px",
@@ -560,7 +567,7 @@ export function AnalyticsDashboardPage() {
                   <Sparkles size={20} color="var(--primary)" />
                   <div>
                     <strong style={{ fontSize: "1rem" }}>Year-Wise Question Deep-Dive</strong>
-                    <p className="muted small" style={{ margin: 0 }}>Select a specific question below to analyze its Year-over-Year (YoY) metric trends.</p>
+                    <p className="muted small" style={{ margin: 0 }}>Select an individual question below to analyze its Year-over-Year (YoY) metric trends.</p>
                   </div>
                 </div>
 
@@ -749,7 +756,7 @@ export function AnalyticsDashboardPage() {
             <div>
               <div style={{ marginBottom: 20 }}>
                 <h2 style={{ margin: 0 }}>Side-by-Side Submission Comparison</h2>
-                <p className="muted">Select 2 or more submissions below to perform deep field-by-field diff comparison and view side-by-side charts.</p>
+                <p className="muted">Select 2 or more submissions below to compare responses overall or select an individual question to view its dedicated chart.</p>
               </div>
 
               {/* Submissions Picker list */}
@@ -798,60 +805,176 @@ export function AnalyticsDashboardPage() {
                 <div style={{ padding: 30, textAlign: "center" }}>Comparing submission fields...</div>
               ) : submissionComparisonData ? (
                 <div>
-                  {/* Similarity Metrics & Visual Breakdown Charts */}
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))", gap: 20, marginBottom: 24 }}>
-                    {/* Score Card & Doughnut */}
-                    <div className="card" style={{ padding: 20 }}>
-                      <h3 style={{ marginTop: 0, marginBottom: 12 }}>Similarity Score: <span style={{ color: "var(--primary)" }}>{submissionComparisonData.metrics.similarity_pct}%</span></h3>
-                      <p className="muted small" style={{ marginBottom: 16 }}>
-                        Matching fields: <strong>{submissionComparisonData.metrics.matching_fields}</strong> | Differing fields: <strong>{submissionComparisonData.metrics.differing_fields}</strong>
-                      </p>
-                      <div style={{ maxWidth: 220, margin: "0 auto" }}>
-                        <Doughnut
-                          data={{
-                            labels: ["Matching Fields", "Differing Fields"],
-                            datasets: [
-                              {
-                                data: [
-                                  submissionComparisonData.metrics.matching_fields,
-                                  submissionComparisonData.metrics.differing_fields,
-                                ],
-                                backgroundColor: ["#22c55e", "#ef4444"],
-                              },
-                            ],
-                          }}
-                          options={{ responsive: true }}
-                        />
+                  {/* QUESTION SELECTOR TOOLBAR FOR SUBMISSION COMPARISON */}
+                  <div className="card" style={{ padding: 16, marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, background: "var(--surface-elevated, #f8fafc)" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <QuestionIcon size={20} color="var(--primary)" />
+                      <div>
+                        <strong style={{ fontSize: "1rem" }}>Select Individual Question for Comparison</strong>
+                        <p className="muted small" style={{ margin: 0 }}>Pick a question below to see a dedicated side-by-side graph across selected submissions.</p>
                       </div>
                     </div>
 
-                    {/* Numeric Fields Side-by-Side Comparison Chart */}
-                    {submissionComparisonData.numeric_comparisons?.length > 0 && (
-                      <div className="card" style={{ padding: 20 }}>
-                        <h3 style={{ marginTop: 0, marginBottom: 16 }}>Numeric Question Comparison</h3>
-                        <Bar
-                          data={{
-                            labels: submissionComparisonData.numeric_comparisons.map((nc: any) => nc.label),
-                            datasets: submissionComparisonData.submissions.map((sub: any, idx: number) => {
-                              const colors = ["#2563eb", "#10b981", "#f59e0b", "#8b5cf6"];
-                              const color = colors[idx % colors.length];
-                              return {
-                                label: sub.dept_name,
-                                data: submissionComparisonData.numeric_comparisons.map((nc: any) => nc.values[sub.id] || 0),
-                                backgroundColor: color,
-                                borderRadius: 4,
-                              };
-                            }),
-                          }}
-                          options={{ responsive: true }}
-                        />
-                      </div>
-                    )}
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <Filter size={16} className="muted" />
+                      <select
+                        value={selectedSubQuestionFieldId}
+                        onChange={(e) => setSelectedSubQuestionFieldId(e.target.value)}
+                        style={{
+                          padding: "8px 14px",
+                          borderRadius: 8,
+                          border: "1px solid var(--border)",
+                          background: "var(--surface)",
+                          fontWeight: 600,
+                          fontSize: "0.9rem",
+                          minWidth: "280px"
+                        }}
+                      >
+                        <option value="ALL">All Questions (Full Diff Matrix & Summary)</option>
+                        {submissionComparisonData.fields_list?.map((f: any) => (
+                          <option key={f.field_id} value={f.field_id}>
+                            {f.label} ({f.field_type})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
+
+                  {/* DEDICATED INDIVIDUAL QUESTION COMPARISON GRAPH */}
+                  {selectedSubQuestionFieldId !== "ALL" && selectedSubQuestionData && (
+                    <div className="card" style={{ padding: 24, marginBottom: 24 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                        <div>
+                          <span className="muted small" style={{ textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 700 }}>
+                            {selectedSubQuestionData.section_title} • {selectedSubQuestionData.field_type} Question
+                          </span>
+                          <h3 style={{ margin: "4px 0 0 0" }}>{selectedSubQuestionData.label}</h3>
+                        </div>
+                        <span
+                          style={{
+                            background: selectedSubQuestionData.is_match ? "#dcfce7" : "#fee2e2",
+                            color: selectedSubQuestionData.is_match ? "#15803d" : "#b91c1c",
+                            padding: "4px 12px",
+                            borderRadius: 16,
+                            fontWeight: 700,
+                            fontSize: "0.85rem"
+                          }}
+                        >
+                          {selectedSubQuestionData.is_match ? "All Selected Submissions Match" : "Submissions Differ"}
+                        </span>
+                      </div>
+
+                      {/* Numeric Question Side-by-Side Bar Chart */}
+                      {selectedSubQuestionData.field_type === "NUMBER" && (
+                        <div>
+                          <Bar
+                            data={{
+                              labels: submissionComparisonData.submissions.map((s: any) => s.dept_name),
+                              datasets: [
+                                {
+                                  label: selectedSubQuestionData.label,
+                                  data: submissionComparisonData.submissions.map((s: any) => {
+                                    const val = selectedSubQuestionData.values[s.id];
+                                    return val ? parseFloat(val) || 0 : 0;
+                                  }),
+                                  backgroundColor: "#2563eb",
+                                  borderRadius: 6,
+                                },
+                              ],
+                            }}
+                            options={{ responsive: true }}
+                          />
+                        </div>
+                      )}
+
+                      {/* Choice/Categorical Side-by-Side Response Cards */}
+                      {["SELECT", "RADIO", "CHECKBOX"].includes(selectedSubQuestionData.field_type) && (
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
+                          {submissionComparisonData.submissions.map((s: any) => (
+                            <div key={s.id} style={{ background: "var(--surface-elevated, #f8fafc)", padding: 16, borderRadius: 10, border: "1px solid var(--border)" }}>
+                              <span className="muted small" style={{ fontWeight: 700 }}>{s.dept_name}</span>
+                              <h4 style={{ margin: "6px 0 0 0", color: "var(--primary)" }}>
+                                {selectedSubQuestionData.values[s.id] || <em className="muted">No response</em>}
+                              </h4>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Text/Date Side-by-Side Response Cards */}
+                      {["TEXT", "TEXTAREA", "DATE"].includes(selectedSubQuestionData.field_type) && (
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
+                          {submissionComparisonData.submissions.map((s: any) => (
+                            <div key={s.id} style={{ background: "var(--surface-elevated, #f8fafc)", padding: 16, borderRadius: 10, border: "1px solid var(--border)" }}>
+                              <span className="muted small" style={{ fontWeight: 700 }}>{s.dept_name} ({s.user_name || s.user_email})</span>
+                              <p style={{ margin: "8px 0 0 0", fontSize: "0.95rem" }}>
+                                {selectedSubQuestionData.values[s.id] || <em className="muted">No response</em>}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* OVERALL SUBMISSION SUMMARY & METRICS (When ALL or filtered) */}
+                  {selectedSubQuestionFieldId === "ALL" && (
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))", gap: 20, marginBottom: 24 }}>
+                      {/* Score Card & Doughnut */}
+                      <div className="card" style={{ padding: 20 }}>
+                        <h3 style={{ marginTop: 0, marginBottom: 12 }}>Similarity Score: <span style={{ color: "var(--primary)" }}>{submissionComparisonData.metrics.similarity_pct}%</span></h3>
+                        <p className="muted small" style={{ marginBottom: 16 }}>
+                          Matching fields: <strong>{submissionComparisonData.metrics.matching_fields}</strong> | Differing fields: <strong>{submissionComparisonData.metrics.differing_fields}</strong>
+                        </p>
+                        <div style={{ maxWidth: 220, margin: "0 auto" }}>
+                          <Doughnut
+                            data={{
+                              labels: ["Matching Fields", "Differing Fields"],
+                              datasets: [
+                                {
+                                  data: [
+                                    submissionComparisonData.metrics.matching_fields,
+                                    submissionComparisonData.metrics.differing_fields,
+                                  ],
+                                  backgroundColor: ["#22c55e", "#ef4444"],
+                                },
+                              ],
+                            }}
+                            options={{ responsive: true }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Numeric Fields Side-by-Side Comparison Chart */}
+                      {submissionComparisonData.numeric_comparisons?.length > 0 && (
+                        <div className="card" style={{ padding: 20 }}>
+                          <h3 style={{ marginTop: 0, marginBottom: 16 }}>Numeric Question Comparison</h3>
+                          <Bar
+                            data={{
+                              labels: submissionComparisonData.numeric_comparisons.map((nc: any) => nc.label),
+                              datasets: submissionComparisonData.submissions.map((sub: any, idx: number) => {
+                                const colors = ["#2563eb", "#10b981", "#f59e0b", "#8b5cf6"];
+                                const color = colors[idx % colors.length];
+                                return {
+                                  label: sub.dept_name,
+                                  data: submissionComparisonData.numeric_comparisons.map((nc: any) => nc.values[sub.id] || 0),
+                                  backgroundColor: color,
+                                  borderRadius: 4,
+                                };
+                              }),
+                            }}
+                            options={{ responsive: true }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {/* Side-by-Side Matrix Table */}
                   <div className="card" style={{ padding: 20, overflowX: "auto" }}>
-                    <h3 style={{ marginTop: 0, marginBottom: 16 }}>Field-by-Field Comparison Matrix</h3>
+                    <h3 style={{ marginTop: 0, marginBottom: 16 }}>
+                      {selectedSubQuestionFieldId === "ALL" ? "Field-by-Field Comparison Matrix" : "Individual Question Response Matrix"}
+                    </h3>
                     <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
                       <thead>
                         <tr style={{ borderBottom: "2px solid var(--border)", background: "var(--surface-elevated, #f8fafc)" }}>
@@ -868,39 +991,41 @@ export function AnalyticsDashboardPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {submissionComparisonData.field_comparison.map((f: any) => (
-                          <tr
-                            key={f.field_id}
-                            style={{
-                              borderBottom: "1px solid var(--border)",
-                              background: f.is_match ? "transparent" : "rgba(239, 68, 68, 0.04)"
-                            }}
-                          >
-                            <td style={{ padding: 12 }}>
-                              <strong style={{ display: "block", fontSize: "0.9rem" }}>{f.label}</strong>
-                              <span className="muted small">{f.section_title} ({f.field_type})</span>
-                            </td>
+                        {submissionComparisonData.field_comparison
+                          .filter((f: any) => selectedSubQuestionFieldId === "ALL" || f.field_id === selectedSubQuestionFieldId)
+                          .map((f: any) => (
+                            <tr
+                              key={f.field_id}
+                              style={{
+                                borderBottom: "1px solid var(--border)",
+                                background: f.is_match ? "transparent" : "rgba(239, 68, 68, 0.04)"
+                              }}
+                            >
+                              <td style={{ padding: 12 }}>
+                                <strong style={{ display: "block", fontSize: "0.9rem" }}>{f.label}</strong>
+                                <span className="muted small">{f.section_title} ({f.field_type})</span>
+                              </td>
 
-                            {submissionComparisonData.submissions.map((sub: any) => {
-                              const val = f.values[sub.id] || "—";
-                              return (
-                                <td key={sub.id} style={{ padding: 12, fontSize: "0.9rem" }}>
-                                  <span style={{ fontWeight: f.is_match ? 400 : 600, color: f.is_match ? "inherit" : "#dc2626" }}>
-                                    {val || <em className="muted">Empty</em>}
-                                  </span>
-                                </td>
-                              );
-                            })}
+                              {submissionComparisonData.submissions.map((sub: any) => {
+                                const val = f.values[sub.id] || "—";
+                                return (
+                                  <td key={sub.id} style={{ padding: 12, fontSize: "0.9rem" }}>
+                                    <span style={{ fontWeight: f.is_match ? 400 : 600, color: f.is_match ? "inherit" : "#dc2626" }}>
+                                      {val || <em className="muted">Empty</em>}
+                                    </span>
+                                  </td>
+                                );
+                              })}
 
-                            <td style={{ padding: 12, textAlign: "center" }}>
-                              {f.is_match ? (
-                                <CheckCircle2 color="#16a34a" size={18} />
-                              ) : (
-                                <XCircle color="#dc2626" size={18} />
-                              )}
-                            </td>
-                          </tr>
-                        ))}
+                              <td style={{ padding: 12, textAlign: "center" }}>
+                                {f.is_match ? (
+                                  <CheckCircle2 color="#16a34a" size={18} />
+                                ) : (
+                                  <XCircle color="#dc2626" size={18} />
+                                )}
+                              </td>
+                            </tr>
+                          ))}
                       </tbody>
                     </table>
                   </div>
