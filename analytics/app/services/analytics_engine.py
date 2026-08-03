@@ -110,7 +110,7 @@ class AnalyticsEngine:
         df = pd.DataFrame(submissions) if submissions else pd.DataFrame()
 
         if df.empty:
-            return {"form_id": form_id, "years_analyzed": [], "years_data": [], "question_year_trends": {}}
+            return {"form_id": form_id, "years_analyzed": [], "years_data": [], "sections_list": []}
 
         ref_dates = pd.to_datetime(df["submitted_at"].fillna(df["created_at"]))
         df["submission_year"] = ref_dates.dt.year
@@ -149,83 +149,19 @@ class AnalyticsEngine:
                 "department_breakdown": dept_counts
             })
 
-        vals_df = pd.DataFrame(values) if values else pd.DataFrame(columns=["field_id", "value", "submitted_at"])
-        if not vals_df.empty:
-            vals_df["submission_year"] = pd.to_datetime(vals_df["submitted_at"]).dt.year
-
-        question_year_trends = {}
-
+        # Build list of unique sections
+        sections_map = {}
         for f in fields:
-            f_id = f["field_id"]
-            f_type = f["field_type"]
-            f_label = f["label"]
-            f_key = f["field_key"]
-            sec_title = f.get("section_title", "")
-            f_options = f.get("options", [])
-            option_labels = {opt["value"]: opt["label"] for opt in f_options}
+            sec_title = f.get("section_title", "General")
+            sections_map[sec_title] = sections_map.get(sec_title, 0) + 1
 
-            f_vals = vals_df[vals_df["field_id"] == f_id] if not vals_df.empty else pd.DataFrame()
-            
-            yearly_metrics = []
-
-            for yr in unique_years:
-                y_vals = f_vals[f_vals["submission_year"] == yr] if not f_vals.empty else pd.DataFrame()
-                total_resp = len(y_vals[y_vals["value"].notnull() & (y_vals["value"] != "")]) if not y_vals.empty else 0
-
-                yr_entry = {
-                    "year": int(yr),
-                    "total_responses": total_resp,
-                }
-
-                if f_type == "NUMBER" and not y_vals.empty:
-                    nums = pd.to_numeric(y_vals["value"], errors="coerce").dropna()
-                    if not nums.empty:
-                        yr_entry["average"] = float(round(nums.mean(), 2))
-                        yr_entry["min"] = float(nums.min())
-                        yr_entry["max"] = float(nums.max())
-                        yr_entry["sum"] = float(round(nums.sum(), 2))
-                    else:
-                        yr_entry["average"] = 0.0
-
-                elif f_type in ["SELECT", "RADIO", "CHECKBOX"] and not y_vals.empty:
-                    raw_values = []
-                    for val in y_vals["value"].dropna():
-                        if f_type == "CHECKBOX" and "," in str(val):
-                            raw_values.extend([v.strip() for v in str(val).split(",") if v.strip()])
-                        elif str(val).strip():
-                            raw_values.append(str(val).strip())
-                    v_counts = pd.Series(raw_values).value_counts().to_dict() if raw_values else {}
-                    
-                    dist = []
-                    for opt_val, count in v_counts.items():
-                        opt_lbl = option_labels.get(str(opt_val), str(opt_val))
-                        dist.append({"option_value": str(opt_val), "option_label": opt_lbl, "count": int(count)})
-                    yr_entry["option_distribution"] = dist
-
-                elif f_type in ["TEXT", "TEXTAREA"] and not y_vals.empty:
-                    txts = y_vals["value"].dropna().astype(str)
-                    txts = txts[txts.str.strip() != ""]
-                    if not txts.empty:
-                        yr_entry["avg_char_length"] = float(round(txts.str.len().mean(), 1))
-                        yr_entry["avg_word_count"] = float(round(txts.str.split().str.len().mean(), 1))
-
-                yearly_metrics.append(yr_entry)
-
-            question_year_trends[f_id] = {
-                "field_id": f_id,
-                "label": f_label,
-                "field_key": f_key,
-                "field_type": f_type,
-                "section_title": sec_title,
-                "yearly_metrics": yearly_metrics
-            }
+        sections_list = [{"title": sec_title, "fields_count": cnt} for sec_title, cnt in sections_map.items()]
 
         return {
             "form_id": form_id,
             "years_analyzed": [int(y) for y in unique_years],
             "years_data": years_data,
-            "fields_list": [{"field_id": f["field_id"], "label": f["label"], "section_title": f.get("section_title", ""), "field_type": f["field_type"]} for f in fields],
-            "question_year_trends": question_year_trends
+            "sections_list": sections_list
         }
 
     @staticmethod
@@ -245,7 +181,12 @@ class AnalyticsEngine:
         matching_fields = 0
         total_fields = len(fields)
         numeric_comparisons = []
-        per_field_comparisons = {}
+
+        # Unique sections list
+        sections_map = {}
+        for f in fields:
+            sec_title = f.get("section_title", "General")
+            sections_map[sec_title] = sections_map.get(sec_title, 0) + 1
 
         for f in fields:
             f_id = f["field_id"]
@@ -273,16 +214,6 @@ class AnalyticsEngine:
                 "is_match": is_match
             })
 
-            per_field_comparisons[f_id] = {
-                "field_id": f_id,
-                "label": f["label"],
-                "field_key": f["field_key"],
-                "field_type": f_type,
-                "section_title": f["section_title"],
-                "values": values_by_sub,
-                "is_match": is_match
-            }
-
             if f_type == "NUMBER":
                 num_vals_by_sub = {}
                 for sub_id, val_str in values_by_sub.items():
@@ -294,18 +225,19 @@ class AnalyticsEngine:
                 numeric_comparisons.append({
                     "field_id": f_id,
                     "label": f["label"],
+                    "section_title": f["section_title"],
                     "values": num_vals_by_sub
                 })
 
         similarity_pct = round((matching_fields / total_fields * 100), 2) if total_fields > 0 else 100.0
+        sections_list = [{"title": sec_title, "fields_count": cnt} for sec_title, cnt in sections_map.items()]
 
         return {
             "form_id": form_id,
             "submissions": submissions,
             "field_comparison": field_matrix,
-            "per_field_comparisons": per_field_comparisons,
             "numeric_comparisons": numeric_comparisons,
-            "fields_list": [{"field_id": f["field_id"], "label": f["label"], "section_title": f.get("section_title", ""), "field_type": f["field_type"]} for f in fields],
+            "sections_list": sections_list,
             "metrics": {
                 "total_fields": total_fields,
                 "matching_fields": matching_fields,
