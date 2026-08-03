@@ -189,3 +189,31 @@ export const usersApi = {
     return unwrap(response);
   },
 };
+
+export const analyticsApi = {
+  getOverview: async () => {
+    const response = await apiClient.get<ApiResponse<any>>("/analytics/overview");
+    return unwrap(response);
+  },
+  getFormOverview: async (formId: string) => {
+    const response = await apiClient.get<ApiResponse<any>>(`/analytics/forms/${formId}/overview`);
+    return unwrap(response);
+  },
+  getYearComparison: async (formId: string) => {
+    const response = await apiClient.get<ApiResponse<any>>(`/analytics/forms/${formId}/year-comparison`);
+    return unwrap(response);
+  },
+  getQuestionComparison: async (formId: string) => {
+    const response = await apiClient.get<ApiResponse<any>>(`/analytics/forms/${formId}/question-comparison`);
+    return unwrap(response);
+  },
+  getSubmissionComparison: async (formId: string, submissionIds: string[]) => {
+    const response = await apiClient.get<ApiResponse<any>>(`/analytics/forms/${formId}/submission-comparison?ids=${encodeURIComponent(submissionIds.join(","))}`);
+    return unwrap(response);
+  },
+  getGrowthReporting: async (formId: string) => {
+    const response = await apiClient.get<ApiResponse<any>>(`/analytics/forms/${formId}/growth`);
+    return unwrap(response);
+  },
+};
+

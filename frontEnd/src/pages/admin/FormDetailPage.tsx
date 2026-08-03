@@ -10,6 +10,7 @@ import type { Submission } from "../../types";
 import { generateSubmissionPDF } from "../../lib/pdf";
 import { 
   ArrowLeft, 
+  BarChart3,
   Copy, 
   Check, 
   Trash2, 
@@ -139,6 +140,15 @@ export function FormDetailPage() {
         </div>
         
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button
+            type="button"
+            className="ghost-button"
+            onClick={() => navigate("/admin/analytics")}
+          >
+            <BarChart3 size={16} />
+            Form Analytics
+          </button>
+
           <button 
             id="detail-copy-link-btn"
             type="button" 

@@ -2,6 +2,7 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { 
   LayoutDashboard, 
+  BarChart3,
   PlusCircle, 
   UserPlus, 
   Building2, 
@@ -60,6 +61,10 @@ export function AppShell() {
           <NavLink to="/admin" end id="nav-dashboard">
             <LayoutDashboard size={18} />
             Dashboard
+          </NavLink>
+          <NavLink to="/admin/analytics" id="nav-analytics">
+            <BarChart3 size={18} />
+            Analytics Engine
           </NavLink>
           <NavLink to="/admin/forms/new" id="nav-new-form">
             <PlusCircle size={18} />

@@ -9,6 +9,7 @@ import { FormDetailPage } from "./pages/admin/FormDetailPage";
 import { UserCreatePage } from "./pages/admin/UserCreatePage";
 import { UserManagementPage } from "./pages/admin/UserManagementPage";
 import { DepartmentManagementPage } from "./pages/admin/DepartmentManagementPage";
+import { AnalyticsDashboardPage } from "./pages/admin/AnalyticsDashboardPage";
 import { PublicFormPage } from "./pages/PublicFormPage";
 import { ThankYouPage } from "./pages/ThankYouPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
@@ -44,6 +45,7 @@ export default function App() {
       <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
         <Route path="/admin" element={<AppShell />}>
           <Route index element={<AdminDashboardPage />} />
+          <Route path="analytics" element={<AnalyticsDashboardPage />} />
           <Route path="forms/new" element={<FormBuilderPage />} />
           <Route path="forms/:slug/edit" element={<FormBuilderPage />} />
           <Route path="forms/:slug" element={<FormDetailPage />} />
