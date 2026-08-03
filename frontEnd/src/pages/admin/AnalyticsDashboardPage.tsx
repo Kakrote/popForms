@@ -24,13 +24,11 @@ import {
   XCircle,
   Layers,
   Building2,
-  Users,
   Clock,
-  ArrowUpRight,
   Filter,
-  RefreshCw,
   Sliders,
-  CheckSquare
+  CheckSquare,
+  Sparkles
 } from "lucide-react";
 
 ChartJS.register(
@@ -49,9 +47,10 @@ export function AnalyticsDashboardPage() {
   const [activeTab, setActiveTab] = useState<"overview" | "questions" | "years" | "submissions" | "growth">("overview");
   const [selectedFormId, setSelectedFormId] = useState<string>("");
   const [selectedSubmissions, setSelectedSubmissions] = useState<string[]>([]);
+  const [selectedYearFieldId, setSelectedYearFieldId] = useState<string>("ALL");
 
   // Fetch all forms for dropdown selectors
-  const { data: forms, isLoading: isFormsLoading } = useQuery({
+  const { data: forms } = useQuery({
     queryKey: ["forms-list-analytics"],
     queryFn: formsApi.list,
   });
@@ -64,7 +63,7 @@ export function AnalyticsDashboardPage() {
   }, [forms, selectedFormId]);
 
   // Overview analytics query
-  const { data: overviewData, isLoading: isOverviewLoading, refetch: refetchOverview } = useQuery({
+  const { data: overviewData, isLoading: isOverviewLoading } = useQuery({
     queryKey: ["analytics-overview"],
     queryFn: analyticsApi.getOverview,
     enabled: activeTab === "overview",
@@ -110,6 +109,10 @@ export function AnalyticsDashboardPage() {
     );
   };
 
+  const selectedYearQuestionTrend = selectedYearFieldId !== "ALL" && yearData?.question_year_trends
+    ? yearData.question_year_trends[selectedYearFieldId]
+    : null;
+
   return (
     <div className="container" style={{ paddingBottom: 60 }}>
       {/* HEADER SECTION */}
@@ -136,6 +139,7 @@ export function AnalyticsDashboardPage() {
               onChange={(e) => {
                 setSelectedFormId(e.target.value);
                 setSelectedSubmissions([]);
+                setSelectedYearFieldId("ALL");
               }}
               style={{
                 padding: "6px 12px",
@@ -453,7 +457,6 @@ export function AnalyticsDashboardPage() {
                   {/* NUMERICAL QUESTIONS */}
                   {q.field_type === "NUMBER" && q.numeric_stats && (
                     <div style={{ marginTop: 16 }}>
-                      {/* Stat summary grid */}
                       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 12, marginBottom: 16 }}>
                         <div style={{ background: "var(--surface-elevated, #f8fafc)", padding: 12, borderRadius: 8, textAlign: "center", border: "1px solid var(--border)" }}>
                           <span className="muted small">Average</span>
@@ -477,7 +480,6 @@ export function AnalyticsDashboardPage() {
                         </div>
                       </div>
 
-                      {/* Bin histogram */}
                       {q.numeric_stats.distribution_bins && (
                         <div>
                           <h4 style={{ fontSize: "0.95rem", marginBottom: 10 }}>Value Bins Histogram</h4>
@@ -552,90 +554,185 @@ export function AnalyticsDashboardPage() {
             <div style={{ padding: 40, textAlign: "center" }}>Comparing year-over-year submission metrics...</div>
           ) : yearData && yearData.years_data?.length > 0 ? (
             <div>
-              <div style={{ marginBottom: 20 }}>
-                <h2 style={{ margin: 0 }}>Year-Over-Year (YoY) Form Comparison</h2>
-                <p className="muted">Analyze submission trends, growth percentages, and department activity across calendar years.</p>
-              </div>
-
-              {/* Year Summary Metric Cards */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16, marginBottom: 24 }}>
-                {yearData.years_data.map((yr: any) => (
-                  <div key={yr.year} className="card" style={{ padding: 20 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                      <span style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--primary)" }}>Year {yr.year}</span>
-                      <span
-                        style={{
-                          background: yr.growth_rate_pct >= 0 ? "#dcfce7" : "#fee2e2",
-                          color: yr.growth_rate_pct >= 0 ? "#15803d" : "#b91c1c",
-                          padding: "2px 8px",
-                          borderRadius: 10,
-                          fontSize: "0.75rem",
-                          fontWeight: 700
-                        }}
-                      >
-                        {yr.growth_rate_pct >= 0 ? `+${yr.growth_rate_pct}%` : `${yr.growth_rate_pct}%`} YoY
-                      </span>
-                    </div>
-                    <h3 style={{ margin: 0, fontSize: "1.5rem" }}>{yr.total_submissions} <span className="muted small" style={{ fontWeight: 400 }}>Submissions</span></h3>
-                    <p className="muted small" style={{ margin: "4px 0 0 0" }}>
-                      Submitted: {yr.submitted_count} | Drafts: {yr.draft_count}
-                    </p>
+              {/* Question Selection Toolbar for Year-Wise Analysis */}
+              <div className="card" style={{ padding: 16, marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, background: "var(--surface-elevated, #f8fafc)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <Sparkles size={20} color="var(--primary)" />
+                  <div>
+                    <strong style={{ fontSize: "1rem" }}>Year-Wise Question Deep-Dive</strong>
+                    <p className="muted small" style={{ margin: 0 }}>Select a specific question below to analyze its Year-over-Year (YoY) metric trends.</p>
                   </div>
-                ))}
-              </div>
+                </div>
 
-              {/* Monthly Comparative Chart across Years */}
-              <div className="card" style={{ padding: 24, marginBottom: 24 }}>
-                <h3 style={{ marginTop: 0, marginBottom: 16 }}>Monthly Submission Comparison Across Years</h3>
-                <Line
-                  data={{
-                    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-                    datasets: yearData.years_data.map((yr: any, idx: number) => {
-                      const colors = ["#2563eb", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899"];
-                      const color = colors[idx % colors.length];
-                      return {
-                        label: `Year ${yr.year}`,
-                        data: yr.monthly_breakdown.map((m: any) => m.count),
-                        borderColor: color,
-                        backgroundColor: color,
-                        tension: 0.3,
-                      };
-                    }),
-                  }}
-                  options={{ responsive: true }}
-                />
-              </div>
-
-              {/* Detailed Year-by-Year Comparison Table */}
-              <div className="card" style={{ padding: 20 }}>
-                <h3 style={{ marginTop: 0, marginBottom: 16 }}>Year-by-Year Department Performance Matrix</h3>
-                <div style={{ overflowX: "auto" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
-                    <thead>
-                      <tr style={{ borderBottom: "2px solid var(--border)", color: "var(--muted)" }}>
-                        <th style={{ padding: 12 }}>Year</th>
-                        <th style={{ padding: 12 }}>Total Submissions</th>
-                        <th style={{ padding: 12 }}>Submitted vs Draft</th>
-                        <th style={{ padding: 12 }}>YoY Growth Rate</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {yearData.years_data.map((yr: any) => (
-                        <tr key={yr.year} style={{ borderBottom: "1px solid var(--border)" }}>
-                          <td style={{ padding: 12, fontWeight: 700 }}>{yr.year}</td>
-                          <td style={{ padding: 12 }}>{yr.total_submissions}</td>
-                          <td style={{ padding: 12 }}>
-                            <span style={{ color: "#16a34a", fontWeight: 600 }}>{yr.submitted_count} submitted</span> / {yr.draft_count} draft
-                          </td>
-                          <td style={{ padding: 12, fontWeight: 700, color: yr.growth_rate_pct >= 0 ? "#16a34a" : "#dc2626" }}>
-                            {yr.growth_rate_pct >= 0 ? `+${yr.growth_rate_pct}%` : `${yr.growth_rate_pct}%`}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <Filter size={16} className="muted" />
+                  <select
+                    value={selectedYearFieldId}
+                    onChange={(e) => setSelectedYearFieldId(e.target.value)}
+                    style={{
+                      padding: "8px 14px",
+                      borderRadius: 8,
+                      border: "1px solid var(--border)",
+                      background: "var(--surface)",
+                      fontWeight: 600,
+                      fontSize: "0.9rem",
+                      minWidth: "260px"
+                    }}
+                  >
+                    <option value="ALL">All Questions (Overall Form Volume)</option>
+                    {yearData.fields_list?.map((f: any) => (
+                      <option key={f.field_id} value={f.field_id}>
+                        {f.label} ({f.field_type})
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
+
+              {/* OVERALL FORM VOLUME (When ALL is selected) */}
+              {selectedYearFieldId === "ALL" && (
+                <div>
+                  <div style={{ marginBottom: 20 }}>
+                    <h2 style={{ margin: 0 }}>Overall Form Volume (Year-Over-Year)</h2>
+                    <p className="muted">Overall submission counts, growth percentage rates, and monthly trend lines across calendar years.</p>
+                  </div>
+
+                  {/* Year Summary Metric Cards */}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16, marginBottom: 24 }}>
+                    {yearData.years_data.map((yr: any) => (
+                      <div key={yr.year} className="card" style={{ padding: 20 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                          <span style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--primary)" }}>Year {yr.year}</span>
+                          <span
+                            style={{
+                              background: yr.growth_rate_pct >= 0 ? "#dcfce7" : "#fee2e2",
+                              color: yr.growth_rate_pct >= 0 ? "#15803d" : "#b91c1c",
+                              padding: "2px 8px",
+                              borderRadius: 10,
+                              fontSize: "0.75rem",
+                              fontWeight: 700
+                            }}
+                          >
+                            {yr.growth_rate_pct >= 0 ? `+${yr.growth_rate_pct}%` : `${yr.growth_rate_pct}%`} YoY
+                          </span>
+                        </div>
+                        <h3 style={{ margin: 0, fontSize: "1.5rem" }}>{yr.total_submissions} <span className="muted small" style={{ fontWeight: 400 }}>Submissions</span></h3>
+                        <p className="muted small" style={{ margin: "4px 0 0 0" }}>
+                          Submitted: {yr.submitted_count} | Drafts: {yr.draft_count}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Monthly Comparative Chart across Years */}
+                  <div className="card" style={{ padding: 24, marginBottom: 24 }}>
+                    <h3 style={{ marginTop: 0, marginBottom: 16 }}>Monthly Submission Comparison Across Years</h3>
+                    <Line
+                      data={{
+                        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+                        datasets: yearData.years_data.map((yr: any, idx: number) => {
+                          const colors = ["#2563eb", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899"];
+                          const color = colors[idx % colors.length];
+                          return {
+                            label: `Year ${yr.year}`,
+                            data: yr.monthly_breakdown.map((m: any) => m.count),
+                            borderColor: color,
+                            backgroundColor: color,
+                            tension: 0.3,
+                          };
+                        }),
+                      }}
+                      options={{ responsive: true }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* SPECIFIC QUESTION SELECTED FOR YEAR-WISE COMPARISON */}
+              {selectedYearFieldId !== "ALL" && selectedYearQuestionTrend && (
+                <div>
+                  <div style={{ marginBottom: 20 }}>
+                    <span className="muted small" style={{ textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 700 }}>
+                      Year-over-Year Question Trend • {selectedYearQuestionTrend.field_type}
+                    </span>
+                    <h2 style={{ margin: "4px 0 0 0" }}>{selectedYearQuestionTrend.label}</h2>
+                  </div>
+
+                  {/* SPECIFIC QUESTION NUMERIC YOY CHART */}
+                  {selectedYearQuestionTrend.field_type === "NUMBER" && (
+                    <div className="card" style={{ padding: 24, marginBottom: 24 }}>
+                      <h3 style={{ marginTop: 0, marginBottom: 16 }}>Year-over-Year Numeric Average Trend</h3>
+                      <Bar
+                        data={{
+                          labels: selectedYearQuestionTrend.yearly_metrics.map((m: any) => `Year ${m.year}`),
+                          datasets: [
+                            {
+                              label: "Average Value",
+                              data: selectedYearQuestionTrend.yearly_metrics.map((m: any) => m.average || 0),
+                              backgroundColor: "#2563eb",
+                              borderRadius: 6,
+                            },
+                          ],
+                        }}
+                        options={{ responsive: true }}
+                      />
+                    </div>
+                  )}
+
+                  {/* SPECIFIC QUESTION CHOICE/CATEGORICAL YOY BREAKDOWN */}
+                  {["SELECT", "RADIO", "CHECKBOX"].includes(selectedYearQuestionTrend.field_type) && (
+                    <div className="card" style={{ padding: 24, marginBottom: 24 }}>
+                      <h3 style={{ marginTop: 0, marginBottom: 16 }}>Yearly Response Count Comparison</h3>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+                        {selectedYearQuestionTrend.yearly_metrics.map((m: any) => (
+                          <div key={m.year} style={{ background: "var(--surface-elevated, #f8fafc)", padding: 16, borderRadius: 10, border: "1px solid var(--border)" }}>
+                            <h4 style={{ margin: "0 0 12px 0", color: "var(--primary)" }}>Year {m.year} ({m.total_responses} Responses)</h4>
+                            {m.option_distribution?.length > 0 ? (
+                              m.option_distribution.map((opt: any) => (
+                                <div key={opt.option_value} style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: "0.85rem" }}>
+                                  <span>{opt.option_label}</span>
+                                  <strong>{opt.count} count</strong>
+                                </div>
+                              ))
+                            ) : (
+                              <p className="muted small" style={{ margin: 0 }}>No responses in {m.year}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* QUESTION YEARLY METRICS TABLE */}
+                  <div className="card" style={{ padding: 20 }}>
+                    <h3 style={{ marginTop: 0, marginBottom: 16 }}>Yearly Response Metrics Table</h3>
+                    <div style={{ overflowX: "auto" }}>
+                      <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
+                        <thead>
+                          <tr style={{ borderBottom: "2px solid var(--border)", color: "var(--muted)" }}>
+                            <th style={{ padding: 12 }}>Year</th>
+                            <th style={{ padding: 12 }}>Total Responses</th>
+                            {selectedYearQuestionTrend.field_type === "NUMBER" && <th style={{ padding: 12 }}>Average Value</th>}
+                            {selectedYearQuestionTrend.field_type === "NUMBER" && <th style={{ padding: 12 }}>Min / Max</th>}
+                            {["TEXT", "TEXTAREA"].includes(selectedYearQuestionTrend.field_type) && <th style={{ padding: 12 }}>Avg Character Length</th>}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {selectedYearQuestionTrend.yearly_metrics.map((m: any) => (
+                            <tr key={m.year} style={{ borderBottom: "1px solid var(--border)" }}>
+                              <td style={{ padding: 12, fontWeight: 700 }}>Year {m.year}</td>
+                              <td style={{ padding: 12 }}>{m.total_responses}</td>
+                              {selectedYearQuestionTrend.field_type === "NUMBER" && <td style={{ padding: 12, fontWeight: 700, color: "#2563eb" }}>{m.average ?? "—"}</td>}
+                              {selectedYearQuestionTrend.field_type === "NUMBER" && <td style={{ padding: 12 }}>{m.min ?? "—"} / {m.max ?? "—"}</td>}
+                              {["TEXT", "TEXTAREA"].includes(selectedYearQuestionTrend.field_type) && <td style={{ padding: 12 }}>{m.avg_char_length ?? "—"}</td>}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <p className="muted">No year-wise comparison data found for this form.</p>
@@ -652,7 +749,7 @@ export function AnalyticsDashboardPage() {
             <div>
               <div style={{ marginBottom: 20 }}>
                 <h2 style={{ margin: 0 }}>Side-by-Side Submission Comparison</h2>
-                <p className="muted">Select 2 or more submissions below to perform deep field-by-field diff comparison.</p>
+                <p className="muted">Select 2 or more submissions below to perform deep field-by-field diff comparison and view side-by-side charts.</p>
               </div>
 
               {/* Submissions Picker list */}
@@ -701,26 +798,60 @@ export function AnalyticsDashboardPage() {
                 <div style={{ padding: 30, textAlign: "center" }}>Comparing submission fields...</div>
               ) : submissionComparisonData ? (
                 <div>
-                  {/* Similarity Metrics */}
-                  <div className="card" style={{ padding: 20, marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div>
-                      <h3 style={{ margin: 0 }}>Similarity Score: <span style={{ color: "var(--primary)" }}>{submissionComparisonData.metrics.similarity_pct}%</span></h3>
-                      <p className="muted small" style={{ margin: "4px 0 0 0" }}>
-                        Matching fields: {submissionComparisonData.metrics.matching_fields} / Differing fields: {submissionComparisonData.metrics.differing_fields}
+                  {/* Similarity Metrics & Visual Breakdown Charts */}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))", gap: 20, marginBottom: 24 }}>
+                    {/* Score Card & Doughnut */}
+                    <div className="card" style={{ padding: 20 }}>
+                      <h3 style={{ marginTop: 0, marginBottom: 12 }}>Similarity Score: <span style={{ color: "var(--primary)" }}>{submissionComparisonData.metrics.similarity_pct}%</span></h3>
+                      <p className="muted small" style={{ marginBottom: 16 }}>
+                        Matching fields: <strong>{submissionComparisonData.metrics.matching_fields}</strong> | Differing fields: <strong>{submissionComparisonData.metrics.differing_fields}</strong>
                       </p>
+                      <div style={{ maxWidth: 220, margin: "0 auto" }}>
+                        <Doughnut
+                          data={{
+                            labels: ["Matching Fields", "Differing Fields"],
+                            datasets: [
+                              {
+                                data: [
+                                  submissionComparisonData.metrics.matching_fields,
+                                  submissionComparisonData.metrics.differing_fields,
+                                ],
+                                backgroundColor: ["#22c55e", "#ef4444"],
+                              },
+                            ],
+                          }}
+                          options={{ responsive: true }}
+                        />
+                      </div>
                     </div>
-                    <div style={{ display: "flex", gap: 10 }}>
-                      <span style={{ background: "#dcfce7", color: "#15803d", padding: "6px 12px", borderRadius: 20, fontSize: "0.85rem", fontWeight: 700 }}>
-                        {submissionComparisonData.metrics.matching_fields} Matches
-                      </span>
-                      <span style={{ background: "#fee2e2", color: "#b91c1c", padding: "6px 12px", borderRadius: 20, fontSize: "0.85rem", fontWeight: 700 }}>
-                        {submissionComparisonData.metrics.differing_fields} Differences
-                      </span>
-                    </div>
+
+                    {/* Numeric Fields Side-by-Side Comparison Chart */}
+                    {submissionComparisonData.numeric_comparisons?.length > 0 && (
+                      <div className="card" style={{ padding: 20 }}>
+                        <h3 style={{ marginTop: 0, marginBottom: 16 }}>Numeric Question Comparison</h3>
+                        <Bar
+                          data={{
+                            labels: submissionComparisonData.numeric_comparisons.map((nc: any) => nc.label),
+                            datasets: submissionComparisonData.submissions.map((sub: any, idx: number) => {
+                              const colors = ["#2563eb", "#10b981", "#f59e0b", "#8b5cf6"];
+                              const color = colors[idx % colors.length];
+                              return {
+                                label: sub.dept_name,
+                                data: submissionComparisonData.numeric_comparisons.map((nc: any) => nc.values[sub.id] || 0),
+                                backgroundColor: color,
+                                borderRadius: 4,
+                              };
+                            }),
+                          }}
+                          options={{ responsive: true }}
+                        />
+                      </div>
+                    )}
                   </div>
 
                   {/* Side-by-Side Matrix Table */}
                   <div className="card" style={{ padding: 20, overflowX: "auto" }}>
+                    <h3 style={{ marginTop: 0, marginBottom: 16 }}>Field-by-Field Comparison Matrix</h3>
                     <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
                       <thead>
                         <tr style={{ borderBottom: "2px solid var(--border)", background: "var(--surface-elevated, #f8fafc)" }}>

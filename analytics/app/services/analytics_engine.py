@@ -16,7 +16,6 @@ class AnalyticsEngine:
         submitted_count = len(subs_df[subs_df["status"] == "SUBMITTED"]) if not subs_df.empty else 0
         draft_count = len(subs_df[subs_df["status"] == "DRAFT"]) if not subs_df.empty else 0
 
-        # Department breakdown
         all_departments = data.get("departments", [])
         dept_records = []
 
@@ -37,10 +36,8 @@ class AnalyticsEngine:
                     "submitted_count": sub_c,
                     "draft_count": drf_c
                 })
-            # Sort by total submissions desc
             dept_records = sorted(dept_records, key=lambda x: x["total_submissions"], reverse=True)
 
-        # Global timeline growth (month-wise)
         growth_records = []
         if not subs_df.empty:
             dates = pd.to_datetime(subs_df["submitted_at"].fillna(subs_df["created_at"]))
@@ -48,7 +45,6 @@ class AnalyticsEngine:
             growth_df = subs_df.groupby("month_period").size().reset_index(name="submission_count")
             growth_records = growth_df.to_dict(orient="records")
 
-        # Top forms
         top_forms_records = []
         if not subs_df.empty and "form_title" in subs_df.columns:
             top_df = subs_df.groupby(["form_id", "form_title"]).size().reset_index(name="total_submissions")
@@ -107,12 +103,14 @@ class AnalyticsEngine:
     @staticmethod
     def compute_year_comparison(data: Dict[str, Any]) -> Dict[str, Any]:
         form_id = data.get("form_id", "")
+        fields = data.get("fields", [])
         submissions = data.get("submissions", [])
+        values = data.get("values", [])
 
         df = pd.DataFrame(submissions) if submissions else pd.DataFrame()
 
         if df.empty:
-            return {"form_id": form_id, "years_analyzed": [], "years_data": []}
+            return {"form_id": form_id, "years_analyzed": [], "years_data": [], "question_year_trends": {}}
 
         ref_dates = pd.to_datetime(df["submitted_at"].fillna(df["created_at"]))
         df["submission_year"] = ref_dates.dt.year
@@ -151,10 +149,83 @@ class AnalyticsEngine:
                 "department_breakdown": dept_counts
             })
 
+        # Per-Question Year-over-Year Comparative Analysis
+        vals_df = pd.DataFrame(values) if values else pd.DataFrame(columns=["field_id", "value", "submitted_at"])
+        if not vals_df.empty:
+            vals_df["submission_year"] = pd.to_datetime(vals_df["submitted_at"]).dt.year
+
+        question_year_trends = {}
+
+        for f in fields:
+            f_id = f["field_id"]
+            f_type = f["field_type"]
+            f_label = f["label"]
+            f_key = f["field_key"]
+            f_options = f.get("options", [])
+            option_labels = {opt["value"]: opt["label"] for opt in f_options}
+
+            f_vals = vals_df[vals_df["field_id"] == f_id] if not vals_df.empty else pd.DataFrame()
+            
+            yearly_metrics = []
+
+            for yr in unique_years:
+                y_vals = f_vals[f_vals["submission_year"] == yr] if not f_vals.empty else pd.DataFrame()
+                total_resp = len(y_vals[y_vals["value"].notnull() & (y_vals["value"] != "")]) if not y_vals.empty else 0
+
+                yr_entry = {
+                    "year": int(yr),
+                    "total_responses": total_resp,
+                }
+
+                if f_type == "NUMBER" and not y_vals.empty:
+                    nums = pd.to_numeric(y_vals["value"], errors="coerce").dropna()
+                    if not nums.empty:
+                        yr_entry["average"] = float(round(nums.mean(), 2))
+                        yr_entry["min"] = float(nums.min())
+                        yr_entry["max"] = float(nums.max())
+                        yr_entry["sum"] = float(round(nums.sum(), 2))
+                    else:
+                        yr_entry["average"] = 0.0
+
+                elif f_type in ["SELECT", "RADIO", "CHECKBOX"] and not y_vals.empty:
+                    raw_values = []
+                    for val in y_vals["value"].dropna():
+                        if f_type == "CHECKBOX" and "," in str(val):
+                            raw_values.extend([v.strip() for v in str(val).split(",") if v.strip()])
+                        elif str(val).strip():
+                            raw_values.append(str(val).strip())
+                    v_counts = pd.Series(raw_values).value_counts().to_dict() if raw_values else {}
+                    
+                    dist = []
+                    for opt_val, count in v_counts.items():
+                        opt_lbl = option_labels.get(str(opt_val), str(opt_val))
+                        dist.append({"option_value": str(opt_val), "option_label": opt_lbl, "count": int(count)})
+                    yr_entry["option_distribution"] = dist
+
+                elif f_type in ["TEXT", "TEXTAREA"] and not y_vals.empty:
+                    txts = y_vals["value"].dropna().astype(str)
+                    txts = txts[txts.str.strip() != ""]
+                    if not txts.empty:
+                        yr_entry["avg_char_length"] = float(round(txts.str.len().mean(), 1))
+                        yr_entry["avg_word_count"] = float(round(txts.str.split().str.len().mean(), 1))
+
+                yearly_metrics.append(yr_entry)
+
+            question_year_trends[f_id] = {
+                "field_id": f_id,
+                "label": f_label,
+                "field_key": f_key,
+                "field_type": f_type,
+                "section_title": f.get("section_title", ""),
+                "yearly_metrics": yearly_metrics
+            }
+
         return {
             "form_id": form_id,
             "years_analyzed": [int(y) for y in unique_years],
-            "years_data": years_data
+            "years_data": years_data,
+            "fields_list": [{"field_id": f["field_id"], "label": f["label"], "field_type": f["field_type"]} for f in fields],
+            "question_year_trends": question_year_trends
         }
 
     @staticmethod
@@ -173,9 +244,11 @@ class AnalyticsEngine:
         field_matrix = []
         matching_fields = 0
         total_fields = len(fields)
+        numeric_comparisons = []
 
         for f in fields:
             f_id = f["field_id"]
+            f_type = f["field_type"]
             values_by_sub = {}
             unique_vals = set()
 
@@ -193,11 +266,26 @@ class AnalyticsEngine:
                 "field_id": f_id,
                 "label": f["label"],
                 "field_key": f["field_key"],
-                "field_type": f["field_type"],
+                "field_type": f_type,
                 "section_title": f["section_title"],
                 "values": values_by_sub,
                 "is_match": is_match
             })
+
+            # If numeric field, collect comparison data across submissions for chart rendering
+            if f_type == "NUMBER":
+                num_vals_by_sub = {}
+                for sub_id, val_str in values_by_sub.items():
+                    try:
+                        num_vals_by_sub[sub_id] = float(val_str) if val_str != "" else 0.0
+                    except ValueError:
+                        num_vals_by_sub[sub_id] = 0.0
+
+                numeric_comparisons.append({
+                    "field_id": f_id,
+                    "label": f["label"],
+                    "values": num_vals_by_sub
+                })
 
         similarity_pct = round((matching_fields / total_fields * 100), 2) if total_fields > 0 else 100.0
 
@@ -205,6 +293,7 @@ class AnalyticsEngine:
             "form_id": form_id,
             "submissions": submissions,
             "field_comparison": field_matrix,
+            "numeric_comparisons": numeric_comparisons,
             "metrics": {
                 "total_fields": total_fields,
                 "matching_fields": matching_fields,

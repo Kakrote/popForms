@@ -95,20 +95,60 @@ export const fetchFormOverviewData = async (formId: string) => {
 };
 
 export const fetchYearComparisonData = async (formId: string) => {
-  const submissions = await prisma.submission.findMany({
-    where: { formId },
-    include: { department: true },
-    orderBy: { createdAt: "asc" },
-  });
+  const [fields, submissions, values] = await Promise.all([
+    prisma.field.findMany({
+      where: { section: { formId } },
+      include: {
+        section: { select: { title: true, sortOrder: true } },
+        options: { select: { label: true, value: true } },
+      },
+      orderBy: [
+        { section: { sortOrder: "asc" } },
+        { sortOrder: "asc" },
+      ],
+    }),
+    prisma.submission.findMany({
+      where: { formId },
+      include: { department: true },
+      orderBy: { createdAt: "asc" },
+    }),
+    prisma.submissionValue.findMany({
+      where: { submission: { formId } },
+      include: {
+        submission: {
+          select: {
+            createdAt: true,
+            submittedAt: true,
+          },
+        },
+      },
+    }),
+  ]);
 
   return {
     form_id: formId,
+    fields: fields.map((f) => ({
+      field_id: f.id,
+      label: f.label,
+      field_key: f.fieldKey,
+      field_type: f.fieldType,
+      section_title: f.section.title,
+      options: f.options,
+    })),
     submissions: submissions.map((s) => ({
       id: s.id,
       status: s.status,
       created_at: s.createdAt.toISOString(),
       submitted_at: s.submittedAt ? s.submittedAt.toISOString() : null,
       dept_name: s.department?.department_Name || "",
+    })),
+    values: values.map((v) => ({
+      field_id: v.fieldId,
+      value: v.value,
+      submission_id: v.submissionId,
+      submitted_at: v.submission.submittedAt
+        ? v.submission.submittedAt.toISOString()
+        : v.submission.createdAt.toISOString(),
     })),
   };
 };
