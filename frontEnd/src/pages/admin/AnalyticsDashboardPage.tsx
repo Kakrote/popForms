@@ -554,87 +554,37 @@ export function AnalyticsDashboardPage() {
           ) : yearData && yearData.years_data?.length > 0 ? (
             <div>
               {/* Section Selection Toolbar for Year-Wise Analysis */}
-              <div className="card" style={{ padding: 20, marginBottom: 24, background: "var(--surface-elevated, #f8fafc)" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <FolderKanban size={20} color="var(--primary)" />
-                    <div>
-                      <strong style={{ fontSize: "1.05rem" }}>Section-Wise Year Comparison</strong>
-                      <p className="muted small" style={{ margin: 0 }}>Filter Year-over-Year metrics by Form Section.</p>
-                    </div>
-                  </div>
-
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <Filter size={16} className="muted" />
-                    <select
-                      value={selectedYearSectionTitle}
-                      onChange={(e) => setSelectedYearSectionTitle(e.target.value)}
-                      style={{
-                        padding: "8px 14px",
-                        borderRadius: 8,
-                        border: "1px solid var(--border)",
-                        background: "var(--surface)",
-                        fontWeight: 600,
-                        fontSize: "0.9rem",
-                        maxWidth: "350px"
-                      }}
-                    >
-                      <option value="ALL">📂 All Sections (Full Form Volume)</option>
-                      {yearData.sections_list?.map((s: any) => (
-                        <option key={s.title} value={s.title}>
-                          Section: {s.title} ({s.fields_count} fields)
-                        </option>
-                      ))}
-                    </select>
+              <div className="card" style={{ padding: 16, marginBottom: 24, background: "var(--surface-elevated, #f8fafc)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <FolderKanban size={20} color="var(--primary)" />
+                  <div>
+                    <strong style={{ fontSize: "1.05rem" }}>Filter Year Comparison by Section</strong>
+                    <p className="muted small" style={{ margin: 0 }}>Select a section to view Year-over-Year metrics for that section.</p>
                   </div>
                 </div>
 
-                {/* Section Clickable Chips Bar */}
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", borderTop: "1px solid var(--border)", paddingTop: 12 }}>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedYearSectionTitle("ALL")}
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <Filter size={16} className="muted" />
+                  <select
+                    value={selectedYearSectionTitle}
+                    onChange={(e) => setSelectedYearSectionTitle(e.target.value)}
                     style={{
-                      padding: "6px 14px",
-                      borderRadius: 20,
-                      border: selectedYearSectionTitle === "ALL" ? "2px solid var(--primary)" : "1px solid var(--border)",
-                      background: selectedYearSectionTitle === "ALL" ? "#eff6ff" : "var(--surface)",
-                      color: selectedYearSectionTitle === "ALL" ? "var(--primary)" : "var(--text)",
+                      padding: "8px 14px",
+                      borderRadius: 8,
+                      border: "1px solid var(--border)",
+                      background: "var(--surface)",
                       fontWeight: 600,
-                      fontSize: "0.82rem",
-                      cursor: "pointer"
+                      fontSize: "0.9rem",
+                      minWidth: "280px"
                     }}
                   >
-                    All Sections
-                  </button>
-
-                  {yearData.sections_list?.map((s: any) => {
-                    const isSelected = selectedYearSectionTitle === s.title;
-                    return (
-                      <button
-                        key={s.title}
-                        type="button"
-                        onClick={() => setSelectedYearSectionTitle(s.title)}
-                        style={{
-                          padding: "6px 14px",
-                          borderRadius: 20,
-                          border: isSelected ? "2px solid var(--primary)" : "1px solid var(--border)",
-                          background: isSelected ? "#eff6ff" : "var(--surface)",
-                          color: isSelected ? "var(--primary)" : "var(--text)",
-                          fontWeight: isSelected ? 700 : 500,
-                          fontSize: "0.82rem",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 6
-                        }}
-                      >
-                        <FolderKanban size={13} style={{ opacity: 0.7 }} />
-                        {s.title}
-                        <span className="badge small" style={{ fontSize: "0.65rem", padding: "0px 4px" }}>{s.fields_count} fields</span>
-                      </button>
-                    );
-                  })}
+                    <option value="ALL">📂 All Sections (Full Form Volume)</option>
+                    {yearData.sections_list?.map((s: any) => (
+                      <option key={s.title} value={s.title}>
+                        Section: {s.title} ({s.fields_count} fields)
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -791,87 +741,37 @@ export function AnalyticsDashboardPage() {
               ) : submissionComparisonData ? (
                 <div>
                   {/* SECTION SELECTOR TOOLBAR FOR SUBMISSION COMPARISON */}
-                  <div className="card" style={{ padding: 20, marginBottom: 24, background: "var(--surface-elevated, #f8fafc)" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <FolderKanban size={20} color="var(--primary)" />
-                        <div>
-                          <strong style={{ fontSize: "1.05rem" }}>Filter Comparison by Form Section</strong>
-                          <p className="muted small" style={{ margin: 0 }}>Select a specific section to focus comparison on questions within that section.</p>
-                        </div>
-                      </div>
-
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <Filter size={16} className="muted" />
-                        <select
-                          value={selectedSubSectionTitle}
-                          onChange={(e) => setSelectedSubSectionTitle(e.target.value)}
-                          style={{
-                            padding: "8px 14px",
-                            borderRadius: 8,
-                            border: "1px solid var(--border)",
-                            background: "var(--surface)",
-                            fontWeight: 600,
-                            fontSize: "0.9rem",
-                            maxWidth: "350px"
-                          }}
-                        >
-                          <option value="ALL">📂 All Sections (Full Diff Matrix & Summary)</option>
-                          {submissionComparisonData.sections_list?.map((s: any) => (
-                            <option key={s.title} value={s.title}>
-                              Section: {s.title} ({s.fields_count} fields)
-                            </option>
-                          ))}
-                        </select>
+                  <div className="card" style={{ padding: 16, marginBottom: 24, background: "var(--surface-elevated, #f8fafc)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <FolderKanban size={20} color="var(--primary)" />
+                      <div>
+                        <strong style={{ fontSize: "1.05rem" }}>Filter Comparison by Form Section</strong>
+                        <p className="muted small" style={{ margin: 0 }}>Select a specific section to focus comparison on questions within that section.</p>
                       </div>
                     </div>
 
-                    {/* Section Clickable Chips Bar */}
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", borderTop: "1px solid var(--border)", paddingTop: 12 }}>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedSubSectionTitle("ALL")}
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <Filter size={16} className="muted" />
+                      <select
+                        value={selectedSubSectionTitle}
+                        onChange={(e) => setSelectedSubSectionTitle(e.target.value)}
                         style={{
-                          padding: "6px 14px",
-                          borderRadius: 20,
-                          border: selectedSubSectionTitle === "ALL" ? "2px solid var(--primary)" : "1px solid var(--border)",
-                          background: selectedSubSectionTitle === "ALL" ? "#eff6ff" : "var(--surface)",
-                          color: selectedSubSectionTitle === "ALL" ? "var(--primary)" : "var(--text)",
+                          padding: "8px 14px",
+                          borderRadius: 8,
+                          border: "1px solid var(--border)",
+                          background: "var(--surface)",
                           fontWeight: 600,
-                          fontSize: "0.82rem",
-                          cursor: "pointer"
+                          fontSize: "0.9rem",
+                          minWidth: "280px"
                         }}
                       >
-                        All Sections Matrix
-                      </button>
-
-                      {submissionComparisonData.sections_list?.map((s: any) => {
-                        const isSelected = selectedSubSectionTitle === s.title;
-                        return (
-                          <button
-                            key={s.title}
-                            type="button"
-                            onClick={() => setSelectedSubSectionTitle(s.title)}
-                            style={{
-                              padding: "6px 14px",
-                              borderRadius: 20,
-                              border: isSelected ? "2px solid var(--primary)" : "1px solid var(--border)",
-                              background: isSelected ? "#eff6ff" : "var(--surface)",
-                              color: isSelected ? "var(--primary)" : "var(--text)",
-                              fontWeight: isSelected ? 700 : 500,
-                              fontSize: "0.82rem",
-                              cursor: "pointer",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 6
-                            }}
-                          >
-                            <FolderKanban size={13} style={{ opacity: 0.7 }} />
-                            {s.title}
-                            <span className="badge small" style={{ fontSize: "0.65rem", padding: "0px 4px" }}>{s.fields_count} fields</span>
-                          </button>
-                        );
-                      })}
+                        <option value="ALL">📂 All Sections (Full Diff Matrix & Summary)</option>
+                        {submissionComparisonData.sections_list?.map((s: any) => (
+                          <option key={s.title} value={s.title}>
+                            Section: {s.title} ({s.fields_count} fields)
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
 
